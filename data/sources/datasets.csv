@@ -30,5 +30,5 @@ Metra stations,Chicago,nqm8-q2ym,https://data.cityofchicago.org/resource/,as cha
 Transit-served locations,Chicago,not on the data portal (searched 2026-10-29); get from city GIS or digitize from the ordinance map,,as changed,no,parking rules; score
 Fire limits,Chicago,not on the data portal (searched 2026-10-29); get from city GIS or digitize from the ordinance map,,as changed,no,flags; penalties
 606 and Pilsen demolition surcharge districts,Chicago,not on the data portal (searched 2026-10-29); get from city GIS or digitize from the ordinance map,,as changed,no,flags; penalties
-ADU areas (opted-in wards or precincts),Chicago,not on the data portal (searched 2026-10-29); get from city GIS or digitize from the ordinance map,,as changed,no,ADU path in RS districts
+ADU eligibility map,Chicago,not on the data portal; the city published an ADU eligibility map with the permanent ordinance (2026-04-01); get its GIS layer,,as changed,no,ADU path in RS districts
 Opportunity Zone tracts,US Treasury,2018 list; 2027 list when certified,,as changed,no,incentives

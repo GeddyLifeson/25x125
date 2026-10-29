@@ -147,7 +147,7 @@ Sources: [B and C districts](https://codelibrary.amlegal.com/codes/chicago/lates
 
 4.  Administrative adjustment path: lot area may be 90% of the minimum, so units = floor(lot area / (0.9 x lot area per unit)); height +10%.
 
-5.  ADU path: +1 unit for a coach house or conversion unit in RT-4 and higher and in B/C districts; RS districts only in wards that opted in. Two or more ADUs trigger the affordability rule.
+5.  ADU path: +1 unit for a coach house or conversion unit in RT-4 and higher and in B/C districts; RS districts where the city's ADU eligibility map allows it (ordinance permanent citywide since 2026-04-01; alderpeople can block areas). Two or more ADUs trigger the affordability rule.
 
 6.  Rezoning path: recompute at a target district the user picks (defaults: RS-3 to RT-4, RT-4 to RM-5, RM-4.5 to RM-5, B/C -1 and -1.5 to -2, B/C -2 to -3). Targets are listed in `zoning_steps.json`.
 

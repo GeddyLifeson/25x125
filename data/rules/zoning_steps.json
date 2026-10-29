@@ -21,7 +21,7 @@
     },
     {
       "id": "adu",
-      "rule": "+1 unit (coach house or conversion) in RT-4 and higher and B/C; RS only in opted-in wards; 2+ ADUs trigger affordability rule"
+      "rule": "+1 unit (coach house or conversion) in RT-4 and higher and B/C; RS where the city's ADU eligibility map allows (permanent since 2026-04-01); 2+ ADUs trigger affordability rule"
     },
     {
       "id": "rezoning",

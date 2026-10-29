@@ -8,7 +8,7 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 - [ ] `docker-compose.yml` with PostgreSQL 16 + PostGIS. One command to start it on Windows and Mac.
 - [ ] `.env.example` filled in; settings loaded from env.
 - [x] Query every dataset in `data/sources/datasets.csv` once (done 2026-10-29; all answer).
-- [ ] Source the layers that are not on the data portals: transit-served areas, fire limits, 606/Pilsen surcharge districts, ADU areas, Opportunity Zone tracts, a current parcel polygon year.
+- [ ] Source the layers that are not on the data portals: transit-served areas, fire limits, 606/Pilsen surcharge districts, the ADU eligibility map, Opportunity Zone tracts, a current parcel polygon year.
 - [x] Construction $/sq ft from published sources (docs/construction-costs-2026-10-29.md); contractor data replaces it when available.
 - [ ] Run 10 real parcels through the spec math by hand; note every question answered outside the tool.
 
@@ -39,6 +39,7 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 
 - [ ] Port `scripts/research/2026-10-29/` into jobs: comp pool from year built (211 + condo), first arm's-length sale, weighted median per unit, 25th-75th range, time adjustment.
 - [ ] Cost index job within unit-count groups, monthly (logic in `idx.py`); blend thin areas with neighbors.
+- [ ] Permit wait by review path from `processing_time` (self-cert 50 days, standard 85, medians); FHFA tract HPI time adjustment; PPI escalation of presets (round 2 of docs/international-practices.md).
 - [ ] Recency weights by quarter (1.00, 0.75, 0.56, 0.42) and side-of-city blending for thin areas.
 - [ ] Land value map: vacant-land and teardown sales, per sq ft of lot and per buildable sq ft, by Assessor neighborhood, with counts.
 - [x] Build-spec presets set from published evidence (production $165/$170).
@@ -54,6 +55,7 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 - [ ] Pattern library scenarios from `data/rules/building_patterns.json`, checked against each zoning path.
 - [ ] Residual land value, profit as percent of value and cost, existing-use check; cost at P50 and P80.
 - [ ] Eligibility questions from `data/rules/incentive_questions.json` drive incentive toggles.
+- [ ] Reference lines: margin on cost 15-20%, spread over cap rate 1.0 pt, DSCR 1.3; buyer financing class (2-4 residential vs 5+ commercial) and FHA limit flag; Open Space Impact Fee line.
 - [ ] Fast-path flag per parcel (definition in `feasibility_defaults.json`).
 - [ ] Every output number carries source, date and comp count.
 - [ ] Nightly by-right run for every parcel; development score with points breakdown.
@@ -69,7 +71,7 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 ## Step 6: Map search and deals
 
 - [ ] Parcel vector tiles; map and list matching `mockups/Main.dc.html`; filters and sorts; under 2 seconds.
-- [ ] Fast-path filter and land value map layer.
+- [ ] Fast-path filter, land value map layer, and city lots for sale (ChiBlockBuilder) layer.
 - [ ] Deals screen matching `mockups/Deals.dc.html`: pipeline counts, deal table, outreach log, CSV export.
 - [ ] Email sign-in.
 
@@ -93,7 +95,8 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 - [ ] Permit-ready plan sets for the pattern library with partner architects (Phase 2).
 - [ ] Entitlement tracker as gateways with one consolidated comment list per round (Phase 2a).
 - [ ] Refit cost margins from actual job costs, P50/P80 (Phase 4).
-- [ ] Policy mode: rerun all parcels under a proposed ordinance (after V1.1).
+- [ ] Policy mode: rerun all parcels under a proposed ordinance (after V1.1); seeded from `data/rules/pending_rules.json`.
+- [ ] Assembly finder (land readjustment idea), fee-simple townhome scenario, appraisal-gap check from FHFA UAD (V1.1).
 
 ## Business setup (Marlon, alongside)
 
