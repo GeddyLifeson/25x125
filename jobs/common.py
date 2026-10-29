@@ -35,11 +35,13 @@ def upsert(
     key: str,
     rows: Iterable[tuple],
     expressions: dict[str, str] | None = None,
+    on_conflict: dict[str, str] | None = None,
 ) -> int:
     """COPY rows into a temp table, then insert or update the target on `key`.
 
     `expressions` maps a column to SQL that builds it from the staged columns (e.g. geometry from lon/lat).
-    Rows that repeat a key keep one of them; loaders that need to combine repeats do it before calling.
+    Rows that repeat a key within one call keep one of them. `on_conflict` maps a column to the SQL used
+    when the key already exists (default: take the new value), e.g. to combine geometries.
     """
     expressions = expressions or {}
     conn.execute(f"create temp table stage on commit drop as select * from {table} with no data")
@@ -52,7 +54,8 @@ def upsert(
             n += 1
     target_cols = [c for c in _table_columns(conn, table) if c in columns or c in expressions]
     select = [expressions.get(c, c) for c in target_cols]
-    updates = ", ".join(f"{c} = excluded.{c}" for c in target_cols if c != key)
+    on_conflict = on_conflict or {}
+    updates = ", ".join(f"{c} = {on_conflict.get(c, f'excluded.{c}')}" for c in target_cols if c != key)
     conn.execute(
         f"insert into {table} ({', '.join(target_cols)}) select distinct on ({key}) {', '.join(select)} from stage"
         f" on conflict ({key}) do update set {updates}"

@@ -2,7 +2,7 @@
 
 create table parcel_shape (
   pin10 text primary key,
-  vintage integer not null,                -- year of the polygon layer (77tz-riq7 is 2021)
+  vintage integer not null,                -- year of the polygon layer
   geom geometry(MultiPolygon, 4326) not null,
   lot_sqft numeric,                        -- area in State Plane feet
   frontage_ft numeric,                     -- short side of the oriented bounding box; an estimate

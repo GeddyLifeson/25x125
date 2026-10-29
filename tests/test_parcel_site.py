@@ -6,6 +6,17 @@ from db.migrate import migrate
 from jobs import build_parcel_site, load_parcel_shapes, load_zoning
 from tests.test_loaders import FakeClient
 
+
+class FakeArcGIS:
+    host = "gis.example.org"
+
+    def __init__(self, pages):
+        self._pages = pages
+
+    def features(self, where, out_fields, key="OBJECTID", page_size=2000):
+        yield from self._pages
+
+
 # A 25 x 125 ft lot drawn in State Plane feet, then converted to lon/lat.
 LOT_3435 = "POLYGON((1154690 1908300, 1154715 1908300, 1154715 1908425, 1154690 1908425, 1154690 1908300))"
 
@@ -45,8 +56,8 @@ def test_parcel_site_joins_zoning_and_lot(db_url):
         )
         conn.commit()
     # Two polygon rows for the same PIN merge into one shape.
-    half = {"type": "Polygon", "coordinates": lot["coordinates"]}
-    load_parcel_shapes.run(client=FakeClient([[{"pin10": "1602226037", "the_geom": half}]]), url=db_url)
+    feature = {"type": "Feature", "properties": {"PIN10": "1602226037"}, "geometry": lot}
+    load_parcel_shapes.run(client=FakeArcGIS([[feature]]), url=db_url)
     big = {
         "type": "MultiPolygon",
         "coordinates": [[[[-87.8, 41.8], [-87.6, 41.8], [-87.6, 42.0], [-87.8, 42.0], [-87.8, 41.8]]]],
@@ -61,6 +72,6 @@ def test_parcel_site_joins_zoning_and_lot(db_url):
             "select pin, zone_class, zone_share, round(lot_sqft), round(frontage_ft), lot_source from parcel_site order by pin"
         ).fetchall()
     assert rows == [
-        ("16022260371001", "RT-4", 1, 3125, 25, "polygon 2021"),
-        ("16022260371002", "RT-4", 1, 3125, 25, "polygon 2021"),
+        ("16022260371001", "RT-4", 1, 3125, 25, "polygon 2025"),
+        ("16022260371002", "RT-4", 1, 3125, 25, "polygon 2025"),
     ]

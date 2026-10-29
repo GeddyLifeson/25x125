@@ -22,8 +22,8 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 - [ ] Nightly jobs: permits (ydr8-5enu), violations (22u3-xenr), 311 vacant building/lot (v6vf-nfxy), scofflaw (rz4d-qp2m), city land (aksk-kvfp), demolition notices (qhb4-qx8k).
 - [ ] Spatial joins: zoning district, overlays, distance to nearest CTA/Metra station, lot area and frontage from polygons. Done: zoning, lot area, frontage and depth (`parcel_site`); 15,466 parcels are split-zoned (under 90% in one district).
 - [ ] Condo handling: group unit PINs under the building's base PIN.
-- [x] Test: all 35 test parcels resolve to a parcel with zoning, lot area and frontage (`python -m jobs.check_test_parcels`, 35 of 35 on 2026-10-29). Caveat: 7 of them sit on PINs created after 2021 and take the pre-division 2021 polygon, so their lot sizes are too large (for example 6150 and 6152 S Champlain share one 12,387 sq ft polygon).
-- [ ] Newer parcel polygons to fix lot size on the 7,656 PINs created since 2021. The data catalog stops at 2021 (77tz-riq7); try the Cook County GIS hub's current parcel service.
+- [x] Test: all 35 test parcels resolve to a parcel with zoning, lot area and frontage (`python -m jobs.check_test_parcels`, 35 of 35 on 2026-10-29, on the county's 2025 parcel polygons; 6150 and 6152 S Champlain now show 3,059 and 3,060 sq ft).
+- [x] Newer parcel polygons: Cook County GIS Parcel 2025 layer (613,510 Chicago lots; every 2026 PIN now has a polygon).
 - [ ] Check Assessor Parcel Proximity (ydue-e5u3) for distance to CTA and Metra before building that join.
 - [ ] Load report: row counts per table, pull dates, failed rows.
 

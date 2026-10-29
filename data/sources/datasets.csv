@@ -21,7 +21,7 @@ ACS 5-year (B25031 B25064),Census API,acs/acs5,https://api.census.gov/data/,year
 HUD Small Area FMR FY2027,HUD,safmr,https://www.huduser.gov/portal/datasets/fmr/smallarea/,yearly,no,rent floor
 Zillow ZORI by ZIP,Zillow,zori,https://files.zillowstatic.com/research/public_csvs/zori/Zip_zori_uc_sfrcondomfr_sm_month.csv,monthly,yes,rent growth only; never display
 Condo unit characteristics,Cook County,3r7i-mrz4,https://datacatalog.cookcountyil.gov/resource/,yearly,2026-10-29 yes,new-construction condo comps; unit sq ft; building PIN count
-Parcel polygons (2021),Cook County,77tz-riq7,https://datacatalog.cookcountyil.gov/resource/,yearly,2026-10-29 found; check Cook County GIS hub for a newer year,lot area for vacant land; frontage
+Parcel polygons (2025),Cook County,parcelHistorical/MapServer/2025,https://gis.cookcountyil.gov/traditional/rest/services/,yearly,2026-10-29 yes (ArcGIS REST; the data catalog's 77tz-riq7 stops at 2021),lot area; frontage; depth
 Community area boundaries,Chicago,igwz-8jzy,https://data.cityofchicago.org/resource/,as changed,2026-10-29 found,map layer
 Ward boundaries (2023-),Chicago,p293-wvbd,https://data.cityofchicago.org/resource/,as changed,2026-10-29 found,map layer
 Census tracts 2020,Chicago,7qjk-677h,https://data.cityofchicago.org/resource/,as changed,2026-10-29 found,map layer

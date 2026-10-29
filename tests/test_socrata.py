@@ -64,3 +64,13 @@ def test_since_clause():
     assert (
         Socrata("example.org", app_token="").since("issue_date", "2026-10-01") == "issue_date > '2026-10-01'"
     )
+
+
+def test_retries_dropped_connection():
+    import http.client
+
+    waits = []
+    drop = http.client.RemoteDisconnected("Remote end closed connection without response")
+    s = Socrata("example.org", app_token="", opener=opener_from([drop, [{"ok": 1}]], []), sleep=waits.append)
+    assert s.get("abcd-1234", {}) == [{"ok": 1}]
+    assert waits == [2.0]

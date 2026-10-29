@@ -9,7 +9,7 @@ create table parcel_site (
   lot_sqft numeric,
   frontage_ft numeric,
   depth_ft numeric,
-  lot_source text,                         -- 'polygon 2021' or 'assessor'
+  lot_source text,                         -- e.g. 'polygon 2025', or 'assessor'
   built_at timestamptz not null default now()
 );
 create index parcel_site_zone on parcel_site (zone_class);

@@ -2,7 +2,7 @@
 
 Zoning comes from the district under the parcel point; the share of the lot polygon inside that district
 is kept so split-zoned lots can be flagged. Lot size comes from the PIN's polygon. A PIN created after the
-2021 polygon layer (new condo units, divided or combined lots) takes the polygon under its point instead,
+polygon layer (new condo units, divided or combined lots) takes the polygon under its point instead,
 and failing that the Assessor's land square feet.
 Run: python -m jobs.build_parcel_site
 """
@@ -17,8 +17,8 @@ select p.pin, p.pin10, z.zone_class,
             then round((st_area(st_intersection(s.geom, z.geom)) / st_area(s.geom))::numeric, 2) end,
        coalesce(s.lot_sqft, bc.land_sqft),
        s.frontage_ft, s.depth_ft,
-       case when s.pin10 = p.pin10 then 'polygon 2021'
-            when s.lot_sqft is not null then 'polygon 2021 under the parcel point'
+       case when s.pin10 = p.pin10 then 'polygon ' || s.vintage
+            when s.lot_sqft is not null then 'polygon ' || s.vintage || ' under the parcel point'
             when bc.land_sqft is not null then 'assessor' end
 from parcel p
 left join lateral (

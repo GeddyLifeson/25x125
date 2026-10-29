@@ -4,6 +4,7 @@ Pages with $limit/$offset under a stable $order, sends the app token when set, a
 throttling and server errors with backoff. The app never calls this live; only jobs do.
 """
 
+import http.client
 import json
 import time
 import urllib.error
@@ -56,7 +57,7 @@ class Socrata:
             except urllib.error.HTTPError as e:
                 if e.code not in RETRY_STATUS or attempt == self.retries:
                     raise SocrataError(f"{dataset_id}: HTTP {e.code}") from e
-            except (urllib.error.URLError, TimeoutError) as e:
+            except (urllib.error.URLError, http.client.HTTPException, ConnectionError, TimeoutError) as e:
                 if attempt == self.retries:
                     raise SocrataError(f"{dataset_id}: {e}") from e
             self._sleep(self.backoff * 2**attempt)
