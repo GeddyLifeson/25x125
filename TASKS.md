@@ -15,8 +15,8 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 ## Step 1: Data foundation
 
 - [ ] Migrations for: `parcel`, `parcel_signal`, `sale`, `permit`, `building_char` (residential and condo), `zoning_district_area`, `overlay` (TIF, Enterprise Zone, OZ, historic, landmark, fire limits, 606/Pilsen, ADU areas), `transit_station`, `boundary`, `rule` tables, `source_pull` (dataset, pulled_at, row count).
-- [ ] Every value table has `source` and `pulled_at` columns (or a link to `source_pull`).
-- [ ] Shared Socrata client: paging, app token, retries, incremental pulls by a date column. Note: Assessor year values after 2023 end in `.0` (`year='2026.0'`).
+- [x] Every value table has `source` and `pulled_at` columns (or a link to `source_pull`). Done for `parcel` and `sale`; keep it for each new table.
+- [x] Shared Socrata client: paging, app token, retries, incremental pulls by a date column (`core/socrata.py`). Note: Assessor year values after 2023 end in `.0` (`year='2026.0'`).
 - [ ] Loaders: parcel universe (pabr-t5kh, which already carries ward, community area, tract, Assessor neighborhood, TIF), addresses (3723-97qp), sales (wvhk-k5uv), assessed values (uzyt-m557), residential characteristics (x54s-btds), condo characteristics (3r7i-mrz4), parcel polygons, zoning (dj47-wfun).
 - [ ] Layer loaders: TIF (eejr-xtfb), Enterprise Zones (64xf-pyvh), historic (2u8t-236p, uct4-hrvh), CTA (8pix-ypme), Metra, boundaries (igwz-8jzy, p293-wvbd, 7qjk-677h, pcdw-pxtg), plus the step 0 layers.
 - [ ] Nightly jobs: permits (ydr8-5enu), violations (22u3-xenr), 311 vacant building/lot (v6vf-nfxy), scofflaw (rz4d-qp2m), city land (aksk-kvfp), demolition notices (qhb4-qx8k).
