@@ -6,7 +6,7 @@ Named for the standard Chicago lot: 25 by 125 feet.
 
 ## Status
 
-Planning and the first calibration run are done (2026-10-29). Code starts at Step 0 in `TASKS.md`.
+Planning and calibration are done (2026-10-29). Step 0 (setup) is in place: database, engine skeleton, web skeleton, migrations, tests and CI. Next is Step 1 in `TASKS.md`.
 
 ## What's here
 
@@ -28,9 +28,24 @@ Planning and the first calibration run are done (2026-10-29). Code starts at Ste
 
 ## Getting started
 
-1. Install Git, Docker Desktop, Python 3.12 and Node 20+.
-2. Copy `.env.example` to `.env` and add keys as you get them (none are needed to start).
-3. Open this folder in Claude Code and paste the prompt from `KICKOFF.md`.
+Works the same on Windows, Mac and Linux. Install Git, Docker Desktop, Python 3.12 and Node 22.
+
+1. Copy `.env.example` to `.env`. No keys are needed to start.
+2. Start the database: `docker compose up -d`
+3. Install the Python side: `python -m venv .venv`, activate it (`.venv\Scripts\activate` on Windows, `source .venv/bin/activate` elsewhere), then `python -m pip install -e ".[dev]"`
+4. Create the tables: `python -m db.migrate`
+5. Run the tests: `python -m pytest`
+6. Start the engine: `python -m uvicorn engine.app:app --port 8000`, then open http://localhost:8000/health
+7. Start the web app: `cd web`, `npm install`, `npm run dev`, then open http://localhost:3000
+
+| Folder | What it is |
+| --- | --- |
+| `core/` | Shared settings, database access, source tracking, Socrata client |
+| `db/` | SQL migrations and the runner |
+| `engine/` | Rules and feasibility engine (FastAPI) |
+| `jobs/` | Loaders and nightly jobs |
+| `web/` | Next.js app |
+| `tests/` | Python tests; the database tests skip unless the database from step 2 is running |
 
 ## Data
 

@@ -1,0 +1,20 @@
+# Local database: PostgreSQL 16 with PostGIS 3.4.
+# Start:  docker compose up -d     Stop: docker compose down
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: x25x125
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d x25x125"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+volumes:
+  pgdata:

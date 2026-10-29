@@ -4,13 +4,13 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 
 ## Step 0: Setup and calibration inputs
 
-- [ ] Repo layout: `jobs/` (Python loaders and nightly jobs), `engine/` (Python rules and feasibility, FastAPI), `web/` (Next.js + MapLibre), `db/` (migrations), `data/`, `docs/`, `tests/`.
-- [ ] `docker-compose.yml` with PostgreSQL 16 + PostGIS. One command to start it on Windows and Mac.
-- [ ] `.env.example` filled in; settings loaded from env.
+- [x] Repo layout: `jobs/` (Python loaders and nightly jobs), `engine/` (Python rules and feasibility, FastAPI), `web/` (Next.js + MapLibre), `db/` (migrations), `data/`, `docs/`, `tests/`.
+- [x] `docker-compose.yml` with PostgreSQL 16 + PostGIS. One command to start it on Windows and Mac.
+- [x] `.env.example` filled in; settings loaded from env (`core/settings.py`).
 - [x] Query every dataset in `data/sources/datasets.csv` once (done 2026-10-29; all answer).
 - [ ] Source the layers that are not on the data portals: transit-served areas, fire limits, 606/Pilsen surcharge districts, the ADU eligibility map, Opportunity Zone tracts, a current parcel polygon year.
 - [x] Construction $/sq ft from published sources (docs/construction-costs-2026-10-29.md); contractor data replaces it when available.
-- [ ] Run 10 real parcels through the spec math by hand; note every question answered outside the tool.
+- [x] Run 10 real parcels through the spec math; questions in `docs/hand-run-10-parcels-2026-10-29.md` (Marlon to add his).
 
 ## Step 1: Data foundation
 
