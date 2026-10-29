@@ -91,3 +91,51 @@ def test_failed_pull_is_recorded(db_url):
             "failed",
             "portal down",
         )
+
+
+def test_permit_pins_address_and_point(db_url):
+    from jobs import load_permits
+
+    migrate(db_url)
+    row = {
+        "id": "p1",
+        "permit_": "101030086",
+        "permit_type": "PERMIT - NEW CONSTRUCTION",
+        "review_type": "SELF CERT",
+        "issue_date": "2026-10-08T00:00:00.000",
+        "processing_time": "50",
+        "street_number": "1463",
+        "street_direction": "W",
+        "street_name": "MONTROSE AVE",
+        "pin_list": "1417301001 | 14173010020000 | junk",
+        "xcoordinate": "1165432.0",
+        "ycoordinate": "1930654.0",
+    }
+    assert load_permits.run(client=FakeClient([[row]]), url=db_url) == 1
+    with psycopg.connect(db_url) as conn:
+        got = conn.execute(
+            "select address, pins, processing_days, round(st_y(geom)::numeric, 2)::float8 from permit"
+        ).fetchone()
+    assert got == ("1463 W MONTROSE AVE", ["14173010010000", "14173010020000"], 50, 41.97)
+
+
+def test_building_char_reads_apartments_in_words(db_url):
+    from jobs import load_building_chars
+
+    migrate(db_url)
+    rows = [
+        {
+            "row_id": "r1",
+            "pin": "16022260370000",
+            "year": "2026.0",
+            "char_apts": "Three",
+            "char_bldg_sf": "4044.0",
+        },
+        {"row_id": "r2", "pin": "16022260380000", "year": "2026.0", "char_apts": "None"},
+    ]
+    assert load_building_chars.run(2026, client=FakeClient([rows]), url=db_url) == 2
+    with psycopg.connect(db_url) as conn:
+        got = conn.execute(
+            "select apartments, building_sqft, tax_year from building_char order by row_id"
+        ).fetchall()
+    assert got == [(3, 4044, 2026), (0, None, 2026)]
