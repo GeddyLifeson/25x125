@@ -17,16 +17,16 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 - [ ] Migrations for: `parcel`, `parcel_signal`, `sale`, `permit`, `building_char` (residential and condo), `zoning_district_area`, `overlay` (TIF, Enterprise Zone, OZ, historic, landmark, fire limits, 606/Pilsen, ADU areas), `transit_station`, `boundary`, `rule` tables, `source_pull` (dataset, pulled_at, row count).
 - [x] Every value table has `source` and `pulled_at` columns (or a link to `source_pull`). Done for `parcel` and `sale`; keep it for each new table.
 - [x] Shared Socrata client: paging, app token, retries, incremental pulls by a date column (`core/socrata.py`). Note: Assessor year values after 2023 end in `.0` (`year='2026.0'`).
-- [ ] Loaders (done: parcels, sales, residential characteristics; permits is in the nightly list): parcel universe (pabr-t5kh, which already carries ward, community area, tract, Assessor neighborhood, TIF), addresses (3723-97qp), sales (wvhk-k5uv), assessed values (uzyt-m557), residential characteristics (x54s-btds), condo characteristics (3r7i-mrz4), parcel polygons, zoning (dj47-wfun).
+- [x] Loaders (all in `jobs/`, run together by `python -m jobs.nightly`): parcel universe (pabr-t5kh, which already carries ward, community area, tract, Assessor neighborhood, TIF), addresses (3723-97qp), sales (wvhk-k5uv), assessed values (uzyt-m557), residential characteristics (x54s-btds), condo characteristics (3r7i-mrz4), parcel polygons, zoning (dj47-wfun).
 - [ ] Layer loaders: TIF (eejr-xtfb), Enterprise Zones (64xf-pyvh), historic (2u8t-236p, uct4-hrvh), CTA (8pix-ypme), Metra, boundaries (igwz-8jzy, p293-wvbd, 7qjk-677h, pcdw-pxtg), plus the step 0 layers.
 - [ ] Nightly jobs: permits (ydr8-5enu), violations (22u3-xenr), 311 vacant building/lot (v6vf-nfxy), scofflaw (rz4d-qp2m), city land (aksk-kvfp), demolition notices (qhb4-qx8k).
 - [ ] Spatial joins: zoning district, overlays, distance to nearest CTA/Metra station, lot area and frontage from polygons. Done: zoning, lot area, frontage and depth (`parcel_site`); 15,466 parcels are split-zoned (under 90% in one district). Done: historic survey Red/Orange, landmarks, TIF, feet to nearest CTA rail and Metra station (Metra from its GTFS feed; the portal's nqm8-q2ym now returns 403).
-- [ ] Condo handling: group unit PINs under the building's base PIN.
+- [x] Condo handling: unit PINs share the building's first 10 digits (`pin10`) and `tieback_key_pin` in `condo_char`.
 - [x] Test: all 35 test parcels resolve to a parcel with zoning, lot area and frontage (`python -m jobs.check_test_parcels`, 35 of 35 on 2026-10-29, on the county's 2025 parcel polygons; 6150 and 6152 S Champlain now show 3,059 and 3,060 sq ft).
 - [x] Newer parcel polygons: Cook County GIS Parcel 2025 layer (613,510 Chicago lots; every 2026 PIN now has a polygon).
 - [x] Checked Assessor Parcel Proximity (ydue-e5u3): no transit fields; distances computed from station points instead.
 - [ ] Enterprise Zones (64xf-pyvh) returns empty geometry on 2026-10-29; find another source.
-- [ ] Load report: row counts per table, pull dates, failed rows.
+- [x] Load report: row counts per table, latest pull per source, failed pulls in the last 7 days (`python -m jobs.report`).
 
 ## Step 2: Rules engine
 
