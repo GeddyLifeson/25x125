@@ -1,0 +1,7 @@
+program,parcel_test,dollar_estimate,default_toggle,note
+Bonus depreciation (cost segregation),every hold scenario,25% of hard cost x 37% tax rate,on for hold; off for sell,tax deferral (timing value); show apart from cash profit; not tax advice
+Opportunity Zone gain exclusion,tract in 2018 zone list (valid through 2028) or certified 2027 list,hold: 23.8% x value created after a 10-year hold; sell: $0,on for hold; $0 for sell,exclusion needs a 10-year hold; a sale at 18 months gets deferral only; 2027 list not yet verified
+Enterprise Zone materials sales tax exemption,parcel inside Enterprise Zone (64xf-pyvh),10.25% x 40% of hard cost,on,flag: confirm residential eligibility
+TIF Small Business Improvement Fund,in TIF (eejr-xtfb or pabr-t5kh tax_tif_district) not expiring this year with commercial space,flag only,off,
+Cook County Class 7a/7b/8,mixed-use scenario with commercial space,commercial assessed level 25% -> 10% for 10 years,off,flag: needs city resolution
+Missing Middle program,city-owned lot in a Missing Middle round,up to $150000 per unit,off,owner-occupant buyers required

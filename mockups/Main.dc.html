@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>25x125 search: Humboldt Park</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F5F6F7}
+a{color:#1C6DB0}a:hover{color:#124C7C}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F5F6F7; color: #16191D; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 14px">
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 24px; padding: 14px 24px; background: #16191D; color: #FFFFFF">
+    <div style="display: flex; align-items: baseline; gap: 10px">
+      <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 18px; letter-spacing: 0.5px">25x125</span>
+      <span style="font-size: 12px; color: #B9C0C7">Chicago development pipeline</span>
+    </div>
+    <nav aria-label="Screens" style="display: flex; flex-wrap: wrap; gap: 4px">
+      <a href="Main.dc.html" style="color: #FFFFFF; text-decoration: none; padding: 8px 12px; border-radius: 6px; background: #2B3138; font-weight: 500">Search</a>
+      <a href="Parcel.dc.html" style="color: #D5DADF; text-decoration: none; padding: 8px 12px; border-radius: 6px">Parcel</a>
+      <a href="Feasibility.dc.html" style="color: #D5DADF; text-decoration: none; padding: 8px 12px; border-radius: 6px">Feasibility</a>
+      <a href="Deals.dc.html" style="color: #D5DADF; text-decoration: none; padding: 8px 12px; border-radius: 6px">Deals</a>
+    </nav>
+    <div style="margin-left: auto; font-size: 12px; color: #B9C0C7">Sample data for layout</div>
+  </header>
+
+  <section aria-label="Search and filters" style="padding: 16px 24px; background: #FFFFFF; border-bottom: 1px solid #DDE1E5; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: end">
+      <div style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 280px">
+        <label for="area" style="font-size: 12px; color: #5A6169; font-weight: 500">Area</label>
+        <input id="area" type="text" value="Humboldt Park (community area 23)" style="height: 40px; padding: 0 12px; border: 1px solid #C9CFD5; border-radius: 6px; font: inherit; color: #16191D; background: #FFFFFF">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; flex: 0 1 200px">
+        <label for="type" style="font-size: 12px; color: #5A6169; font-weight: 500">Project type</label>
+        <select id="type" style="height: 40px; padding: 0 10px; border: 1px solid #C9CFD5; border-radius: 6px; font: inherit; color: #16191D; background: #FFFFFF">
+          <option>2-6 flat</option>
+          <option>Mixed use</option>
+          <option>Small commercial</option>
+        </select>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; flex: 0 1 160px">
+        <label for="minscore" style="font-size: 12px; color: #5A6169; font-weight: 500">Min. score</label>
+        <input id="minscore" type="number" value="60" style="height: 40px; padding: 0 12px; border: 1px solid #C9CFD5; border-radius: 6px; font: inherit; color: #16191D; background: #FFFFFF">
+      </div>
+      <button type="button" style="height: 44px; padding: 0 18px; border: 0; border-radius: 6px; background: #1C6DB0; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">Save search</button>
+    </div>
+    <div role="group" aria-label="Signals" style="display: flex; flex-wrap: wrap; gap: 8px">
+      <sc-for list="{{chips}}" as="chip" hint-placeholder-count="8">
+        <button type="button" aria-pressed="{{chip.on}}" onClick="{{chip.toggle}}" style="{{chip.style}}">{{chip.label}}</button>
+      </sc-for>
+    </div>
+  </section>
+
+  <section aria-label="Neighborhood snapshot" style="display: flex; flex-wrap: wrap; gap: 24px; padding: 12px 24px; background: #E6F1FA; border-bottom: 1px solid #C7DDF0; font-size: 13px">
+    <span><strong style="font-weight: 600">Humboldt Park</strong> · new 2-6 unit buildings and condos</span>
+    <span>Median new-construction sale per unit <strong style="font-family: 'IBM Plex Mono', monospace; font-weight: 500">$295,000</strong></span>
+    <span>Sales, last 3 years <strong style="font-family: 'IBM Plex Mono', monospace; font-weight: 500">24</strong></span>
+    <span>Cost index <strong style="font-family: 'IBM Plex Mono', monospace; font-weight: 500">0.78</strong></span>
+    <span style="color: #3E5468">Source: Cook County Assessor sales and Chicago permits, pulled 2026-10-29</span>
+  </section>
+
+  <main style="display: flex; flex-wrap: wrap; gap: 0; align-items: stretch">
+    <section aria-label="Results" style="flex: 1 1 420px; min-width: 0; max-height: 640px; overflow-y: auto; background: #FFFFFF; border-right: 1px solid #DDE1E5">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 1px solid #DDE1E5">
+        <span style="font-weight: 600">{{count}} parcels</span>
+        <label for="sort" style="font-size: 12px; color: #5A6169; display: flex; align-items: center; gap: 8px">Sort
+          <select id="sort" style="height: 32px; border: 1px solid #C9CFD5; border-radius: 6px; font: inherit; background: #FFFFFF; color: #16191D">
+            <option>Development score</option>
+            <option>Profit at asking</option>
+            <option>Max land price</option>
+            <option>Newest signal</option>
+          </select>
+        </label>
+      </div>
+      <sc-for list="{{results}}" as="r" hint-placeholder-count="6">
+        <a href="Parcel.dc.html" style="display: flex; gap: 14px; padding: 14px 20px; border-bottom: 1px solid #EEF0F2; text-decoration: none; color: #16191D">
+          <span style="flex: 0 0 auto; width: 28px; height: 28px; border-radius: 14px; background: #16191D; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 12px">{{r.pin}}</span>
+          <span style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+            <span style="display: flex; justify-content: space-between; gap: 8px">
+              <span style="font-weight: 600">{{r.addr}}</span>
+              <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; color: #1C6DB0">{{r.score}}</span>
+            </span>
+            <span style="font-size: 12px; color: #5A6169">{{r.zoning}} · {{r.lot}} · {{r.allows}}</span>
+            <span style="display: flex; flex-wrap: wrap; gap: 6px">
+              <span style="font-size: 11.5px; padding: 2px 8px; border-radius: 10px; background: #F1F3F5; color: #3A4047">{{r.signal}}</span>
+              <span style="font-size: 11.5px; padding: 2px 8px; border-radius: 10px; background: #FFF1E3; color: #8A4600">{{r.flag}}</span>
+            </span>
+            <span style="font-size: 12px; color: #16191D">Est. profit <strong style="font-family: 'IBM Plex Mono', monospace; font-weight: 500">{{r.profit}}</strong> · Max land <strong style="font-family: 'IBM Plex Mono', monospace; font-weight: 500">{{r.maxland}}</strong></span>
+          </span>
+        </a>
+      </sc-for>
+    </section>
+
+    <section aria-label="Map" style="flex: 999 1 560px; min-width: 0; min-height: 640px; position: relative; overflow: hidden; background-color: #ECEEEA; background-image: repeating-linear-gradient(0deg, transparent 0 78px, #FFFFFF 78px 84px), repeating-linear-gradient(90deg, transparent 0 118px, #FFFFFF 118px 124px)">
+      <div aria-hidden="true" style="position: absolute; left: 34%; top: 26%; width: 30%; height: 38%; background: #CFE3C8; border-radius: 40px"></div>
+      <span aria-hidden="true" style="position: absolute; left: 41%; top: 43%; font-size: 13px; color: #3C5A33; font-weight: 600">Humboldt Park</span>
+      <div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 70%; height: 10px; background: #F7D9A8"></div>
+      <span aria-hidden="true" style="position: absolute; left: 8px; top: calc(70% - 22px); font-size: 11.5px; color: #5A4A2E">North Ave</span>
+      <div aria-hidden="true" style="position: absolute; left: 0; right: 0; top: 14%; height: 10px; background: #F7D9A8"></div>
+      <span aria-hidden="true" style="position: absolute; left: 8px; top: calc(14% - 22px); font-size: 11.5px; color: #5A4A2E">Division St</span>
+      <div aria-hidden="true" style="position: absolute; top: 0; bottom: 0; left: 82%; width: 10px; background: #F7D9A8"></div>
+      <span aria-hidden="true" style="position: absolute; top: 8px; left: calc(82% + 16px); font-size: 11.5px; color: #5A4A2E">California Ave</span>
+      <sc-for list="{{results}}" as="r" hint-placeholder-count="6">
+        <a href="Parcel.dc.html" aria-label="{{r.addr}}" style="{{r.pinStyle}}">{{r.pin}}</a>
+      </sc-for>
+      <div style="position: absolute; right: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 6px; background: #FFFFFF; padding: 10px 12px; border-radius: 8px; border: 1px solid #DDE1E5; font-size: 12px">
+        <span style="font-weight: 600">Map layers</span>
+        <label style="display: flex; gap: 6px; align-items: center"><input type="checkbox" checked> Zoning</label>
+        <label style="display: flex; gap: 6px; align-items: center"><input type="checkbox" checked> Transit-served areas</label>
+        <label style="display: flex; gap: 6px; align-items: center"><input type="checkbox"> TIF districts</label>
+        <label style="display: flex; gap: 6px; align-items: center"><input type="checkbox"> Opportunity Zones</label>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { on: { vacant: true, city: true, complaint: true, violations: false, transit: true, tif: false, oz: false } };
+  }
+  renderVals() {
+    const defs = [
+      ['vacant', 'Vacant land'], ['city', 'City-owned lot'], ['complaint', 'Vacant-building complaint'],
+      ['violations', 'Open violations'], ['transit', 'Transit-served'], ['tif', 'In a TIF'],
+      ['oz', 'Opportunity Zone']
+    ];
+    const chips = defs.map(([k, label]) => {
+      const on = !!this.state.on[k];
+      return {
+        label, on: on ? 'true' : 'false',
+        style: 'height: 36px; padding: 0 14px; border-radius: 18px; font: inherit; font-size: 13px; cursor: pointer; border: 1px solid ' + (on ? '#1C6DB0' : '#C9CFD5') + '; background: ' + (on ? '#E6F1FA' : '#FFFFFF') + '; color: ' + (on ? '#124C7C' : '#3A4047'),
+        toggle: () => this.setState({ on: { ...this.state.on, [k]: !on } })
+      };
+    });
+    const spots = [[20, 22], [52, 18], [70, 34], [24, 58], [58, 76], [88, 62]];
+    const results = [
+      { addr: '1400 block N Spaulding Ave', zoning: 'RT-4', lot: '25 x 125', allows: '3 units by right', signal: 'Vacant land', flag: 'Transit-served', score: 86, profit: '$246k', maxland: '$220k' },
+      { addr: '2900 block W Division St', zoning: 'B2-3', lot: '25 x 125', allows: '7 units by right', signal: 'Vacant-building complaint', flag: 'Mixed use possible', score: 81, profit: '$305k', maxland: '$390k' },
+      { addr: '1500 block N Kedzie Ave', zoning: 'B3-2', lot: '25 x 125', allows: '3 units + retail', signal: 'Vacant storefront', flag: 'Ground-floor residential needs approval', score: 77, profit: '$164k', maxland: '$205k' },
+      { addr: '3300 block W Wabansia Ave', zoning: 'RT-4', lot: '30 x 125', allows: '3 units by right', signal: 'City-owned lot', flag: 'ChiBlockBuilder', score: 74, profit: '$188k', maxland: '$231k' },
+      { addr: '3400 block W Le Moyne St', zoning: 'RS-3', lot: '25 x 125', allows: '1 unit (2 if block qualifies)', signal: 'Teardown notice', flag: 'Check block test', score: 63, profit: '$71k', maxland: '$118k' },
+      { addr: '3000 block W North Ave', zoning: 'C1-2', lot: '50 x 125', allows: '6 units + retail', signal: 'Vacant commercial', flag: 'Mixed use possible', score: 61, profit: '$58k', maxland: '$95k' }
+    ].map((r, i) => ({
+      ...r, pin: i + 1,
+      pinStyle: 'position: absolute; left: ' + spots[i][0] + '%; top: ' + spots[i][1] + '%; width: 32px; height: 32px; border-radius: 16px; background: ' + (i === 0 ? '#1C6DB0' : '#16191D') + '; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: IBM Plex Mono, monospace; font-size: 13px; text-decoration: none; border: 2px solid #FFFFFF'
+    }));
+    return { chips, results, count: 41 };
+  }
+}
+</script>
+</body>
+</html>

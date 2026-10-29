@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>25x125 parcel page</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F5F6F7}
+a{color:#1C6DB0}a:hover{color:#124C7C}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F5F6F7; color: #16191D; font-family: 'IBM Plex Sans', system-ui, sans-serif; font-size: 14px">
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 24px; padding: 14px 24px; background: #16191D; color: #FFFFFF">
+    <div style="display: flex; align-items: baseline; gap: 10px">
+      <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 18px; letter-spacing: 0.5px">25x125</span>
+      <span style="font-size: 12px; color: #B9C0C7">Chicago development pipeline</span>
+    </div>
+    <nav aria-label="Screens" style="display: flex; flex-wrap: wrap; gap: 4px">
+      <a href="Main.dc.html" style="color: #D5DADF; text-decoration: none; padding: 8px 12px; border-radius: 6px">Search</a>
+      <a href="Parcel.dc.html" style="color: #FFFFFF; text-decoration: none; padding: 8px 12px; border-radius: 6px; background: #2B3138; font-weight: 500">Parcel</a>
+      <a href="Feasibility.dc.html" style="color: #D5DADF; text-decoration: none; padding: 8px 12px; border-radius: 6px">Feasibility</a>
+      <a href="Deals.dc.html" style="color: #D5DADF; text-decoration: none; padding: 8px 12px; border-radius: 6px">Deals</a>
+    </nav>
+    <div style="margin-left: auto; font-size: 12px; color: #B9C0C7">Sample data for layout</div>
+  </header>
+
+  <div style="max-width: 1280px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 20px">
+    <section style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <a href="Main.dc.html" style="font-size: 13px">Back to results</a>
+        <h1 style="margin: 0; font-size: 28px; font-weight: 600">1400 block N Spaulding Ave</h1>
+        <span style="color: #5A6169">Humboldt Park · Ward 26 · PIN 16-00-000-000-0000 (sample) · Owner of record: [OWNER]</span>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px">
+        <a href="Deals.dc.html" style="display: inline-flex; align-items: center; height: 44px; padding: 0 18px; border: 1px solid #1C6DB0; border-radius: 6px; color: #1C6DB0; text-decoration: none; font-weight: 600; background: #FFFFFF">Save to deals</a>
+        <a href="Feasibility.dc.html" style="display: inline-flex; align-items: center; height: 44px; padding: 0 18px; border-radius: 6px; background: #1C6DB0; color: #FFFFFF; text-decoration: none; font-weight: 600">Run feasibility</a>
+      </div>
+    </section>
+
+    <section aria-label="Key facts" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+      <sc-for list="{{facts}}" as="f" hint-placeholder-count="8">
+        <div style="background: #FFFFFF; border: 1px solid #DDE1E5; border-radius: 8px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px">
+          <span style="font-size: 12px; color: #5A6169">{{f.label}}</span>
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 500">{{f.value}}</span>
+          <span style="font-size: 12px; color: #5A6169">{{f.note}}</span>
+        </div>
+      </sc-for>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+      <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+        <section style="background: #FFFFFF; border: 1px solid #DDE1E5; border-radius: 8px; padding: 20px">
+          <h2 style="margin: 0 0 4px; font-size: 17px; font-weight: 600">What zoning allows</h2>
+          <p style="margin: 0 0 14px; color: #5A6169">RT-4 · 3,125 sq ft lot · Chicago zoning code, 2026</p>
+          <div style="overflow-x: auto">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px">
+              <thead>
+                <tr style="text-align: left; color: #5A6169; border-bottom: 1px solid #DDE1E5">
+                  <th style="padding: 8px 8px 8px 0; font-weight: 500">Path</th>
+                  <th style="padding: 8px; font-weight: 500">Units</th>
+                  <th style="padding: 8px; font-weight: 500">Floor area</th>
+                  <th style="padding: 8px; font-weight: 500">Approval</th>
+                  <th style="padding: 8px; font-weight: 500">Est. time</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{paths}}" as="p" hint-placeholder-count="4">
+                  <tr style="border-bottom: 1px solid #EEF0F2">
+                    <td style="padding: 10px 8px 10px 0; font-weight: 500">{{p.path}}</td>
+                    <td style="padding: 10px 8px; font-family: 'IBM Plex Mono', monospace">{{p.units}}</td>
+                    <td style="padding: 10px 8px; font-family: 'IBM Plex Mono', monospace">{{p.far}}</td>
+                    <td style="padding: 10px 8px">{{p.approval}}</td>
+                    <td style="padding: 10px 8px">{{p.time}}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+          <p style="margin: 12px 0 0; font-size: 12px; color: #5A6169">Parking: none required (within 1/2 mile of CTA rail, 2025 ordinance). One bike space per unit.</p>
+        </section>
+
+        <section style="background: #FFFFFF; border: 1px solid #DDE1E5; border-radius: 8px; padding: 20px">
+          <h2 style="margin: 0 0 4px; font-size: 17px; font-weight: 600">Nearby comparables</h2>
+          <p style="margin: 0 0 14px; color: #5A6169">Same Assessor neighborhood · last 12 months · 7 sales · drop any that don't fit</p>
+          <div style="overflow-x: auto">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px">
+              <thead>
+                <tr style="text-align: left; color: #5A6169; border-bottom: 1px solid #DDE1E5">
+                  <th style="padding: 8px 8px 8px 0; font-weight: 500">Property</th>
+                  <th style="padding: 8px; font-weight: 500">Type</th>
+                  <th style="padding: 8px; font-weight: 500">Sold</th>
+                  <th style="padding: 8px; font-weight: 500">Price</th>
+                  <th style="padding: 8px; font-weight: 500">Per unit</th>
+                  <th style="padding: 8px; font-weight: 500">Distance</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{comps}}" as="c" hint-placeholder-count="5">
+                  <tr style="border-bottom: 1px solid #EEF0F2">
+                    <td style="padding: 10px 8px 10px 0">{{c.addr}}</td>
+                    <td style="padding: 10px 8px">{{c.type}}</td>
+                    <td style="padding: 10px 8px">{{c.date}}</td>
+                    <td style="padding: 10px 8px; font-family: 'IBM Plex Mono', monospace">{{c.price}}</td>
+                    <td style="padding: 10px 8px; font-family: 'IBM Plex Mono', monospace">{{c.per}}</td>
+                    <td style="padding: 10px 8px">{{c.dist}}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section style="background: #FFFFFF; border: 1px solid #DDE1E5; border-radius: 8px; padding: 20px">
+          <h2 style="margin: 0 0 14px; font-size: 17px; font-weight: 600">Permit and violation history</h2>
+          <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px">
+            <sc-for list="{{history}}" as="h" hint-placeholder-count="4">
+              <li style="display: flex; gap: 16px; font-size: 13px">
+                <span style="flex: 0 0 96px; color: #5A6169; font-family: 'IBM Plex Mono', monospace">{{h.date}}</span>
+                <span>{{h.text}}</span>
+              </li>
+            </sc-for>
+          </ul>
+        </section>
+      </div>
+
+      <aside style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 20px">
+        <section style="background: #FFFFFF; border: 1px solid #DDE1E5; border-radius: 8px; padding: 20px">
+          <h2 style="margin: 0 0 14px; font-size: 17px; font-weight: 600">Overlays</h2>
+          <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px">
+            <sc-for list="{{overlays}}" as="o" hint-placeholder-count="6">
+              <li style="display: flex; justify-content: space-between; gap: 12px; font-size: 13px">
+                <span>{{o.name}}</span>
+                <span style="{{o.style}}">{{o.value}}</span>
+              </li>
+            </sc-for>
+          </ul>
+        </section>
+        <section style="background: #FFFFFF; border: 1px solid #DDE1E5; border-radius: 8px; padding: 20px">
+          <h2 style="margin: 0 0 4px; font-size: 17px; font-weight: 600">Incentives that may apply</h2>
+          <p style="margin: 0 0 14px; font-size: 12px; color: #5A6169">Maximum values. Toggle what applies on the feasibility screen.</p>
+          <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px">
+            <sc-for list="{{incentives}}" as="i" hint-placeholder-count="4">
+              <li style="display: flex; justify-content: space-between; gap: 12px; font-size: 13px">
+                <span>{{i.name}}</span>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-weight: 500">{{i.value}}</span>
+              </li>
+            </sc-for>
+          </ul>
+        </section>
+        <section style="background: #FFF7EF; border: 1px solid #F1D3B4; border-radius: 8px; padding: 20px">
+          <h2 style="margin: 0 0 10px; font-size: 17px; font-weight: 600; color: #6E3800">Check before buying</h2>
+          <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #4A2600">
+            <li>Soil report: no geotechnical data on file</li>
+            <li>Water service: confirm tap size on the block</li>
+            <li>Alley access: yes, staging possible from alley</li>
+          </ul>
+        </section>
+      </aside>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1180}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const good = 'font-weight: 500; color: #124C7C';
+    const quiet = 'color: #5A6169';
+    return {
+      facts: [
+        { label: 'Development score', value: '86', note: 'Top 5% in Humboldt Park' },
+        { label: 'Zoning', value: 'RT-4', note: 'Residential two-flat, townhouse, multi-unit' },
+        { label: 'Lot', value: '25 x 125', note: '3,125 sq ft · Assessor class 100 (vacant)' },
+        { label: 'Assessed value', value: '[$ VALUE]', note: 'Cook County Assessor 2026' },
+        { label: 'Buildable by right', value: '3 units', note: 'FAR 1.2 · 3,750 sq ft · 38 ft' },
+        { label: 'Land comps, median', value: '[$ PER LOT]', note: '7 vacant-lot sales, 12 months' },
+        { label: 'New 3-flat comps', value: '[$ PER UNIT]', note: 'Same neighborhood, 12 months' },
+        { label: 'Max land price', value: '$220k', note: 'At 15% return on cost, 3-flat' }
+      ],
+      paths: [
+        { path: 'By right', units: '3', far: '3,750 sq ft', approval: 'Building permit only', time: '3-4 months' },
+        { path: '+ Coach house (ADU)', units: '4', far: '+ ADU', approval: 'ADU pre-certification', time: '+1 week' },
+        { path: 'Administrative adjustment', units: '3', far: '+10% height', approval: 'Zoning Administrator, $500', time: 'Weeks' },
+        { path: 'Rezone to RM-5', units: '7', far: '6,250 sq ft', approval: 'Type 1 rezoning, $1,025 + alderperson', time: '4-9 months' }
+      ],
+      comps: [
+        { addr: '1300 block N Spaulding', type: 'New 3-flat', date: 'Aug 2026', price: '[$]', per: '[$]', dist: '0.1 mi' },
+        { addr: '1500 block N Sawyer', type: 'New 3-flat', date: 'Jun 2026', price: '[$]', per: '[$]', dist: '0.3 mi' },
+        { addr: '1400 block N Christiana', type: 'Vacant lot', date: 'May 2026', price: '[$]', per: 'n/a', dist: '0.2 mi' },
+        { addr: '1600 block N Kimball', type: 'Vacant lot', date: 'Mar 2026', price: '[$]', per: 'n/a', dist: '0.4 mi' },
+        { addr: '1200 block N Homan', type: 'Rehab 2-flat', date: 'Feb 2026', price: '[$]', per: '[$]', dist: '0.5 mi' }
+      ],
+      history: [
+        { date: '2026-09', text: '311 complaint: lot not maintained (closed)' },
+        { date: '2024-03', text: 'Wrecking permit issued; 2-flat demolished' },
+        { date: '2023-11', text: 'Building violation: vacant building not secured' },
+        { date: '2023-06', text: 'Asbestos and demolition notice filed' }
+      ],
+      overlays: [
+        { name: 'Transit-served location', value: 'Yes', style: good },
+        { name: 'TIF district', value: 'Check', style: quiet },
+        { name: 'Opportunity Zone (2018 map)', value: 'Check', style: quiet },
+        { name: 'Enterprise Zone', value: 'Check', style: quiet },
+        { name: 'Historic rating', value: 'None (vacant)', style: quiet },
+        { name: '606 / Pilsen surcharge', value: 'No', style: quiet },
+        { name: 'Inside fire limits', value: 'No · wood frame OK', style: good }
+      ],
+      incentives: [
+        { name: 'Bonus depreciation (cost segregation)', value: '[$ EST]' },
+        { name: 'Opportunity Zone gain exclusion', value: 'If eligible' },
+        { name: 'Enterprise Zone materials tax', value: 'If eligible' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

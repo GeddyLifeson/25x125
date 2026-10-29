@@ -1,0 +1,34 @@
+dataset,portal,id,base_url,refresh,tested_2026_10_28,used_in
+Parcel universe,Cook County,pabr-t5kh,https://datacatalog.cookcountyil.gov/resource/,yearly,2026-10-29 yes,"parcel identity; class; ward; tract; also carries ward, community area, tract, Assessor nbhd and TIF district per PIN"
+Parcel addresses and owner mailing,Cook County,3723-97qp,https://datacatalog.cookcountyil.gov/resource/,yearly (2026 live),yes,address-to-PIN; owner
+Parcel sales,Cook County,wvhk-k5uv,https://datacatalog.cookcountyil.gov/resource/,monthly,yes,sale comps
+Assessed values,Cook County,uzyt-m557,https://datacatalog.cookcountyil.gov/resource/,yearly,2026-10-29 yes,value
+Residential characteristics,Cook County,x54s-btds,https://datacatalog.cookcountyil.gov/resource/,yearly,2026-10-29 yes,existing units; sqft; age; class 211 has char_apts and char_bldg_sf; year values after 2023 end in .0
+Commercial valuation (income),Cook County,csik-bsws,https://datacatalog.cookcountyil.gov/resource/,yearly,yes,rent cross-check
+Zoning districts,Chicago,dj47-wfun,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,zoning
+Building permits,Chicago,ydr8-5enu,https://data.cityofchicago.org/resource/,daily,yes,cost index; signals
+Building violations,Chicago,22u3-xenr,https://data.cityofchicago.org/resource/,daily,2026-10-29 yes,signals
+311 service requests,Chicago,v6vf-nfxy,https://data.cityofchicago.org/resource/,daily,2026-10-29 yes,vacant building/lot signals
+Scofflaw list,Chicago,rz4d-qp2m,https://data.cityofchicago.org/resource/,monthly,2026-10-29 yes,signals
+City-owned land,Chicago,aksk-kvfp,https://data.cityofchicago.org/resource/,weekly,2026-10-29 yes,signals
+Asbestos and demolition notices,Chicago,qhb4-qx8k,https://data.cityofchicago.org/resource/,daily,2026-10-29 yes,signals
+TIF districts,Chicago,eejr-xtfb,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,incentives
+Enterprise Zones,Chicago,64xf-pyvh,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,incentives
+Historic survey,Chicago,2u8t-236p,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,penalties
+Landmarks,Chicago,uct4-hrvh,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,penalties
+CTA rail stations,Chicago,8pix-ypme,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,transit-served
+ACS 5-year (B25031 B25064),Census API,acs/acs5,https://api.census.gov/data/,yearly,no,rents (needs free key)
+HUD Small Area FMR FY2027,HUD,safmr,https://www.huduser.gov/portal/datasets/fmr/smallarea/,yearly,no,rent floor
+Zillow ZORI by ZIP,Zillow,zori,https://files.zillowstatic.com/research/public_csvs/zori/Zip_zori_uc_sfrcondomfr_sm_month.csv,monthly,yes,rent growth only; never display
+Condo unit characteristics,Cook County,3r7i-mrz4,https://datacatalog.cookcountyil.gov/resource/,yearly,2026-10-29 yes,new-construction condo comps; unit sq ft; building PIN count
+Parcel polygons (2021),Cook County,77tz-riq7,https://datacatalog.cookcountyil.gov/resource/,yearly,2026-10-29 found; check Cook County GIS hub for a newer year,lot area for vacant land; frontage
+Community area boundaries,Chicago,igwz-8jzy,https://data.cityofchicago.org/resource/,as changed,2026-10-29 found,map layer
+Ward boundaries (2023-),Chicago,p293-wvbd,https://data.cityofchicago.org/resource/,as changed,2026-10-29 found,map layer
+Census tracts 2020,Chicago,7qjk-677h,https://data.cityofchicago.org/resource/,as changed,2026-10-29 found,map layer
+Assessor neighborhood boundaries,Cook County,pcdw-pxtg,https://datacatalog.cookcountyil.gov/resource/,as changed,2026-10-29 found,comp areas
+Metra stations,Chicago,nqm8-q2ym,https://data.cityofchicago.org/resource/,as changed (last 2011; check RTA GTFS),2026-10-29 found,transit-served
+Transit-served locations,Chicago,not on the data portal (searched 2026-10-29); get from city GIS or digitize from the ordinance map,,as changed,no,parking rules; score
+Fire limits,Chicago,not on the data portal (searched 2026-10-29); get from city GIS or digitize from the ordinance map,,as changed,no,flags; penalties
+606 and Pilsen demolition surcharge districts,Chicago,not on the data portal (searched 2026-10-29); get from city GIS or digitize from the ordinance map,,as changed,no,flags; penalties
+ADU areas (opted-in wards or precincts),Chicago,not on the data portal (searched 2026-10-29); get from city GIS or digitize from the ordinance map,,as changed,no,ADU path in RS districts
+Opportunity Zone tracts,US Treasury,2018 list; 2027 list when certified,,as changed,no,incentives

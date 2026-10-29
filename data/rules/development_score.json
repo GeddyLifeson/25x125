@@ -1,0 +1,54 @@
+{
+  "source": "docs/v1-spec.md, Development score",
+  "range": [
+    0,
+    100
+  ],
+  "parts": {
+    "zoning_upside": {
+      "max": 30,
+      "rule": "extra units by right (allowed minus existing): 0 -> 0, 3+ -> 30, linear between"
+    },
+    "profit": {
+      "max": 30,
+      "rule": "build-and-sell return on cost at central estimate: <=0% -> 0, >=25% -> 30, linear between",
+      "note": "needs a nightly by-right feasibility run for every parcel"
+    },
+    "acquisition_signals": {
+      "max": 20,
+      "points": {
+        "city_owned_for_sale": 10,
+        "vacant_land": 8,
+        "vacant_building_complaint_2y": 6,
+        "open_violations": 4,
+        "scofflaw_owner": 6,
+        "demolition_notice": 6
+      },
+      "later": {
+        "tax_delinquent": 6,
+        "note": "add when a licensed tax-delinquency feed is added (V1.2)"
+      }
+    },
+    "location": {
+      "max": 10,
+      "points": {
+        "transit_served": 5,
+        "area_sales_12m_above_city_median": 5
+      }
+    },
+    "incentives": {
+      "max": 10,
+      "rule": "2 points per program with a dollar value"
+    }
+  },
+  "penalties": {
+    "min_total": -20,
+    "points": {
+      "historic_orange_or_red": -10,
+      "landmark_district": -15,
+      "606_pilsen_surcharge": -10,
+      "fire_limits": -5
+    }
+  },
+  "user_weights": true
+}

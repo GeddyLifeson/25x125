@@ -1,0 +1,87 @@
+{
+  "source": "docs/v1-spec.md, Zoning rules engine",
+  "verified_on": "2026-10-28",
+  "steps": [
+    {
+      "id": "units_by_right",
+      "rule": "floor(lot_area / lot_area_per_unit)"
+    },
+    {
+      "id": "floor_area_by_right",
+      "rule": "lot_area * far"
+    },
+    {
+      "id": "rs3_two_flat_exception",
+      "rule": "RS-3 on a 25 ft lot: 2 units allowed if >= 60% of buildings on the same block face have 2+ units (lot area per unit becomes 1500)",
+      "data": "units per building on the block face from x54s-btds char_apts and class codes; verify the 1,500 sq ft figure against the code"
+    },
+    {
+      "id": "administrative_adjustment",
+      "rule": "units = floor(lot_area / (0.9 * lot_area_per_unit)); height +10%"
+    },
+    {
+      "id": "adu",
+      "rule": "+1 unit (coach house or conversion) in RT-4 and higher and B/C; RS only in opted-in wards; 2+ ADUs trigger affordability rule"
+    },
+    {
+      "id": "rezoning",
+      "rule": "recompute at a target district the user picks; default is the first target listed",
+      "targets": {
+        "RS-3": [
+          "RT-4",
+          "RM-4.5"
+        ],
+        "RT-4": [
+          "RM-5",
+          "RM-4.5"
+        ],
+        "RM-4.5": [
+          "RM-5"
+        ],
+        "B/C-1": [
+          "B/C-2",
+          "B/C-3"
+        ],
+        "B/C-1.5": [
+          "B/C-2",
+          "B/C-3"
+        ],
+        "B/C-2": [
+          "B/C-3"
+        ],
+        "B/C-3": [
+          "B/C-5"
+        ]
+      }
+    },
+    {
+      "id": "transit_served",
+      "rule": "within 0.5 mi of CTA rail station or 0.25 mi of eligible bus corridor: car parking 0, bike parking 1 per unit",
+      "data": "use the city transit-served location map if published; otherwise CTA rail and Metra stations plus eligible bus corridors. CTA rail alone undercounts."
+    },
+    {
+      "id": "ground_floor_residential",
+      "rule": "by right only in B2 and DR; other B/C districts flag special use or adjustment"
+    },
+    {
+      "id": "aro_flag",
+      "rule": "flag Affordable Requirements Ordinance when a rezoning scenario reaches 10+ units"
+    },
+    {
+      "id": "flags",
+      "rule": "historic orange/red rating (90-day demolition hold), 606/Pilsen demolition surcharge district, fire limits (wood frame mostly not allowed)"
+    }
+  ],
+  "not_in_v1": [
+    "setbacks and footprint",
+    "Planned Development thresholds",
+    "landmark district design review"
+  ],
+  "revised_on": "2026-10-29",
+  "unverified_until_2026_code_checked": [
+    "one stair up to 3 stories",
+    "sprinklers at 4+ units",
+    "Certificate of Occupancy at 4+ units",
+    "accessibility at 4+ units"
+  ]
+}
