@@ -21,6 +21,12 @@ Method: same unit-count group within 0.75 mile, widening to 1.5 and 3 miles; at 
 
 The per-unit method is the new default. It is 5 points short of the 70% target. Most misses are 2-flats near pricier condo stock (Humboldt Park, North Lawndale, Hermosa, Edgewater) and one 4-unit Humboldt Park building that sold at $143,750 per unit. The next gains need building size for the subject (the user enters it, or the layout planner supplies it), then MLS closed sales once the MRED feed is approved. The spec now shows a sale range (25th to 75th percentile of the weighted comps) so the uncertainty is visible.
 
+## Test set cleanup (later on 2026-10-29)
+
+Two test sales were not market sales of finished buildings and came out of the test set (`data/reference/test_parcels_removed.csv`): 1244 N Kedzie ($575,000 recorded twice on "Other" deeds) and 3035 N Sheffield ($216 per sq ft in Lake View, likely sold before completion). The comp filters that would have caught them are in `feasibility_defaults.json` under `sale_comps.filters`.
+
+On the remaining 35: sale estimate within 15% on 24 (69%), median error 8%. Profit of $0 or more at actual sale on 20 (57%), median return on cost 1.0%.
+
 ## Cost index
 
 The old index mixed unit counts: reported cost per unit is $225,000 for 2-flats and $150,000 for 3-flats, so areas that build mostly 3-flats looked cheap. The new index (`cost_index_by_area_v2.csv`) divides each permit by the median for its unit-count group before taking the area median. It also drops 5 cancelled permits and 3 repeated addresses (828 permits used).

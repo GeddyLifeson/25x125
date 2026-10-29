@@ -163,6 +163,16 @@
       "verified_on": "2026-10-29",
       "index": "FHFA HPI annual by census tract, then ZIP, then Chicago metro quarterly",
       "note": "public domain; can be shown on screen"
+    },
+    "filters": {
+      "verified_on": "2026-10-29",
+      "rules": [
+        "keep warranty, trustee and special warranty deeds; drop quit claim, other and executor deeds",
+        "drop a sale whose price repeats an earlier sale of the same PIN within 24 months",
+        "drop a sale below 50% of the weighted comp median per sq ft for its unit group (likely sold before completion)",
+        "use the Assessor sale_filter flags and is_multisale as published"
+      ],
+      "why": "two of 37 test sales failed these checks on 2026-10-29 (data/reference/test_parcels_removed.csv)"
     }
   },
   "thin_data": {

@@ -44,8 +44,9 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 - [ ] Land value map: vacant-land and teardown sales, per sq ft of lot and per buildable sq ft, by Assessor neighborhood, with counts.
 - [x] Build-spec presets set from published evidence (production $165/$170).
 - [ ] Rent estimate: ACS B25031/B25064 + 25% premium, ZORI growth, HUD SAFMR floor, csik-bsws cross-check.
-- [ ] Test: sale estimate within 15% for at least 70% of test parcels (65% on 2026-10-29). Report the hit rate and median error.
-- [ ] Test: at actual sale and $60,000 land, at least 60% of test buildings show profit of $0 or more (57% on 2026-10-29).
+- [ ] Comp filters from `sale_comps.filters` (deed type, repeat price, pre-completion sales).
+- [ ] Test: sale estimate within 15% for at least 70% of test parcels (69%, 24 of 35, after cleanup on 2026-10-29). Report the hit rate and median error.
+- [ ] Test: at actual sale and $60,000 land, at least 60% of test buildings show profit of $0 or more (57%, 20 of 35, on 2026-10-29).
 - [ ] Test: standard 3-flat total cost within -20%/+30% of $308,000-365,000 per unit.
 
 ## Step 4: Feasibility engine and score

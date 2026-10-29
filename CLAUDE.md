@@ -50,7 +50,7 @@ The markdown copies in `docs/` were exported on 2026-10-28. If Marlon updates a 
 - Census ACS needs a free key (`CENSUS_API_KEY`).
 - Zillow ZORI: use growth rates internally only. Never display Zillow figures in the product without written permission.
 - Reference data from research on 2026-10-28 is in `data/reference/`:
-  - `test_parcels.csv`: 37 real buildings (permit matched to later sale). This is the acceptance test set.
+  - `test_parcels.csv`: 35 real buildings (permit matched to later sale; 2 removed on 2026-10-29, see `test_parcels_removed.csv`). This is the acceptance test set.
   - `new_construction_sales.csv`: 2,450 first sales of 2-6 unit buildings and condo units built 2014 or later (pulled 2026-10-29); the comp pool.
   - `cost_index_by_area_v2.csv`: cost index computed within unit-count groups; replaces the v1 file.
   - `cost_index_by_area.csv`: neighborhood cost index from 836 permits; city median $166,667 per unit.
