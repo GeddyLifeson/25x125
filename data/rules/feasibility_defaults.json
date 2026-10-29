@@ -234,13 +234,32 @@
     "use": "months of land carry before construction = days / 30; job recomputes monthly by review path"
   },
   "open_space_impact_fee": {
-    "source": "https://chicago.gov/city/en/depts/dcd/supp_info/open_space_impactfee.html",
-    "verified_on": "2026-10-29",
-    "per_unit_range": [
-      313,
-      1253
+    "source": [
+      "https://chicago.gov/content/dam/city/depts/zlup/Sustainable_Development/Publications/SubstituteOrd_OSIF_2024.pdf",
+      "https://www.chicago.gov/content/dam/city/depts/zlup/Sustainable_Development/Publications/OSIFworksheet2025_fillableform.pdf"
     ],
-    "by": "community area",
-    "status": "range only; load the per-area table from the current city worksheet before use"
+    "verified_on": "2026-10-29",
+    "formula": "persons_by_unit_size x 87 sq ft per person x open_space_cost_per_sqft x 0.30, rounded per unit",
+    "persons_by_unit_size": {
+      "<800": 1,
+      "800-1599": 2,
+      "1600-2999": 3,
+      "3000+": 4
+    },
+    "open_space_cost_per_sqft": {
+      "2025": 16,
+      "2026": 20,
+      "2027": 24,
+      "2028+": "lesser of prior x Chicago CPI or 102.5%"
+    },
+    "fee_per_unit_2026": {
+      "<800": 522,
+      "800-1599": 1044,
+      "1600-2999": 1566,
+      "3000+": 2088
+    },
+    "affordable_unit_fee": 100,
+    "exemptions": "replacement unit with a demolition permit under one year old; credits for on-site open space",
+    "check": "2025 worksheet shows $418/$836/$1,254/$1,672, matching the formula at $16"
   }
 }
