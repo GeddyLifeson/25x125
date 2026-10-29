@@ -9,9 +9,9 @@
   "circulation_factor": 1.12,
   "build_spec_presets": {
     "production": {
-      "2-3": 160,
-      "4-6": 175,
-      "note": "small-builder spec homes; fits South and West Side test sales"
+      "2-3": 165,
+      "4-6": 170,
+      "note": "small-builder spec flats; evidence in docs/construction-costs-2026-10-29.md (Missing Middle awards, NAHB, test-set sales)"
     },
     "standard": {
       "2-3": 200,
@@ -27,7 +27,7 @@
       "standard": "1.3 <= index < 1.8",
       "high": "index >= 1.8"
     },
-    "status": "provisional until contractor job costs are entered"
+    "status": "set from published evidence 2026-10-29 (docs/construction-costs-2026-10-29.md); replace with real job costs when available"
   },
   "neighborhood_adjustment": "1 + 0.5 * (index - 1), index from data/reference/cost_index_by_area_v2.csv (computed within unit-count groups)",
   "sprinklers_per_sqft_at_4_plus_units": 5,

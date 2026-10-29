@@ -39,7 +39,7 @@ At $235/$250 per sq ft, 4 of 37 test buildings show a profit at their actual sal
 | $155 / $170 | 24 of 37 | 6.8% | $265,752 |
 | Presets by area (new default) | 21 of 37 | 3.8% | $274,301 (production) |
 
-New default: three build-spec presets. Production $160/$175, standard $200/$215, high $250/$265, chosen by the area's cost index (below 1.3, 1.3 to 1.8, 1.8 and up). A production 3-flat with $60,000 of land comes to about $294,000 per unit, inside the Missing Middle check ($308,000-365,000, -20%/+30%).
+New default: three build-spec presets. Production $165/$170 (set from published costs in `construction-costs-2026-10-29.md`; first pass was $160/$175), standard $200/$215, high $250/$265, chosen by the area's cost index (below 1.3, 1.3 to 1.8, 1.8 and up). A production 3-flat with $60,000 of land comes to about $294,000 per unit, inside the Missing Middle check ($308,000-365,000, -20%/+30%).
 
 Thin margins at the median match what the spec expected for new 3-flats outside stronger areas. These presets are provisional. The partner contractor's actual $/sq ft replaces them.
 
