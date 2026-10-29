@@ -39,9 +39,10 @@ def upsert(
     """COPY rows into a temp table, then insert or update the target on `key`.
 
     `expressions` maps a column to SQL that builds it from the staged columns (e.g. geometry from lon/lat).
+    Rows that repeat a key keep one of them; loaders that need to combine repeats do it before calling.
     """
     expressions = expressions or {}
-    conn.execute(f"create temp table stage (like {table} including defaults) on commit drop")
+    conn.execute(f"create temp table stage on commit drop as select * from {table} with no data")
     for extra in {c for c in columns if c not in _table_columns(conn, table)}:
         conn.execute(f"alter table stage add column {extra} text")
     with conn.cursor().copy(f"copy stage ({', '.join(columns)}) from stdin") as cp:
@@ -53,7 +54,7 @@ def upsert(
     select = [expressions.get(c, c) for c in target_cols]
     updates = ", ".join(f"{c} = excluded.{c}" for c in target_cols if c != key)
     conn.execute(
-        f"insert into {table} ({', '.join(target_cols)}) select {', '.join(select)} from stage"
+        f"insert into {table} ({', '.join(target_cols)}) select distinct on ({key}) {', '.join(select)} from stage"
         f" on conflict ({key}) do update set {updates}"
     )
     conn.execute("drop table stage")
