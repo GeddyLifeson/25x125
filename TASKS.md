@@ -1,6 +1,6 @@
 # Tasks
 
-Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and test each one before starting the next. Calibration results so far are in `docs/calibration-2026-10-29.md`.
+Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and test each one before starting the next. Calibration results so far are in `docs/calibration-2026-10-29.md`. Full schedule to paid launch (23 working weeks from 2026-11-02, launch week of 2027-04-19): https://claude.ai/artifact/SxJ23K1yPFYBrRnMY4h4Jj
 
 ## Step 0: Setup and calibration inputs
 
@@ -74,6 +74,17 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 - [ ] Fast-path filter, land value map layer, and city lots for sale (ChiBlockBuilder) layer.
 - [ ] Deals screen matching `mockups/Deals.dc.html`: pipeline counts, deal table, outreach log, CSV export.
 - [ ] Email sign-in.
+
+## SaaS setup (weeks 8-17, alongside steps 4-6)
+
+- [ ] Organizations from day one: org id on deals, saved searches and overrides; Postgres row-level security; owner and member roles.
+- [ ] Stripe Checkout, customer portal, plan webhook, 14-day Pro trial, Stripe Tax.
+- [ ] Chicago cloud tax (lease transaction tax, 15% since 2026-01-01) on invoices; accountant confirms registration.
+- [ ] Hosting: managed Postgres with PostGIS and point-in-time restore, engine and jobs host, front-end host, PMTiles on object storage and CDN; staging and production.
+- [ ] Error tracking, uptime checks, nightly-job alerts (failed pull or count drop over 10%), stale-data note on screen, tested restore.
+- [ ] Security: secrets out of the repo, rate limits on search and PDF, audit log of overrides and exports, dependency scanning in CI, data deletion on request.
+- [ ] Data licensing review: attribution for portals and basemap, Zillow internal only, no MLS.
+- [ ] Onboarding: free address check, guided first parcel, sample deal, help pages, 2-minute video, support inbox.
 
 ## Step 7: Private test
 
