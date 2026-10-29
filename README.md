@@ -16,6 +16,7 @@ Planning and the first calibration run are done (2026-10-29). Code starts at Ste
 | `KICKOFF.md` | First prompt to paste into Claude Code |
 | `TASKS.md` | Steps 0-8 to V1, then V1.1, as checklists |
 | `docs/calibration-2026-10-29.md` | Cost and comp calibration against the test set |
+| `docs/international-practices.md` | Practices from other countries adopted into the plan |
 | `docs/v1-spec.md` | Version 1 build spec |
 | `docs/plan.md` | Full business plan, all pipeline stages and brands |
 | `docs/module-outlines.md` | Outlines for modules 1-11 |

@@ -30,6 +30,7 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 - [ ] Seed rule tables from `data/rules/zoning_districts.csv` and `zoning_steps.json`.
 - [ ] Load the full B/C height-by-frontage table from the code.
 - [ ] Implement the 10 calculation steps, with user-picked rezoning targets and the RS-3 block-face test.
+- [ ] One rule schema: rule, location reference, effective from/to, citation, verified-on (Dutch and UK practice; docs/international-practices.md).
 - [ ] Output per parcel and path: units, floor area, height, parking, flags, rule citation.
 - [ ] Hand-checked set: about 20 parcels Marlon knows (B/C-3, mixed use, RS-3, a 606 lot, a historic building).
 - [ ] Test: units by right on each test lot are at least the units built, or the result names the approval path used; hand-checked set matches.
@@ -38,6 +39,8 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 
 - [ ] Port `scripts/research/2026-10-29/` into jobs: comp pool from year built (211 + condo), first arm's-length sale, weighted median per unit, 25th-75th range, time adjustment.
 - [ ] Cost index job within unit-count groups, monthly (logic in `idx.py`); blend thin areas with neighbors.
+- [ ] Recency weights by quarter (1.00, 0.75, 0.56, 0.42) and side-of-city blending for thin areas.
+- [ ] Land value map: vacant-land and teardown sales, per sq ft of lot and per buildable sq ft, by Assessor neighborhood, with counts.
 - [ ] Build-spec presets refit with the contractor's numbers.
 - [ ] Rent estimate: ACS B25031/B25064 + 25% premium, ZORI growth, HUD SAFMR floor, csik-bsws cross-check.
 - [ ] Test: sale estimate within 15% for at least 70% of test parcels (65% on 2026-10-29). Report the hit rate and median error.
@@ -48,6 +51,10 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 
 - [ ] All formulas from the spec for sell and hold, with the exact financing formula and margins that exclude land.
 - [ ] Incentives v1 from `data/rules/incentives_v1.csv` (OZ $0 for sell; bonus depreciation as deferral).
+- [ ] Pattern library scenarios from `data/rules/building_patterns.json`, checked against each zoning path.
+- [ ] Residual land value, profit as percent of value and cost, existing-use check; cost at P50 and P80.
+- [ ] Eligibility questions from `data/rules/incentive_questions.json` drive incentive toggles.
+- [ ] Fast-path flag per parcel (definition in `feasibility_defaults.json`).
 - [ ] Every output number carries source, date and comp count.
 - [ ] Nightly by-right run for every parcel; development score with points breakdown.
 - [ ] Unit tests on every formula.
@@ -62,6 +69,7 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 ## Step 6: Map search and deals
 
 - [ ] Parcel vector tiles; map and list matching `mockups/Main.dc.html`; filters and sorts; under 2 seconds.
+- [ ] Fast-path filter and land value map layer.
 - [ ] Deals screen matching `mockups/Deals.dc.html`: pipeline counts, deal table, outreach log, CSV export.
 - [ ] Email sign-in.
 
@@ -79,6 +87,13 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 ## Version 1.1 (after launch)
 
 - [ ] Saved searches with alerts; CSV import; teams and shared deals; comps drawer; sensitivity sliders; lender Excel export.
+
+## Later, from the international review
+
+- [ ] Permit-ready plan sets for the pattern library with partner architects (Phase 2).
+- [ ] Entitlement tracker as gateways with one consolidated comment list per round (Phase 2a).
+- [ ] Refit cost margins from actual job costs, P50/P80 (Phase 4).
+- [ ] Policy mode: rerun all parcels under a proposed ordinance (after V1.1).
 
 ## Business setup (Marlon, alongside)
 
