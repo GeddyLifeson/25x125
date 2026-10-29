@@ -4,6 +4,8 @@ Zoning comes from the district under the parcel point; the share of the lot poly
 is kept so split-zoned lots can be flagged. Lot size comes from the PIN's polygon. A PIN created after the
 polygon layer (new condo units, divided or combined lots) takes the polygon under its point instead,
 and failing that the Assessor's land square feet.
+Overlays add the historic survey rating (Red or Orange means a 90-day demolition hold), landmark name and
+TIF district, and transit adds straight-line feet to the nearest CTA rail and Metra station.
 Run: python -m jobs.build_parcel_site
 """
 
@@ -38,6 +40,37 @@ left join lateral (
   select land_sqft from building_char b where b.pin = p.pin and b.land_sqft > 0
   order by tax_year desc, card limit 1
 ) bc on true;
+
+-- Historic survey Red and Orange buildings and landmarks: those whose footprint centers sit on the lot.
+update parcel_site ps set historic_rating = x.rating
+from (
+  select s.pin10,
+         (array_agg(o.rating order by case o.rating when 'Red' then 0 else 1 end))[1] as rating
+  from overlay o join parcel_shape s on st_contains(s.geom, st_pointonsurface(o.geom))
+  where o.kind = 'historic_survey' and o.rating in ('Red', 'Orange')
+  group by s.pin10
+) x where ps.pin10 = x.pin10;
+
+update parcel_site ps set landmark_name = x.name
+from (
+  select s.pin10, min(o.name) as name
+  from overlay o join parcel_shape s on st_intersects(s.geom, o.geom)
+   and st_area(st_intersection(s.geom, o.geom)) > 0.5 * st_area(s.geom)
+  where o.kind = 'landmark'
+  group by s.pin10
+) x where ps.pin10 = x.pin10;
+
+update parcel_site ps set tif_name = o.name
+from parcel p join overlay o on o.kind = 'tif' and st_contains(o.geom, p.geom)
+where ps.pin = p.pin;
+
+-- Straight-line distance to the nearest station, in feet.
+update parcel_site ps set
+  cta_rail_ft = (select round(st_distance(t.geom::geography, p.geom::geography) * 3.28084)
+                 from transit_station t where t.mode = 'cta' order by t.geom <-> p.geom limit 1),
+  metra_ft = (select round(st_distance(t.geom::geography, p.geom::geography) * 3.28084)
+              from transit_station t where t.mode = 'metra' order by t.geom <-> p.geom limit 1)
+from parcel p where ps.pin = p.pin and p.geom is not null;
 """
 
 

@@ -13,7 +13,7 @@ Scofflaw list,Chicago,rz4d-qp2m,https://data.cityofchicago.org/resource/,monthly
 City-owned land,Chicago,aksk-kvfp,https://data.cityofchicago.org/resource/,weekly,2026-10-29 yes,signals
 Asbestos and demolition notices,Chicago,qhb4-qx8k,https://data.cityofchicago.org/resource/,daily,2026-10-29 yes,signals
 TIF districts,Chicago,eejr-xtfb,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,incentives
-Enterprise Zones,Chicago,64xf-pyvh,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,incentives
+Enterprise Zones,Chicago,64xf-pyvh,https://data.cityofchicago.org/resource/,as changed,2026-10-29 empty geometry; needs another source,incentives
 Historic survey,Chicago,2u8t-236p,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,penalties
 Landmarks,Chicago,uct4-hrvh,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,penalties
 CTA rail stations,Chicago,8pix-ypme,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,transit-served
@@ -26,7 +26,7 @@ Community area boundaries,Chicago,igwz-8jzy,https://data.cityofchicago.org/resou
 Ward boundaries (2023-),Chicago,p293-wvbd,https://data.cityofchicago.org/resource/,as changed,2026-10-29 found,map layer
 Census tracts 2020,Chicago,7qjk-677h,https://data.cityofchicago.org/resource/,as changed,2026-10-29 found,map layer
 Assessor neighborhood boundaries,Cook County,pcdw-pxtg,https://datacatalog.cookcountyil.gov/resource/,as changed,2026-10-29 found,comp areas
-Metra stations,Chicago,nqm8-q2ym,https://data.cityofchicago.org/resource/,as changed (last 2011; check RTA GTFS),2026-10-29 found,transit-served
+Metra stations,Metra,gtfs/schedule.zip (stops.txt),https://schedules.metrarail.com/,as changed,2026-10-29 yes (portal nqm8-q2ym returns 403),transit-served
 Transit-served locations,Chicago,not on the data portal (searched 2026-10-29); get from city GIS or digitize from the ordinance map,,as changed,no,parking rules; score
 Fire limits,Chicago,not on the data portal (searched 2026-10-29); get from city GIS or digitize from the ordinance map,,as changed,no,flags; penalties
 606 and Pilsen demolition surcharge districts,Chicago,not on the data portal (searched 2026-10-29); get from city GIS or digitize from the ordinance map,,as changed,no,flags; penalties
