@@ -6,6 +6,9 @@ polygon layer (new condo units, divided or combined lots) takes the polygon unde
 and failing that the Assessor's land square feet.
 Overlays add the historic survey rating (Red or Orange means a 90-day demolition hold), landmark name and
 TIF district, and transit adds straight-line feet to the nearest CTA rail and Metra station.
+Signals (violations, 311 vacant requests, scofflaw list, city-owned land, demolition notices) are tied to
+the lot their point falls on (or the nearest lot within 15 m), or the source PIN where one is given, and
+summed per lot.
 Run: python -m jobs.build_parcel_site
 """
 
@@ -71,6 +74,33 @@ update parcel_site ps set
   metra_ft = (select round(st_distance(t.geom::geography, p.geom::geography) * 3.28084)
               from transit_station t where t.mode = 'metra' order by t.geom <-> p.geom limit 1)
 from parcel p where ps.pin = p.pin and p.geom is not null;
+
+-- Signals: the source PIN where given, else the lot polygon under the point, else the nearest lot within
+-- 15 m (address points often sit on the sidewalk in front of the lot).
+update parcel_signal g set pin10 = coalesce(left(g.pin, 10),
+  (select s.pin10 from parcel_shape s where st_contains(s.geom, g.geom) limit 1),
+  (select n.pin10 from (select s.pin10, s.geom from parcel_shape s order by s.geom <-> g.geom limit 1) n
+   where st_dwithin(n.geom::geography, g.geom::geography, 15)))
+where g.geom is not null or g.pin is not null;
+
+update parcel_site ps set
+  open_violations = x.open_violations, last_violation_date = x.last_violation_date,
+  vacant_building_311 = x.vacant_building_311, vacant_lot_311 = x.vacant_lot_311,
+  scofflaw = x.scofflaw, city_owned_status = x.city_owned_status,
+  demolition_notice_date = x.demolition_notice_date
+from (
+  select pin10,
+    count(*) filter (where kind = 'violation' and status = 'OPEN') as open_violations,
+    max(signal_date) filter (where kind = 'violation') as last_violation_date,
+    count(*) filter (where kind = 'vacant_building_311' and signal_date > current_date - 1095
+                     and lower(coalesce(attrs->>'duplicate', '')) <> 'true') as vacant_building_311,
+    count(*) filter (where kind = 'vacant_lot_311' and signal_date > current_date - 1095
+                     and lower(coalesce(attrs->>'duplicate', '')) <> 'true') as vacant_lot_311,
+    bool_or(kind = 'scofflaw') as scofflaw,
+    min(status) filter (where kind = 'city_owned') as city_owned_status,
+    max(signal_date) filter (where kind = 'demolition_notice') as demolition_notice_date
+  from parcel_signal where pin10 is not null group by pin10
+) x where ps.pin10 = x.pin10;
 """
 
 

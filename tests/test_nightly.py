@@ -19,4 +19,4 @@ def test_nightly_keeps_going_after_a_failed_source(monkeypatch, capsys):
 
 def test_skip_yearly_leaves_only_nightly_steps():
     names = [n for n, _ in nightly.steps(2026, skip_yearly=True)]
-    assert names == ["sales", "permits", "zoning", "overlays", "transit", "parcel sites"]
+    assert names == ["sales", "permits", "zoning", "overlays", "transit", "signals", "parcel sites"]
