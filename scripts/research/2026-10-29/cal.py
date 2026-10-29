@@ -18,7 +18,7 @@ for b23,b46 in ((235,250),(185,200),(175,190),(165,180),(155,170)):
         rocs.append(float(t['sale_total'])*.94/tot-1)
     mm,ex=total(3,b23,b46,1.0,0)
     print(f"base {b23}/{b46}: profit>=0 on {sum(r>=0 for r in rocs)}/37, median ROC {st.median(rocs)*100:.1f}%, std 3-flat ex-land per unit ${ex/3:,.0f}, with $60k land ${(ex+60000)/3:,.0f}")
-P={'production':(160,175),'standard':(200,215),'high':(250,265)}
+P={'production':(165,170),'standard':(200,215),'high':(250,265)}
 def preset(a): return 'high' if a>=1.8 else ('standard' if a>=1.3 else 'production')
 rocs=[]
 for t in tp:
@@ -26,4 +26,4 @@ for t in tp:
     tot,_=total(u,b[0],b[1],1+.5*(min(a,1.3)-1) if preset(a)=='production' else 1.0,60000)
     rocs.append(float(t['sale_total'])*.94/tot-1)
 print('presets: profit>=0',sum(r>=0 for r in rocs),'/37 median ROC',round(st.median(rocs)*100,1))
-mm,ex=total(3,160,175,1.0,0); print('production 3-flat ex land per unit',round(ex/3))
+mm,ex=total(3,165,170,1.0,0); print('production 3-flat ex land per unit',round(ex/3))
