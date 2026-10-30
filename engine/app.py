@@ -1,10 +1,12 @@
+import json
 from datetime import date
 
 import psycopg
 from fastapi import FastAPI, HTTPException
 
 from core.db import connect
-from engine.comps import Target, estimate, index_from_db, params_from_files, pool_from_db
+from engine.comps import RULES_DIR, Target, estimate, index_from_db, params_from_files, pool_from_db
+from engine.rents import rent
 from engine.rules import Rules
 from engine.sites import site_by_pin
 from engine.zoning import evaluate
@@ -80,3 +82,27 @@ def parcel_sale_value(
             for c, v, w in sorted(e.comps, key=lambda x: -x[2])[:25]
         ],
     }  # fmt: skip
+
+
+@app.get("/parcels/{pin}/rent")
+def parcel_rent(pin: str, bedrooms: int = 2) -> dict:
+    """Monthly rent per unit for a new unit on this lot: Census ACS rent, grown to today, x the new-building factor."""
+    pin = pin.replace("-", "")
+    if not pin.isdigit() or len(pin) not in (10, 14):
+        raise HTTPException(400, "PIN must be 10 or 14 digits")
+    with connect() as conn:
+        row = conn.execute(
+            "select tract_geoid, zip from parcel where pin = %s or pin10 = %s order by tax_year desc limit 1",
+            (pin, pin[:10]),
+        ).fetchone()
+        if row is None:
+            raise HTTPException(404, f"PIN {pin} is not in the parcel table")
+        defaults = json.loads((RULES_DIR / "feasibility_defaults.json").read_text())
+        r = rent(conn, bedrooms, row[0], row[1], defaults, date.today())
+    if r is None:
+        raise HTTPException(404, "no Census rent for this tract or ZIP area")
+    return {
+        **r,
+        "label": "estimate, not an appraisal",
+        "source": "U.S. Census Bureau ACS 5-year, tables B25031 and B25064",
+    }

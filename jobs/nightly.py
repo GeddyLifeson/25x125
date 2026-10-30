@@ -25,6 +25,7 @@ from jobs import (
     load_parcel_shapes,
     load_parcels,
     load_permits,
+    load_rents,
     load_sales,
     load_signals,
     load_streets,
@@ -54,6 +55,7 @@ def steps(year: int, skip_yearly: bool) -> list[tuple[str, Callable]]:
         ("boundaries", lambda: load_boundaries.run()),
         ("street segments", lambda: load_streets.run()),
         ("house price index", lambda: load_hpi.run()),
+        ("rents", lambda: load_rents.run()),
     ]
     build = [
         ("parcel sites", lambda: build_parcel_site.run()),

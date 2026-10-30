@@ -143,7 +143,18 @@
     }
   },
   "rents": {
-    "new_construction_premium": 0.25
+    "base": "Census ACS 2020-2024 median gross rent by bedrooms (B25031), tract, then ZIP area, then the tract's overall median (B25064 for the all-units figure); keyless summary files, python -m jobs.load_rents",
+    "growth": "Zillow ZORI by ZIP from the ACS midpoint (2022-07) to the estimate date, as a ratio only; never displayed",
+    "new_construction_factor": 0.98,
+    "factor_range": [
+      0.79,
+      1.43
+    ],
+    "replaces": "new_construction_premium 0.25 (a starting assumption)",
+    "evidence": "python -m jobs.check_rents, 2026-10-30: Assessor 2024 Chicago income worksheets (csik-bsws), potential gross income / 12 / units over the unit-mix ACS rent moved to 2024-01 with ZIP growth. 171 apartment buildings built 2014 or later: median 0.984, 10th-90th percentile 0.785-1.425 (56 low-rise: 0.928). 6,846 older buildings: 0.846. New buildings rent 16% above older ones on the same basis.",
+    "why_below_the_old_premium": "ACS gross rent includes utilities and the Assessor's income does not, so older buildings come in at 0.85 of ACS; new buildings land near ACS, 16% above older stock",
+    "caveat": "Assessor rents are the office's market estimates, not signed leases. Replace with a rent API or MRED leases when available.",
+    "verified_on": "2026-10-30"
   },
   "margins_by_stage": {
     "applies_to": "all cost lines except land; land is a known or entered price",
