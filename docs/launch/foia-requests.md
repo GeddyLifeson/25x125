@@ -8,8 +8,8 @@ Drafted 2026-10-30 from the channel audit (https://claude.ai/artifact/KDGRZ9tKEg
 | --- | --- | --- | --- |
 | 1 | Chicago Department of Buildings | Email DOBfoia@cityofchicago.org (listed on the department's FOIA page) | Sent 2026-10-30 |
 | 2 | Chicago Department of Planning and Development | Email DPDfoia@cityofchicago.org (listed on DPD's FOIA page) | Sent 2026-10-30 |
-| 3 | Cook County Treasurer | Online form only: https://foia.cookcountytreasurer.com/ (or mail/fax to the FOIA Officer, 118 N. Clark St., Room 112; fax 312-603-6967). No FOIA email is published. | Marlon to submit; paste the text below |
-| 4 | Cook County Clerk | Online FOIA Request Site linked from https://cookcountyclerkil.gov/freedom-information-act. No FOIA email is published. | Marlon to submit; paste the text below |
+| 3 | Cook County Treasurer | Online portal https://foia.cookcountytreasurer.com/ needs an account and login (or mail/fax to the FOIA Officer, 118 N. Clark St., Room 112; fax 312-603-6967) | Waiting on Marlon to log in |
+| 4 | Cook County Clerk | Email FOIA.ccclerk@cookcountyil.gov (listed on the Clerk's FOIA portal) | Sent 2026-10-30 |
 | 5 | Cook County Land Bank Authority | Email Info@CookCountyLandBank.org (the only address on its site), asking them to forward if FOIA goes elsewhere | Sent 2026-10-30 |
 
 Commercial requests get 21 business days, so answers are due by about December 1, 2026.
