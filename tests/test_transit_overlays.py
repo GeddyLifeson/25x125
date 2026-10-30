@@ -76,3 +76,13 @@ def test_fire_limits_file_has_a_source_and_one_polygon():
     fc = json.loads(FIRE_LIMITS.read_text())
     assert "13-116-010" in fc["source"] and fc["verified_on"]
     assert [f["geometry"]["type"] for f in fc["features"]] == ["Polygon"]
+
+
+def test_assessor_neighborhood_row_uses_town_code_and_geometry_field():
+    from jobs.load_boundaries import KINDS
+    from jobs.load_boundaries import to_row as boundary_row
+
+    r = {"town_nbhd": "77020", "township_name": "West Chicago", "multipolygon": {"type": "MultiPolygon"}}
+    assert boundary_row("assessor_nbhd", r, 9)[:3] == ("assessor_nbhd", "77020", "West Chicago")
+    assert "'77'" in KINDS["assessor_nbhd"][5]
+    assert boundary_row("ward", {"ward": "1"}, 9) is None  # no geometry

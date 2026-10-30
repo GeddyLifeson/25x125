@@ -12,6 +12,7 @@ from collections.abc import Callable
 from jobs import (
     build_parcel_site,
     load_addresses,
+    load_boundaries,
     load_building_chars,
     load_city_layers,
     load_condos,
@@ -43,6 +44,7 @@ def steps(year: int, skip_yearly: bool) -> list[tuple[str, Callable]]:
         ("addresses", lambda: load_addresses.run(year)),
         ("building characteristics", lambda: load_building_chars.run(year)),
         ("condos", lambda: load_condos.run(year)),
+        ("boundaries", lambda: load_boundaries.run()),
     ]
     return ([] if skip_yearly else yearly) + nightly + [("parcel sites", lambda: build_parcel_site.run())]
 
