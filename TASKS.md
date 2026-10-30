@@ -27,6 +27,8 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 - [x] Checked Assessor Parcel Proximity (ydue-e5u3): no transit fields; distances computed from station points instead.
 - [x] Enterprise Zones (64xf-pyvh) returns empty geometry on 2026-10-29; find another source. Done: city GIS operational/MapServer/73, 6 zones.
 - [x] Load report: row counts per table, latest pull per source, failed pulls in the last 7 days (`python -m jobs.report`).
+- [x] Depth channels from the channel audit (https://claude.ai/artifact/KDGRZ9tKEgCwC2cUYq5Ydg): Assessor parcel proximity (ydue-e5u3), Assessor permits (6yjf-dfxs), tax-exempt parcels (vgzx-68gb), building footprints (syp8-uezg) in `jobs/load_parcel_extras.py`; environmental holds (6gqn-e2ij), hearing fines (6br9-quuz), vacant-building fines (kc9i-wq85), foreclosed rentals (yhcw-iu53) as signal kinds. Live load on 2026-10-30: 174,846 Chicago Assessor permits; 49,650 exempt PINs; 1,417,544 proximity rows (2025, county-wide; trimmed to Chicago lots when parcels are loaded); 820,596 footprints (stories on 427,998, units on 409,313; the city last updated this file in 2015, so newer buildings are missing); 1,850 environmental holds; 85,745 hearing cases since 2021; 4,482 vacant-building cases (5,012 rows, some share a violation number); 585 foreclosed rentals.
+- [ ] Add the depth channels to `parcel_site`: foreclosures within half a mile, stories, fines owed, environmental hold, exempt owner. Then add their counts to `parcel_site` (foreclosures within half a mile, stories, amount owed in fines, environmental hold, exempt owner).
 
 ## Step 2: Rules engine
 
@@ -110,6 +112,9 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 ## Version 1.1 (after launch)
 
 - [ ] Saved searches with alerts; CSV import; teams and shared deals; comps drawer; sensitivity sliders; lender Excel export.
+- [ ] Rezoning history near each parcel from City Council ordinances since 2011 (DataMade nightly database, chicago-council-scrapers), shown as facts: map amendments within half a mile in 5 years, share passed, median days to pass.
+- [ ] Appeals (y282-6ig3, 7pny-nedm), HMDA lending on 2-4 unit buildings by tract, CPS attendance zones (x72b-38qv, xg7c-d8rm), incentive awards nearby (mex4-ppfc, wy5s-xrw5, rym7-49n8), RentCast per-address rents.
+- [ ] Records from the FOIA requests in `docs/launch/foia-requests.md` (permit applications, map amendments, ZBA log, tax sale lists, Clerk recordings index, land bank inventory), once they arrive.
 
 ## Later, from the international review
 
@@ -126,6 +131,7 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 - [ ] Hosting account; free Socrata app tokens; free Census API key.
 - [ ] Errors and omissions insurance quote before launch.
 - [ ] MRED feed (steps in `docs/v1-spec.md`, MRED section).
+- [ ] Send the five FOIA requests in `docs/launch/foia-requests.md` (commercial purpose stated).
 
 ## Open items to verify (from the plan)
 

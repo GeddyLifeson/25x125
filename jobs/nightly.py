@@ -22,6 +22,7 @@ from jobs import (
     load_condos,
     load_hpi,
     load_overlays,
+    load_parcel_extras,
     load_parcel_shapes,
     load_parcels,
     load_permits,
@@ -44,6 +45,7 @@ def steps(year: int, skip_yearly: bool) -> list[tuple[str, Callable]]:
         ("overlays", lambda: load_overlays.run()),
         ("transit", lambda: load_transit.run()),
         ("signals", lambda: load_signals.run()),
+        ("assessor permits", lambda: load_parcel_extras.run_source("permits")),
         ("city layers", lambda: load_city_layers.run()),
     ]
     yearly = [
@@ -56,6 +58,9 @@ def steps(year: int, skip_yearly: bool) -> list[tuple[str, Callable]]:
         ("street segments", lambda: load_streets.run()),
         ("house price index", lambda: load_hpi.run()),
         ("rents", lambda: load_rents.run()),
+        ("parcel proximity", lambda: load_parcel_extras.run_source("proximity")),
+        ("tax-exempt parcels", lambda: load_parcel_extras.run_source("exempt")),
+        ("building footprints", lambda: load_parcel_extras.run_source("footprints")),
     ]
     build = [
         ("parcel sites", lambda: build_parcel_site.run()),

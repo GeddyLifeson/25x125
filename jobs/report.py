@@ -6,7 +6,8 @@ Run: python -m jobs.report
 from core.db import connect
 
 TABLES = ["parcel", "parcel_shape", "parcel_site", "parcel_address", "sale", "permit", "building_char",
-          "condo_char", "zoning_district_area", "overlay", "transit_station", "parcel_signal", "boundary", "street_segment", "lot_use", "comp", "hpi", "cost_index", "permit_wait", "land_sale", "land_value", "acs_rent", "zori_growth", "rule"]  # fmt: skip
+          "condo_char", "zoning_district_area", "overlay", "transit_station", "parcel_signal", "boundary", "street_segment", "lot_use", "comp", "hpi", "cost_index", "permit_wait", "land_sale", "land_value", "acs_rent", "zori_growth", "rule",
+          "parcel_proximity", "assessor_permit", "exempt_parcel", "building_footprint"]  # fmt: skip
 
 
 def run(url: str | None = None) -> dict:

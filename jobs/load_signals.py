@@ -56,6 +56,24 @@ SIGNALS = {
         f"notification_type in ('Demolition Notice of Intent', 'Both Asbestos Abatement and Demo Notification')"
         f" and start_date >= '{SINCE}'", ("owner_applicant", "comment"),
     ),
+    "environmental_hold": Signal(
+        "6gqn-e2ij", "application_id", "date", None, "moratorium_type", "address",
+        None, ("comment", "data_source"),
+    ),
+    "hearing_fine": Signal(
+        "6br9-quuz", "id", "violation_date", "case_disposition", "violation_description", "address",
+        f"violation_date >= '{SINCE}'", ("docket_number", "violation_code", "imposed_fine", "admin_costs",
+                                         "hearing_date", "respondents"),
+    ),
+    "vacant_building_fine": Signal(
+        "kc9i-wq85", "violation_number", "issued_date", "disposition_description", "violation_type",
+        "property_address", None, ("docket_number", "issuing_department", "entity_or_person_s_", "total_fines",
+                                   "total_paid", "current_amount_due", "last_hearing_date"),
+    ),
+    "foreclosed_rental": Signal(
+        "yhcw-iu53", "id", "owner_date", None, "owner_name", "property_address",
+        None, ("submission_date", "owner_management_agent_name", "owner_notices_agent_name"),
+    ),
 }  # fmt: skip
 
 COLUMNS = ["kind", "source_id", "signal_date", "status", "detail", "address", "pin", "attrs", "lon", "lat",
@@ -69,6 +87,8 @@ def to_row(kind: str, r: dict, pull_id: int) -> tuple | None:
     if not sid:
         return None
     lon, lat = num(r.get("longitude")), num(r.get("latitude"))
+    if lon is None and isinstance(r.get("location"), str) and r["location"].startswith("POINT ("):
+        lon, lat = (float(v) for v in r["location"][7:-1].split())  # foreclosed rentals give WKT only
     if lon is None or lat is None or not (-88.0 < lon < -87.4 and 41.6 < lat < 42.1):
         lon = lat = None
     pin = text(r.get("pin"))

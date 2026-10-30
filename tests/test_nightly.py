@@ -26,6 +26,7 @@ def test_skip_yearly_leaves_only_nightly_steps():
         "overlays",
         "transit",
         "signals",
+        "assessor permits",
         "city layers",
         "parcel sites",
         "lot use and block faces",
