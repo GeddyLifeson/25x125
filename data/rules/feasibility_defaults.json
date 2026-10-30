@@ -229,12 +229,18 @@
     "source": "Germany Bodenrichtwerte and Singapore price per buildable area (docs/international-practices.md)",
     "measures": [
       "land sale price per sq ft of lot",
-      "land sale price per buildable sq ft (lot area x FAR of the current district)"
+      "per sq ft moved to a 3,125 sq ft lot: price x (3125 / lot) ^ 0.858 / 3125",
+      "per buildable sq ft (lot area x FAR of the current district)"
     ],
-    "sales": "vacant land (class 100, 190, 241) and teardown sales (building value under 20% of assessed value) in the last 36 months",
-    "unit": "Assessor neighborhood; fall back to community area, then side of city",
+    "sales": "vacant land (class 100, 190, 241) and teardowns (a residential building sale followed within 24 months by a demolition or new construction permit on the lot) in the last 36 months; same arm's-length checks as comps",
+    "unit": "Assessor neighborhood; fall back to community area, then neighboring community areas",
     "refresh": "monthly",
-    "show": "median, sale count, date range"
+    "show": "vacant and teardown medians separately and pooled, each with sale count and date range",
+    "teardown_source": "McMillen and Singh, Land Value Estimation using Teardowns (Lincoln Institute); Dye and McMillen (2007), teardown prices approximate land value",
+    "lot_size_elasticity": 0.858,
+    "standard_lot_sqft": 3125,
+    "job": "python -m jobs.build_land_values (land_sale, land_value); 2026-10-30: 664 vacant and 407 teardown sales, 71 community areas",
+    "verified_on": "2026-10-30"
   },
   "residual": {
     "name": "residual land value (shown as max land price)",
