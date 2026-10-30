@@ -1,7 +1,10 @@
+from datetime import date
+
 import psycopg
 from fastapi import FastAPI, HTTPException
 
 from core.db import connect
+from engine.comps import Target, estimate, index_from_db, params_from_files, pool_from_db
 from engine.rules import Rules
 from engine.sites import site_by_pin
 from engine.zoning import evaluate
@@ -35,3 +38,45 @@ def parcel_zoning(pin: str, target: str | None = None) -> dict:
             raise HTTPException(404, f"PIN {pin} is not in the parcel table")
         rules = Rules.from_db(conn)
     return evaluate(site, rules, rezoning_target=target).to_dict()
+
+
+@app.get("/parcels/{pin}/sale-value")
+def parcel_sale_value(
+    pin: str, units: int = 3, sell: str = "building", sqft_per_unit: float | None = None
+) -> dict:
+    """Sale price per unit for new construction on this lot, from comps, with the 80% range.
+
+    `sell` is 'building' (whole building, both comp kinds) or 'condo' (condo units, condo comps only).
+    """
+    pin = pin.replace("-", "")
+    if not pin.isdigit() or len(pin) not in (10, 14):
+        raise HTTPException(400, "PIN must be 10 or 14 digits")
+    if sell not in ("building", "condo") or not 2 <= units <= 6:
+        raise HTTPException(400, "sell must be building or condo; units 2 to 6")
+    with connect() as conn:
+        row = conn.execute(
+            "select st_y(geom), st_x(geom) from parcel where (pin = %s or pin10 = %s) and geom is not null"
+            " order by tax_year desc limit 1",
+            (pin, pin[:10]),
+        ).fetchone()
+        if row is None:
+            raise HTTPException(404, f"PIN {pin} has no location in the parcel table")
+        pool, index = pool_from_db(conn), index_from_db(conn)
+    sqft = sqft_per_unit or {2: 1300, 3: 1200}.get(units, 1000)
+    t = Target(row[0], row[1], units, date.today(), sqft, "condo" if sell == "condo" else None)
+    e = estimate(t, pool, params_from_files(), index)
+    if e is None:
+        raise HTTPException(404, "no comps")
+    return {
+        "per_unit": round(e.per_unit), "low": round(e.low) if e.low else None,
+        "high": round(e.high) if e.high else None, "range": "80% range from tested errors",
+        "comps": e.n, "radius_mi": e.radius_mi, "same_size_group": e.same_group, "notes": e.notes,
+        "time_index": e.index_used,
+        "source": "Cook County Assessor sales (wvhk-k5uv) and characteristics; FHFA HPI",
+        "label": "estimate, not an appraisal",
+        "comp_list": [
+            {"pin": c.pin, "kind": c.kind, "sale_date": c.sale_date.isoformat(), "price_per_unit": round(c.price_per_unit),
+             "adjusted": round(v), "weight": round(w, 3)}
+            for c, v, w in sorted(e.comps, key=lambda x: -x[2])[:25]
+        ],
+    }  # fmt: skip

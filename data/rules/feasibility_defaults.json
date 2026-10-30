@@ -178,12 +178,11 @@
   },
   "sale_comps": {
     "pool": "2-6 unit buildings (class 211, x54s-btds) and condo units in 2-6 unit buildings (3r7i-mrz4) built 2014 or later, first arm's-length sale after construction (wvhk-k5uv)",
-    "search": "same unit-count group within 0.75 mi, then 1.5 mi, then any unit count within 1.5 mi, then 3 mi; at least 6 comps; sales within 4 years",
-    "weighting": "inverse distance (1 / (0.2 + miles)); weighted median",
+    "search": "same unit-count group within 0.75 mi, then 1.5 mi, then any unit count within 1.5 mi, then 3 mi, then citywide; at least 6 comps; sales within 3 years",
     "time_adjustment": {
       "source": "https://www.fhfa.gov/data/hpi/datasets",
       "verified_on": "2026-10-29",
-      "index": "FHFA HPI annual by census tract, then ZIP, then Chicago metro quarterly",
+      "index": "FHFA all-transactions HPI, Chicago-Naperville-Schaumburg metro division, annual mean of quarters; tract and ZIP loaded for testing",
       "note": "public domain; can be shown on screen"
     },
     "filters": {
@@ -195,7 +194,31 @@
         "use the Assessor sale_filter flags and is_multisale as published"
       ],
       "why": "two of 37 test sales failed these checks on 2026-10-29 (data/reference/test_parcels_removed.csv)"
-    }
+    },
+    "kind": "condo-unit scenarios use condo comps only; whole-building scenarios use both kinds (191 building comps are too few alone)",
+    "method": {
+      "min_comps": 6,
+      "max_age_years": 3,
+      "distance_offset_mi": 0.2,
+      "size_elasticity": {
+        "condo": 0.5
+      },
+      "blend_k": 0,
+      "time_index_levels": [
+        "metro"
+      ],
+      "chosen_on": "2026-10-30",
+      "evidence": "python -m jobs.check_comps (see docs/research/step3-comps-2026-10-30.md)",
+      "why": {
+        "metro index": "tract and ZIP indexes (FHFA, built from single-family loans) gave 15.0-15.4% holdout median error against 14.5% for metro; only 653 Cook tracts have a 2025 tract value",
+        "condo size only": "building size elasticity 0.37 raised test-set error from 10.3% to 12.9% because unit sizes for planned buildings are defaults, not measured",
+        "3 years": "12.5% holdout median error against 13.7% at 4 years and 14.0% at 5 (IAAO allows up to 5 with time adjustment)",
+        "no blend": "blend k=6 and k=12 gave 13.9-14.0% holdout median error and worse COD on buildings",
+        "condo to building 0.70": "whole buildings sell for less per unit than condo units nearby: buildings estimated mostly from condo comps sold at 0.67 of the estimate. Fit on 129 building sales before 2025-07-01 (grid 0.65-1.0; 0.70 gave the lowest median error, 10.6%), then checked on the 61 holdout buildings (median error 11.7% to 10.1%, COD 40.1 to 24.8)"
+      },
+      "condo_to_building": 0.7
+    },
+    "weighting": "inverse distance (1 / (0.2 + miles)); weighted median"
   },
   "thin_data": {
     "min_permits_for_area_index": 10,

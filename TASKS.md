@@ -46,7 +46,7 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 
 ## Step 3: Comps and cost calibration
 
-- [ ] Port `scripts/research/2026-10-29/` into jobs: comp pool from year built (211 + condo), first arm's-length sale, weighted median per unit, time adjustment. Per the methods review: FHFA tract, ZIP, metro time index in place of the pool trend; size adjustment (elasticity 0.50 condo units, 0.37 buildings, refit nightly); empirical-Bayes blend n/(n+k) in place of the hard fallback; calibrated 80% leave-one-out band in place of the 25th-75th range (pending Marlon); Assessor `sv_is_outlier` flags; comps capped at 5 years.
+- [x] Port `scripts/research/2026-10-29/` into jobs. Done 2026-10-30: `python -m jobs.build_comps` (2,234 kept comps, dropped sales tagged with the reason), `python -m jobs.load_hpi` (FHFA tract, ZIP and metro), `engine/comps.py`, `GET /parcels/{pin}/sale-value`. Method chosen on an out-of-time holdout: metro index, condo size elasticity 0.50, 3-year window, ring fallback, 0.70 factor on condo comps for whole-building estimates; calibrated 80% range in `data/rules/sale_band.json`. Details in `docs/research/step3-comps-2026-10-30.md`.
 - [ ] Cost index job within unit-count groups, monthly (logic in `idx.py`); blend thin areas with neighbors.
 - [ ] Permit wait by review path from `processing_time` (self-cert 50 days, standard 85, medians); FHFA tract HPI time adjustment; PPI escalation of presets (round 2 of docs/international-practices.md).
 - [ ] Recency weights by quarter (1.00, 0.75, 0.56, 0.42) and side-of-city blending for thin areas.
@@ -54,7 +54,7 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 - [x] Build-spec presets set from published evidence (production $165/$170).
 - [ ] Rent estimate: ACS B25031/B25064 + 25% premium, ZORI growth, HUD SAFMR floor, csik-bsws cross-check.
 - [ ] Comp filters from `sale_comps.filters` (deed type, repeat price, pre-completion sales).
-- [ ] Test: sale estimate within 15% for at least 70% of test parcels (69%, 24 of 35, after cleanup on 2026-10-29). Report the hit rate and median error, with a 95% interval. Added by the methods review: out-of-time holdout on the 2,450-sale pool at 55% or more within 15% and median error 13% or less; COD 20 or less for buildings and 15 or less for condo units; PRB interval overlapping -0.10 to +0.10; 80% band covering 75-85% of holdout sales.
+- [ ] Test: sale estimate within 15% for at least 70% of test parcels (69%, 24 of 35, after cleanup on 2026-10-29). Report the hit rate and median error, with a 95% interval. Added by the methods review: out-of-time holdout on the 2,450-sale pool at 55% or more within 15% and median error 13% or less; COD 20 or less for buildings and 15 or less for condo units; PRB interval overlapping -0.10 to +0.10; 80% band covering 75-85% of holdout sales. Status 2026-10-30 (`python -m jobs.check_comps`): test set 69% (24 of 35, 52-81%), median error 7.4%; holdout 57% within 15%, median error 12.4%, PRB -0.13 (-0.18 to -0.08), range coverage 76%; COD 24.8 buildings and 16.3 condo units miss their targets.
 - [ ] Test: at actual sale and $60,000 land, at least 60% of test buildings show profit of $0 or more (57%, 20 of 35, on 2026-10-29).
 - [ ] Test: standard 3-flat total cost within -20%/+30% of $308,000-365,000 per unit.
 

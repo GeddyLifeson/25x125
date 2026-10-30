@@ -1,0 +1,75 @@
+{
+  "source": "python -m jobs.check_comps: 10th and 90th percentile leave-one-out errors, actual / estimate - 1",
+  "verified_on": "2026-10-30",
+  "fit_on": "pool sales before 2025-07-01",
+  "method": "chosen: rings, 3 years, metro index, condo size",
+  "holdout_coverage": 0.756,
+  "rings": "0: 0.75 mi same size group, 1: 1.5 mi same group, 2: 1.5 mi any, 3: 3 mi any, 4: citywide",
+  "band": {
+    "any|condo": [
+      -0.241,
+      0.241,
+      1820
+    ],
+    "any|any": [
+      -0.247,
+      0.241,
+      1949
+    ],
+    "3|any": [
+      -0.42,
+      0.338,
+      60
+    ],
+    "any|building": [
+      -0.344,
+      0.23,
+      129
+    ],
+    "3|condo": [
+      -0.398,
+      0.542,
+      36
+    ],
+    "0|condo": [
+      -0.228,
+      0.224,
+      1496
+    ],
+    "0|any": [
+      -0.227,
+      0.224,
+      1539
+    ],
+    "1|condo": [
+      -0.291,
+      0.285,
+      207
+    ],
+    "1|any": [
+      -0.292,
+      0.263,
+      231
+    ],
+    "2|condo": [
+      -0.203,
+      0.42,
+      62
+    ],
+    "2|any": [
+      -0.227,
+      0.402,
+      92
+    ],
+    "2|building": [
+      -0.273,
+      0.261,
+      30
+    ],
+    "0|building": [
+      -0.072,
+      0.349,
+      43
+    ]
+  }
+}
