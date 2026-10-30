@@ -1,83 +1,98 @@
 {
-  "source": "docs/v1-spec.md, Zoning rules engine",
-  "verified_on": "2026-10-28",
+  "source": "docs/v1-spec.md, Zoning rules engine; numbers checked against the Chicago Zoning Ordinance text on 2026-10-30",
+  "verified_on": "2026-10-30",
+  "district_tables": {
+    "districts": "data/rules/zoning_districts.csv",
+    "heights": "data/rules/zoning_heights.csv"
+  },
   "steps": [
     {
       "id": "units_by_right",
-      "rule": "floor(lot_area / lot_area_per_unit)"
+      "rule": "floor(lot_area / lot_area_per_unit); a lot below the district's minimum lot area gets no by-right units beyond one detached house",
+      "section": "17-2-0301-A, 17-2-0303-A, 17-3-0402-A"
     },
     {
       "id": "floor_area_by_right",
-      "rule": "lot_area * far"
+      "rule": "lot_area * far",
+      "section": "17-2-0304-A, 17-3-0403-A"
     },
     {
       "id": "rs3_two_flat_exception",
-      "rule": "RS-3 on a 25 ft lot: 2 units allowed if >= 60% of buildings on the same block face have 2+ units (lot area per unit becomes 1500)",
-      "data": "units per building on the block face from x54s-btds char_apts and class codes; verify the 1,500 sq ft figure against the code"
+      "rule": "RS-3: lot area per unit drops to 1,500 sq ft, for a two-unit building only, when 60% or more of the lots on the same side of the street between the two nearest cross streets hold buildings with more than one unit, or when the lot is in the Predominance of the Block (606) District",
+      "params": {"district": "RS-3", "block_face_share": 0.6, "lot_area_per_unit_sqft": 1500, "max_units": 2, "special_district": "Predominance of the Block (606) District"},
+      "section": "17-2-0303-B.1",
+      "data": "block faces from parcel addresses (street, side, hundred block) and units per lot from Assessor classes and x54s-btds apartments; the hundred block stands in for 'between the two nearest cross streets'"
     },
     {
       "id": "administrative_adjustment",
-      "rule": "units = floor(lot_area / (0.9 * lot_area_per_unit)); height +10%"
+      "rule": "lot area per unit may be reduced by up to 10%: units = floor(lot_area / (0.9 * lot_area_per_unit)); height +10%",
+      "params": {"lot_area_factor": 0.9, "height_factor": 1.1},
+      "approval": "administrative adjustment from the Zoning Administrator",
+      "section": "docs/v1-spec.md step 4; confirm section in 17-13-1000"
     },
     {
       "id": "adu",
-      "rule": "+1 unit (coach house or conversion) in RT-4 and higher and B/C; RS where the city's ADU eligibility map allows (permanent since 2026-04-01); 2+ ADUs trigger affordability rule"
+      "rule": "+1 unit (coach house or conversion unit) in RT-4, RM and B/C districts; in RS and RT-3.5 only inside the city's ADU zones. 2+ ADUs trigger the affordability rule",
+      "params": {"units": 1, "by_district": ["RT-4", "RM-4.5", "RM-5", "RM-5.5", "RM-6", "RM-6.5", "B/C-1", "B/C-1.5", "B/C-2", "B/C-3", "B/C-5"], "by_map": ["RS-1", "RS-2", "RS-3", "RT-3.5"]},
+      "section": "ADU ordinance, permanent citywide 2026-04-01; ADU zones layer"
     },
     {
       "id": "rezoning",
-      "rule": "recompute at a target district the user picks; default is the first target listed",
+      "rule": "recompute at a target district the user picks; default is the first target listed. B/C targets keep the lot's letter family (B3-1 to B3-2)",
+      "approval": "zoning map amendment (City Council)",
       "targets": {
-        "RS-3": [
-          "RT-4",
-          "RM-4.5"
-        ],
-        "RT-4": [
-          "RM-5",
-          "RM-4.5"
-        ],
-        "RM-4.5": [
-          "RM-5"
-        ],
-        "B/C-1": [
-          "B/C-2",
-          "B/C-3"
-        ],
-        "B/C-1.5": [
-          "B/C-2",
-          "B/C-3"
-        ],
-        "B/C-2": [
-          "B/C-3"
-        ],
-        "B/C-3": [
-          "B/C-5"
-        ]
+        "RS-1": ["RS-3", "RT-4"],
+        "RS-2": ["RS-3", "RT-4"],
+        "RS-3": ["RT-4", "RM-4.5"],
+        "RT-3.5": ["RT-4", "RM-4.5"],
+        "RT-4": ["RM-5", "RM-4.5"],
+        "RM-4.5": ["RM-5"],
+        "B/C-1": ["B/C-2", "B/C-3"],
+        "B/C-1.5": ["B/C-2", "B/C-3"],
+        "B/C-2": ["B/C-3"],
+        "B/C-3": ["B/C-5"]
       }
     },
     {
-      "id": "transit_served",
-      "rule": "within 0.5 mi of CTA rail station or 0.25 mi of eligible bus corridor: car parking 0, bike parking 1 per unit",
-      "data": "use the city transit-served location map if published; otherwise CTA rail and Metra stations plus eligible bus corridors. CTA rail alone undercounts."
+      "id": "parking",
+      "rule": "car parking 1 space per unit outside transit-served locations; 0 inside them, with bike parking 1 per unit",
+      "params": {"spaces_per_unit": 1, "transit_served_spaces_per_unit": 0, "bike_spaces_per_unit": 1},
+      "section": "17-10-0207 (ratios, to confirm), 17-10-0102-B (transit-served)"
+    },
+    {
+      "id": "transit_density_bonus",
+      "rule": "B3-3 and C3-3 lots in a transit-served location may use lower lot area per unit and higher FAR with on-site affordable units under the ARO",
+      "params": {"districts": ["B3-3", "C3-3"], "tiers": [
+        {"aro_on_site_share": 0.5, "lot_area_per_unit_sqft": 350, "far": 3.5},
+        {"aro_on_site_share": 0.75, "lot_area_per_unit_sqft": 325, "far": 3.75},
+        {"aro_on_site_share": 1.0, "lot_area_per_unit_sqft": 300, "far": 4.0}
+      ]},
+      "approval": "transit-served development approval under 17-3-0308",
+      "section": "17-3-0402-B, 17-3-0403-B, 17-3-0408-B"
     },
     {
       "id": "ground_floor_residential",
-      "rule": "by right only in B2 and DR; other B/C districts flag special use or adjustment"
+      "rule": "an all-residential building in a B or C district needs ground-floor dwelling units: by right in B2, special use in B1, B3, C1 and C2, not allowed in C3",
+      "params": {"B1": "special use", "B2": "by right", "B3": "special use", "C1": "special use", "C2": "special use", "C3": "not allowed"},
+      "section": "17-3-0207 (use table: dwelling units below the second floor)"
     },
     {
       "id": "aro_flag",
-      "rule": "flag Affordable Requirements Ordinance when a rezoning scenario reaches 10+ units"
+      "rule": "flag the Affordable Requirements Ordinance when a rezoning scenario reaches 10+ units",
+      "params": {"units": 10}
     },
     {
       "id": "flags",
-      "rule": "historic orange/red rating (90-day demolition hold), 606/Pilsen demolition surcharge district, fire limits (wood frame mostly not allowed)"
+      "rule": "historic orange/red rating (90-day demolition hold), landmark, 606/Pilsen demolition surcharge and district rules (data/rules/special_districts.json), fire limits (wood frame restricted), split-zoned lot, lot size from the Assessor instead of a polygon"
     }
   ],
   "not_in_v1": [
     "setbacks and footprint",
     "Planned Development thresholds",
-    "landmark district design review"
+    "landmark district design review",
+    "D, M, PMD, PD, POS and T districts (results say the district is not covered)"
   ],
-  "revised_on": "2026-10-29",
+  "revised_on": "2026-10-30",
   "unverified_until_2026_code_checked": [
     "one stair up to 3 stories",
     "sprinklers at 4+ units",

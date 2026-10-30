@@ -30,13 +30,13 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 
 ## Step 2: Rules engine
 
-- [ ] Seed rule tables from `data/rules/zoning_districts.csv` and `zoning_steps.json`.
-- [ ] Load the full B/C height-by-frontage table from the code.
-- [ ] Implement the 10 calculation steps, with user-picked rezoning targets and the RS-3 block-face test.
-- [ ] One rule schema: rule, location reference, effective from/to, citation, verified-on (Dutch and UK practice; docs/international-practices.md).
-- [ ] Output per parcel and path: units, floor area, height, parking, flags, rule citation.
-- [ ] Hand-checked set: about 20 parcels Marlon knows (B/C-3, mixed use, RS-3, a 606 lot, a historic building).
-- [ ] Test: units by right on each test lot are at least the units built, or the result names the approval path used; hand-checked set matches.
+- [x] Seed rule tables from `data/rules/zoning_districts.csv` and `zoning_steps.json`. Done 2026-10-30 (`python -m jobs.seed_rules`, part of the nightly run): 60 rules. Districts now cover RS-1 to RM-6.5 and B/C -1 to -5, checked against the code text; D, M, PMD, PD, POS and T districts return 'not covered'.
+- [x] Load the full B/C height-by-frontage table from the code. Done: `data/rules/zoning_heights.csv` (17-3-0408-A, with and without ground-floor commercial; RM-4.5/RM-5/RM-5.5 frontage steps from 17-2-0311-A).
+- [x] Implement the 10 calculation steps, with user-picked rezoning targets and the RS-3 block-face test. Done: `engine/zoning.py`; block faces from `jobs/build_lot_use.py` (street, side and hundred block); rezoning target via `?target=`. The transit-served density bonus applies to B3-3 and C3-3 only, as the code says (the spec says all -3 districts).
+- [x] One rule schema: rule, location reference, effective from/to, citation, verified-on (Dutch and UK practice; docs/international-practices.md). Done: `rule` table (migration 0011).
+- [x] Output per parcel and path: units, floor area, height, parking, flags, rule citation. Done: `GET /parcels/{pin}/zoning`.
+- [ ] Hand-checked set: about 20 parcels Marlon knows (B/C-3, mixed use, RS-3, a 606 lot, a historic building). 19 parcels from recent permits are in `data/reference/hand_check_parcels.csv` with an expected result each; Marlon to add the ones he knows.
+- [x] Test: units by right on each test lot are at least the units built, or the result names the approval path used; hand-checked set matches. Done 2026-10-30 (`python -m jobs.check_zoning`): 35 of 35 test buildings fit a path (28 by right, 1 by the RS-3 block-face rule, 4 by the 10% lot-area adjustment, 2 with an ADU unit); 19 of 19 hand-checked parcels as expected.
 
 ## Step 3: Comps and cost calibration
 

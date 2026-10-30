@@ -28,4 +28,6 @@ def test_skip_yearly_leaves_only_nightly_steps():
         "signals",
         "city layers",
         "parcel sites",
+        "lot use and block faces",
+        "rules",
     ]

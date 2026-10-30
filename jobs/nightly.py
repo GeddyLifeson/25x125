@@ -10,6 +10,7 @@ import traceback
 from collections.abc import Callable
 
 from jobs import (
+    build_lot_use,
     build_parcel_site,
     load_addresses,
     load_boundaries,
@@ -25,6 +26,7 @@ from jobs import (
     load_transit,
     load_zoning,
     report,
+    seed_rules,
 )
 
 
@@ -46,7 +48,12 @@ def steps(year: int, skip_yearly: bool) -> list[tuple[str, Callable]]:
         ("condos", lambda: load_condos.run(year)),
         ("boundaries", lambda: load_boundaries.run()),
     ]
-    return ([] if skip_yearly else yearly) + nightly + [("parcel sites", lambda: build_parcel_site.run())]
+    build = [
+        ("parcel sites", lambda: build_parcel_site.run()),
+        ("lot use and block faces", lambda: build_lot_use.run()),
+        ("rules", lambda: seed_rules.run()),
+    ]
+    return ([] if skip_yearly else yearly) + nightly + build
 
 
 def main(argv: list[str] | None = None) -> int:
