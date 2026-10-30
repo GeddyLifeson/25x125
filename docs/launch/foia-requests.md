@@ -6,15 +6,17 @@ Drafted 2026-10-30 from the channel audit (https://claude.ai/artifact/KDGRZ9tKEg
 
 | # | Office | How | Status |
 | --- | --- | --- | --- |
-| 1 | Chicago Department of Buildings | Email DOBfoia@cityofchicago.org (listed on the department's FOIA page) | Sent 2026-10-30 |
-| 2 | Chicago Department of Planning and Development | Email DPDfoia@cityofchicago.org (listed on DPD's FOIA page) | Sent 2026-10-30 |
-| 3 | Cook County Treasurer | Online portal https://foia.cookcountytreasurer.com/ (Marlon's account), category Tax Sale | Sent 2026-10-30 11:49, reference lHcL1CI0hwZwA10 |
-| 4 | Cook County Clerk | Email FOIA.ccclerk@cookcountyil.gov (listed on the Clerk's FOIA portal) | Sent 2026-10-30 |
-| 5 | Cook County Land Bank Authority | Email Info@CookCountyLandBank.org (the only address on its site), asking them to forward if FOIA goes elsewhere | Sent 2026-10-30 |
+| 1 | Chicago Department of Buildings | Email DOBfoia@cityofchicago.org (listed on the department's FOIA page) | Sent 2026-10-30. Follow-up sent: cancel if any fee applies |
+| 2 | Chicago Department of Planning and Development | Email DPDfoia@cityofchicago.org (listed on DPD's FOIA page) | Sent 2026-10-30. Follow-up sent: cancel if any fee applies |
+| 3 | Cook County Treasurer | Online portal https://foia.cookcountytreasurer.com/ (Marlon's account), category Tax Sale | Sent 2026-10-30 11:49, reference lHcL1CI0hwZwA10. No email channel; fees apply only to paper past 50 pages and are collected before copying, so nothing is charged without approval |
+| 4 | Cook County Clerk | Email FOIA.ccclerk@cookcountyil.gov (listed on the Clerk's FOIA portal) | Withdrawn 2026-10-30 after a fee notice (FOIA 369D53A, $0.10 per index line). Use the Clerk's free online search instead |
+| 5 | Cook County Land Bank Authority | Email Info@CookCountyLandBank.org (the only address on its site), asking them to forward if FOIA goes elsewhere | Sent 2026-10-30. Follow-up sent: cancel if any fee applies |
 
 Commercial requests get 21 business days, so answers are due by about December 1, 2026.
 
 ## Before sending
+
+- Check each office's fee schedule before sending. Marlon approves any fee first.
 
 - Illinois FOIA (5 ILCS 140) gives a public body 5 business days to answer, with one 5-day extension.
 - 25x125 will use the records in a paid product, so each request is a commercial request. Section 3.1 requires saying so. A commercial request gets 21 business days, and the body may charge for staff time. Each draft below says so.
