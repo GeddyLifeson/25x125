@@ -8,7 +8,8 @@ Overlays add the historic survey rating (Red or Orange means a 90-day demolition
 TIF district, and transit adds straight-line feet to the nearest CTA rail and Metra station.
 Signals (violations, 311 vacant requests, scofflaw list, city-owned land, demolition notices) are tied to
 the lot their point falls on (or the nearest lot within 15 m), or the source PIN where one is given, and
-summed per lot.
+summed per lot. City map layers (transit-served areas, ADU zones, special districts, ARO areas, pedestrian
+streets, Enterprise Zones, 2018 Opportunity Zones, fire limits) are tested at the lot's point on surface.
 Run: python -m jobs.build_parcel_site
 """
 
@@ -100,6 +101,51 @@ from (
     min(status) filter (where kind = 'city_owned') as city_owned_status,
     max(signal_date) filter (where kind = 'demolition_notice') as demolition_notice_date
   from parcel_signal where pin10 is not null group by pin10
+) x where ps.pin10 = x.pin10;
+
+-- City map layers, tested at one point per PIN.
+create temp table site_point on commit drop as
+select p.pin, coalesce((select st_pointonsurface(s.geom) from parcel_shape s where s.pin10 = p.pin10), p.geom) as geom
+from parcel p;
+create index on site_point using gist (geom);
+analyze site_point;
+-- Large polygons (the citywide station buffers) split into small parts keep point tests fast.
+create temp table overlay_part on commit drop as
+select kind, name, rating, attrs, st_subdivide(geom, 256) as geom from overlay
+where kind in ('tsl_cta_station', 'tsl_metra_station', 'tsl_bus_corridor', 'adu_area', 'special_district',
+               'aro_area', 'enterprise_zone', 'opportunity_zone_2018', 'fire_limits');
+create index on overlay_part using gist (geom);
+analyze overlay_part;
+
+update parcel_site ps set
+  transit_served = (
+    select case o.kind when 'tsl_cta_station' then 'CTA station' when 'tsl_metra_station' then 'Metra station'
+                       else 'bus corridor: ' || o.name end
+    from overlay_part o
+    where o.kind in ('tsl_cta_station', 'tsl_metra_station', 'tsl_bus_corridor') and st_contains(o.geom, sp.geom)
+    order by case o.kind when 'tsl_cta_station' then 0 when 'tsl_metra_station' then 1 else 2 end, o.name
+    limit 1),
+  adu_zone = (select o.name from overlay_part o where o.kind = 'adu_area' and st_contains(o.geom, sp.geom) limit 1),
+  adu_limits = (select o.attrs->>'TEXT' from overlay_part o
+                where o.kind = 'adu_area' and st_contains(o.geom, sp.geom) limit 1),
+  special_district = (select string_agg(distinct o.name, '; ' order by o.name) from overlay_part o
+                      where o.kind = 'special_district' and st_contains(o.geom, sp.geom)),
+  aro_area = (select o.rating from overlay_part o where o.kind = 'aro_area' and st_contains(o.geom, sp.geom) limit 1),
+  enterprise_zone = (select o.name from overlay_part o
+                     where o.kind = 'enterprise_zone' and st_contains(o.geom, sp.geom) limit 1),
+  opportunity_zone_2018 = (select o.name from overlay_part o
+                           where o.kind = 'opportunity_zone_2018' and st_contains(o.geom, sp.geom) limit 1),
+  fire_limits = exists (select 1 from overlay_part o where o.kind = 'fire_limits' and st_contains(o.geom, sp.geom))
+from site_point sp where ps.pin = sp.pin and sp.geom is not null;
+
+-- Pedestrian streets are drawn as the street itself, so a lot is on one when its polygon is within about
+-- 10 m (0.0001 degrees) of it.
+update parcel_site ps set pedestrian_street = x.name
+from (
+  select s.pin10, min(o.name) as name
+  from overlay o join parcel_shape s on st_dwithin(s.geom, o.geom, 0.0001)
+  where o.kind = 'pedestrian_street'
+  group by s.pin10
 ) x where ps.pin10 = x.pin10;
 """
 

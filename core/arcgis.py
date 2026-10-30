@@ -62,7 +62,7 @@ class ArcGIS:
         Pages by key (`key > last seen`), which stays fast deep into a large layer where offsets slow down.
         """
         last = None
-        fields = out_fields if key in out_fields.split(",") else f"{out_fields},{key}"
+        fields = out_fields if out_fields == "*" or key in out_fields.split(",") else f"{out_fields},{key}"
         while True:
             page_where = where if last is None else f"({where}) and {key} > {last}"
             body = self.query(

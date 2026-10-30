@@ -1,0 +1,65 @@
+{
+  "note": "Rules tied to the city map layers loaded by jobs.load_city_layers. Each switches as a data edit.",
+  "rules": [
+    {
+      "id": "transit-served-location",
+      "layer": ["tsl_cta_station", "tsl_metra_station", "tsl_bus_corridor"],
+      "rule": "Lot inside the city's transit-served location map: CTA or Metra station buffer, or 1,320 ft of a bus corridor segment in Table 17-17-0400-B. Parking required = 0 for residential uses; bike parking applies.",
+      "code": "Chicago Zoning Ordinance 17-10-0102-B; 17-17-0400",
+      "sources": [
+        "https://gisapps.chicago.gov/arcgis/rest/services/ExternalApps/Zoning/MapServer",
+        "https://codelibrary.amlegal.com/codes/chicago/latest/chicago_il/0-0-0-2699368"
+      ],
+      "verified_on": "2026-10-30"
+    },
+    {
+      "id": "demolition-surcharge-606-pilsen",
+      "layer": ["special_district"],
+      "match": ["Predominance of the Block (606) District", "Multi-Unit Preservation (Pilsen) District"],
+      "rule": "Demolishing a residential building: surcharge of $20,000 per dwelling unit lost or $60,000 per building, whichever is greater. Sunset 2029-12-31.",
+      "code": "Municipal Code 2-44-135 (Northwest Side Preservation Ordinance, September 2024)",
+      "dollars": {"per_unit": 20000, "per_building": 60000, "ends": "2029-12-31"},
+      "caveat": "The surcharge pilot areas are taken to match the two zoning special districts; confirm against the Department of Housing maps. The city's 606 shape may predate the 2025-07-16 expansion.",
+      "sources": [
+        "https://www.chicago.gov/NWSPreservation",
+        "https://www.chicago.gov/city/en/depts/doh/provdrs/developers/svcs/606-pilsen-demolition-permit-surcharge-ordinance.html"
+      ],
+      "verified_on": "2026-10-30"
+    },
+    {
+      "id": "606-block-predominance",
+      "layer": ["special_district"],
+      "match": ["Predominance of the Block (606) District"],
+      "rule": "RS3: if more than 50% of lots on the same block face hold 2+ unit buildings, a detached house is not allowed and minimum lot area per unit drops to 1,500 sq ft so a two-flat fits. RT3.5: same test at 40%, requiring a two-flat or multi-unit building. Vacant lots count either way at the applicant's choice.",
+      "code": "Chicago Zoning Ordinance 17-7-0591 to 17-7-0593 (amended 2025-07-16)",
+      "sources": ["https://www.zoneomics.com/code/chicago-IL/chapter_7"],
+      "verified_on": "2026-10-30"
+    },
+    {
+      "id": "pilsen-multi-unit-preservation",
+      "layer": ["special_district"],
+      "match": ["Multi-Unit Preservation (Pilsen) District"],
+      "rule": "In RT4, RM4.5-RM6.5, B and C districts: a detached house or two-flat is allowed only if more than 50% of lots on the same block face already hold a detached house or two-flat. Otherwise build 3+ units.",
+      "code": "Chicago Zoning Ordinance 17-7-0581 to 17-7-0583",
+      "sources": ["https://www.zoneomics.com/code/chicago-IL/chapter_7"],
+      "verified_on": "2026-10-30"
+    },
+    {
+      "id": "adu-zones",
+      "layer": ["adu_area"],
+      "rule": "RS lots inside an ADU zone may add an ADU. Limit codes: 1 = annual cap on ADU permits per block, 2 = owner must live on site, 3 = administrative adjustment needed. Outside the zones, RS lots get no ADU path.",
+      "code": "Chicago ADU ordinance, permanent citywide 2026-04-01",
+      "sources": ["https://gisapps.chicago.gov/arcgis/rest/services/ExternalApps/Zoning/MapServer/17"],
+      "caveat": "Limit code meanings are from the layer's TEXT field; check the ordinance for the annual cap number.",
+      "verified_on": "2026-10-30"
+    },
+    {
+      "id": "fire-limits",
+      "layer": ["fire_limits"],
+      "rule": "Flag only. Inside the fire limits (Halsted to the lake, Division to Roosevelt), wood-frame construction is restricted.",
+      "code": "Municipal Code 13-116-010",
+      "sources": ["https://codelibrary.amlegal.com/codes/chicago/latest/chicago_il/0-0-0-2503899"],
+      "verified_on": "2026-10-30"
+    }
+  ]
+}

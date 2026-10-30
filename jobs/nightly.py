@@ -13,6 +13,7 @@ from jobs import (
     build_parcel_site,
     load_addresses,
     load_building_chars,
+    load_city_layers,
     load_condos,
     load_overlays,
     load_parcel_shapes,
@@ -34,6 +35,7 @@ def steps(year: int, skip_yearly: bool) -> list[tuple[str, Callable]]:
         ("overlays", lambda: load_overlays.run()),
         ("transit", lambda: load_transit.run()),
         ("signals", lambda: load_signals.run()),
+        ("city layers", lambda: load_city_layers.run()),
     ]
     yearly = [
         ("parcels", lambda: load_parcels.run(year)),

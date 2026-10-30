@@ -47,3 +47,32 @@ def test_historic_overlay_keeps_rating_and_drops_computed_fields():
         7,
     )
     assert ":@computed_region_x" not in attrs
+
+
+def test_city_layer_row_keeps_name_rating_and_drops_shape_fields():
+    from jobs.load_city_layers import LAYERS
+    from jobs.load_city_layers import to_row as layer_row
+
+    layer = LAYERS["tsl_bus_corridor"]
+    f = {
+        "type": "Feature",
+        "id": 321,
+        "geometry": {"type": "MultiPolygon", "coordinates": []},
+        "properties": {"OBJECTID": 321, "STREET_NAM": "Ashland Ave", "SERVED_BY_": "9, X9, 63",
+                       "SHAPE.AREA": 1.0, "BUFF_DIST": 1320.0},
+    }  # fmt: skip
+    kind, sid, name, rating, attrs, _, pull = layer_row(
+        "tsl_bus_corridor", f, 4, layer.key, layer.name_field, layer.rating_field
+    )
+    assert (kind, sid, name, rating, pull) == ("tsl_bus_corridor", "321", "Ashland Ave", "9, X9, 63", 4)
+    assert "SHAPE.AREA" not in attrs and '"BUFF_DIST": 1320.0' in attrs
+
+
+def test_fire_limits_file_has_a_source_and_one_polygon():
+    import json
+
+    from jobs.load_city_layers import FIRE_LIMITS
+
+    fc = json.loads(FIRE_LIMITS.read_text())
+    assert "13-116-010" in fc["source"] and fc["verified_on"]
+    assert [f["geometry"]["type"] for f in fc["features"]] == ["Polygon"]

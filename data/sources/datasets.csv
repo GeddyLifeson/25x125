@@ -13,7 +13,7 @@ Scofflaw list,Chicago,rz4d-qp2m,https://data.cityofchicago.org/resource/,monthly
 City-owned land,Chicago,aksk-kvfp,https://data.cityofchicago.org/resource/,weekly,2026-10-29 yes,signals
 Asbestos and demolition notices,Chicago,qhb4-qx8k,https://data.cityofchicago.org/resource/,daily,2026-10-29 yes,signals
 TIF districts,Chicago,eejr-xtfb,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,incentives
-Enterprise Zones,Chicago,64xf-pyvh,https://data.cityofchicago.org/resource/,as changed,2026-10-29 empty geometry; needs another source,incentives
+Enterprise Zones,Chicago GIS,operational/MapServer/73,https://gisapps.chicago.gov/arcgis/rest/services/ExternalApps/,as changed,2026-10-30 yes (6 zones; portal 64xf-pyvh has empty geometry),incentives
 Historic survey,Chicago,2u8t-236p,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,penalties
 Landmarks,Chicago,uct4-hrvh,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,penalties
 CTA rail stations,Chicago,8pix-ypme,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,transit-served
@@ -27,8 +27,11 @@ Ward boundaries (2023-),Chicago,p293-wvbd,https://data.cityofchicago.org/resourc
 Census tracts 2020,Chicago,7qjk-677h,https://data.cityofchicago.org/resource/,as changed,2026-10-29 found,map layer
 Assessor neighborhood boundaries,Cook County,pcdw-pxtg,https://datacatalog.cookcountyil.gov/resource/,as changed,2026-10-29 found,comp areas
 Metra stations,Metra,gtfs/schedule.zip (stops.txt),https://schedules.metrarail.com/,as changed,2026-10-29 yes (portal nqm8-q2ym returns 403),transit-served
-Transit-served locations,Chicago,not on the data portal (searched 2026-10-29); get from city GIS or digitize from the ordinance map,,as changed,no,parking rules; score
-Fire limits,Chicago,not on the data portal (searched 2026-10-29); get from city GIS or digitize from the ordinance map,,as changed,no,flags; penalties
-606 and Pilsen demolition surcharge districts,Chicago,not on the data portal (searched 2026-10-29); get from city GIS or digitize from the ordinance map,,as changed,no,flags; penalties
-ADU eligibility map,Chicago,not on the data portal as of 2026-10-29 (ttjb-ayff is the 2021 pilot areas; j4h8-ug9m lists current preapproval applications and works as a signal); ask adu@cityofchicago.org for the layer,,as changed,no,ADU path in RS districts
-Opportunity Zone tracts,US Treasury,2018 list; 2027 list when certified,,as changed,no,incentives
+Transit-served locations,Chicago GIS,"Zoning/MapServer/13 (CTA station buffers), 24 (Metra station buffers), 14 (225 bus corridor buffers, Table 17-17-0400-B)",https://gisapps.chicago.gov/arcgis/rest/services/ExternalApps/,as changed,2026-10-30 yes,parking rules; score
+Fire limits,Municipal Code,13-116-010 (traced to data/rules/fire_limits.geojson),https://codelibrary.amlegal.com/codes/chicago/latest/chicago_il/0-0-0-2503899,as changed,2026-10-30 yes,flags; penalties
+606 and Pilsen districts (zoning special districts),Chicago GIS,Zoning/MapServer/9 (81 special districts incl. 17-7-0580 Pilsen and 17-7-0590 606),https://gisapps.chicago.gov/arcgis/rest/services/ExternalApps/,as changed,2026-10-30 yes; the 606 shape may predate the 2025-07-16 boundary expansion,flags; penalties; two-flat rules
+ADU areas,Chicago GIS,Zoning/MapServer/17 (Zones 1-10 with limits),https://gisapps.chicago.gov/arcgis/rest/services/ExternalApps/,as changed,2026-10-30 yes,ADU path in RS districts
+Opportunity Zone tracts (2018),US DOT copy of the Treasury list,OZ_Opportunity_Zones/FeatureServer/0 (181 Cook tracts); 2027 list due from Treasury by 2026-12-27,https://geo.dot.gov/server/rest/services/hosted/,as changed,2026-10-30 yes,incentives
+Affordable Requirements Ordinance areas,Chicago GIS,Zoning/MapServer/20,https://gisapps.chicago.gov/arcgis/rest/services/ExternalApps/,as changed,2026-10-30 yes,ARO flags
+Pedestrian streets,Chicago GIS,Zoning/MapServer/4,https://gisapps.chicago.gov/arcgis/rest/services/ExternalApps/,as changed,2026-10-30 yes,curb cut and parking flags
+Street center lines,Chicago,pr57-gg9e,https://data.cityofchicago.org/resource/,as changed,2026-10-30 yes,fire limits corners
