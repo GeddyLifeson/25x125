@@ -19,6 +19,8 @@ class Site:
     frontage_ft: float | None = None
     lot_source: str | None = None
     zone_share: float | None = None
+    zone_class_2: str | None = None
+    zone_share_2: float | None = None
     transit_served: str | None = None
     adu_zone: str | None = None
     adu_limits: str | None = None
@@ -78,15 +80,36 @@ class Result:
         return asdict(self)
 
 
-def _parking(rules: Rules, units: int, transit_served: str | None) -> tuple[int, int, str]:
+def _parking(rules: Rules, district: str, units: int, site: "Site") -> tuple[int, int, str]:
+    """Car and bike spaces for a building of `units` on this lot (17-10-0207, 17-10-0102-B)."""
     p = rules.step("parking")["params"]
-    if transit_served:
-        return (
-            units * p["transit_served_spaces_per_unit"],
-            units * p["bike_spaces_per_unit"],
-            (f"transit-served ({transit_served}): no car parking required"),
-        )
-    return units * p["spaces_per_unit"], 0, f"{p['spaces_per_unit']} space per unit"
+    per_unit = p["spaces_per_unit"].get(district, p["spaces_per_unit"]["default"])
+    if units == 2 and district in p["two_flat_spaces_per_unit"]:
+        per_unit = p["two_flat_spaces_per_unit"][district]
+    big = p["large_building"]
+    if district == big["district"] and units > big["after_units"]:
+        cars = big["after_units"] * per_unit + (units - big["after_units"]) * big["spaces_per_unit"]
+    else:
+        cars = units * per_unit
+    cars = math.ceil(cars - 1e-9)
+    narrow = units <= 2 and site.frontage_ft is not None and site.frontage_ft <= p["narrow_lot_exemption_ft"]
+    if site.transit_served:
+        bikes = units * p["bike_spaces_per_unit"]
+        if site.transit_served == "Metra station":
+            share = p["metra_only_share_by_right"]
+            return (
+                math.ceil(cars * share - 1e-9),
+                bikes,
+                (
+                    f"transit-served by a Metra station only: {cars} spaces cut {share:.0%} by right"
+                    f" to {math.ceil(cars * share - 1e-9)}; to 0 with an administrative adjustment"
+                ),
+            )
+        return 0, bikes, f"transit-served ({site.transit_served}): no car parking required"
+    note = f"{per_unit:g} space(s) per unit outside transit-served areas"
+    if narrow:
+        note += f"; 0 if the lot of record has no improved alley ({site.frontage_ft:.0f} ft wide)"
+    return cars, 0, note
 
 
 def _units(lot: float, lapu: float) -> int:
@@ -109,7 +132,7 @@ def _path(rules, site, d: District, path_id, name, approval, units, far=None, he
             f"{with_shop.max_height_ft * height_factor:.0f} ft with ground-floor commercial space",
         ]
     floor_area = (site.lot_sqft or 0) * (far if far is not None else d.far)
-    cars, bikes, park_note = _parking(rules, units, site.transit_served)
+    cars, bikes, park_note = _parking(rules, d.name, units, site)
     cites = [f"{d.name}: {d.cite.text()}"]
     if h:
         cites.append(f"height: {h.cite.text()}")
@@ -181,7 +204,10 @@ def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Re
         d.min_lot_area_sqft and lot < d.min_lot_area_sqft * aa["params"]["lot_area_factor"]
     ):
         p = _path(rules, site, d, "admin_adjustment", "Administrative adjustment", aa["approval"], adj_units,
-                  height_factor=aa["params"]["height_factor"], notes=["lot area per unit reduced 10%"])  # fmt: skip
+                  height_factor=aa["params"]["height_factor"],
+                  notes=["lot area per unit reduced 10%",
+                         "height +10% only if not taller than buildings on abutting lots (17-13-1003-L-3)",
+                         "reading disputed: " + aa["dispute"]])  # fmt: skip
         p.citations.append(aa["section"])
         res.paths.append(p)
 
@@ -195,7 +221,13 @@ def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Re
             if d.name in adu["by_map"]
             else "ADU allowed in this district"
         )
-        p = _path(rules, site, d, "adu", "By right plus ADU", "ADU permit", base + adu["units"], notes=[note])
+        by_map = d.name in adu["by_map"]
+        if by_map:
+            cap = adu["annual_cap_per_block_face"].get(d.name)
+            note += f"; yearly cap of {cap} per block face and opposite face" if cap else ""
+            note += "; owner must live on site if the main building is a house"
+        approval = adu["by_map_approval"] if by_map else "ADU permit (as of right)"
+        p = _path(rules, site, d, "adu", "By right plus ADU", approval, base + adu["units"], notes=[note])
         p.citations.append(rules.step("adu")["section"])
         res.paths.append(p)
     elif d.name in adu["by_map"]:
@@ -281,12 +313,9 @@ def _flags(site: Site, rules: Rules) -> list[Flag]:
             )
         )
     if site.zone_share is not None and site.zone_share < 0.9:
-        out.append(
-            Flag(
-                "split_zoned",
-                f"Split-zoned lot: {site.zone_share:.0%} in {site.zone_class}. Results use that district.",
-            )
-        )
+        other = f" and {site.zone_share_2:.0%} in {site.zone_class_2}" if site.zone_class_2 else ""
+        out.append(Flag("split_zoned", f"Split-zoned lot: {site.zone_share:.0%} in {site.zone_class}{other}."
+                        f" Results use {site.zone_class}, the larger share; each part has its own rules."))  # fmt: skip
     if site.lot_source == "assessor":
         out.append(
             Flag("lot_from_assessor", "Lot size is the Assessor's figure; no lot polygon. Frontage unknown.")

@@ -19,67 +19,189 @@
     {
       "id": "rs3_two_flat_exception",
       "rule": "RS-3: lot area per unit drops to 1,500 sq ft, for a two-unit building only, when 60% or more of the lots on the same side of the street between the two nearest cross streets hold buildings with more than one unit, or when the lot is in the Predominance of the Block (606) District",
-      "params": {"district": "RS-3", "block_face_share": 0.6, "lot_area_per_unit_sqft": 1500, "max_units": 2, "special_district": "Predominance of the Block (606) District"},
+      "params": {
+        "district": "RS-3",
+        "block_face_share": 0.6,
+        "lot_area_per_unit_sqft": 1500,
+        "max_units": 2,
+        "special_district": "Predominance of the Block (606) District"
+      },
       "section": "17-2-0303-B.1",
       "data": "block faces from parcel addresses (street, side, hundred block) and units per lot from Assessor classes and x54s-btds apartments; the hundred block stands in for 'between the two nearest cross streets'"
     },
     {
       "id": "administrative_adjustment",
-      "rule": "lot area per unit may be reduced by up to 10%: units = floor(lot_area / (0.9 * lot_area_per_unit)); height +10%",
-      "params": {"lot_area_factor": 0.9, "height_factor": 1.1},
-      "approval": "administrative adjustment from the Zoning Administrator",
-      "section": "docs/v1-spec.md step 4; confirm section in 17-13-1000"
+      "rule": "units = floor(lot_area / (0.9 * lot_area_per_unit)); height up to +10% only if the new building is not taller than buildings on abutting lots and fits the block",
+      "params": {
+        "lot_area_factor": 0.9,
+        "height_factor": 1.1
+      },
+      "approval": "administrative adjustment from the Zoning Administrator (reading disputed; see notes)",
+      "section": "17-13-1003-A (lot area), 17-13-1003-L (height, L-3 condition for new buildings), 17-13-1002 (more than 4 adjustments on new construction go to the ZBA as variations)",
+      "dispute": "The code text of 17-13-1003-A allows a lot up to 10% under the minimum lot area of 17-2-0301-A and does not mention lot area per unit. Chicago Cityscape reads it as a 10% cut in lot area per unit (8 units in RM-5 at 2,880 sq ft). Four test buildings (3-flats on 2,946-2,983 sq ft RT-4 lots) were permitted at the unit count this reading gives. Confirm with the Zoning Administrator or counsel.",
+      "sources": [
+        "https://codelibrary.amlegal.com/codes/chicago/latest/chicagozoning_il/0-0-0-51818",
+        "https://publish.obsidian.md/chicagocityscape/standard6383"
+      ]
     },
     {
       "id": "adu",
-      "rule": "+1 unit (coach house or conversion unit) in RT-4, RM and B/C districts; in RS and RT-3.5 only inside the city's ADU zones. 2+ ADUs trigger the affordability rule",
-      "params": {"units": 1, "by_district": ["RT-4", "RM-4.5", "RM-5", "RM-5.5", "RM-6", "RM-6.5", "B/C-1", "B/C-1.5", "B/C-2", "B/C-3", "B/C-5"], "by_map": ["RS-1", "RS-2", "RS-3", "RT-3.5"]},
-      "section": "ADU ordinance, permanent citywide 2026-04-01; ADU zones layer"
+      "rule": "+1 unit (coach house or conversion unit). RT-4, RM and B/C: allowed as of right. RS and RT-3.5: only inside the city's ADU zones, with an administrative adjustment, an annual cap per block face and opposite face (1 in RS-1, 2 in RS-2, 3 in RS-3) and owner occupancy when the main building is a detached house. 2+ ADUs: at least half affordable",
+      "params": {
+        "units": 1,
+        "by_district": [
+          "RT-4",
+          "RM-4.5",
+          "RM-5",
+          "RM-5.5",
+          "RM-6",
+          "RM-6.5",
+          "B/C-1",
+          "B/C-1.5",
+          "B/C-2",
+          "B/C-3",
+          "B/C-5"
+        ],
+        "by_map": [
+          "RS-1",
+          "RS-2",
+          "RS-3",
+          "RT-3.5"
+        ],
+        "by_map_approval": "administrative adjustment (17-13-1003-QQ)",
+        "annual_cap_per_block_face": {
+          "RS-1": 1,
+          "RS-2": 2,
+          "RS-3": 3
+        }
+      },
+      "section": "17-7-0570 to 17-7-0575 (Zoneomics copy; the permanent 2026-04-01 text to be checked against the city's); ADU zones layer",
+      "sources": [
+        "https://www.zoneomics.com/code/chicago-IL/chapter_7",
+        "https://www.aduzoning.org/blog/chicago-adu-ordinance-what-changed-2026/"
+      ]
     },
     {
       "id": "rezoning",
       "rule": "recompute at a target district the user picks; default is the first target listed. B/C targets keep the lot's letter family (B3-1 to B3-2)",
       "approval": "zoning map amendment (City Council)",
       "targets": {
-        "RS-1": ["RS-3", "RT-4"],
-        "RS-2": ["RS-3", "RT-4"],
-        "RS-3": ["RT-4", "RM-4.5"],
-        "RT-3.5": ["RT-4", "RM-4.5"],
-        "RT-4": ["RM-5", "RM-4.5"],
-        "RM-4.5": ["RM-5"],
-        "B/C-1": ["B/C-2", "B/C-3"],
-        "B/C-1.5": ["B/C-2", "B/C-3"],
-        "B/C-2": ["B/C-3"],
-        "B/C-3": ["B/C-5"]
+        "RS-1": [
+          "RS-3",
+          "RT-4"
+        ],
+        "RS-2": [
+          "RS-3",
+          "RT-4"
+        ],
+        "RS-3": [
+          "RT-4",
+          "RM-4.5"
+        ],
+        "RT-3.5": [
+          "RT-4",
+          "RM-4.5"
+        ],
+        "RT-4": [
+          "RM-5",
+          "RM-4.5"
+        ],
+        "RM-4.5": [
+          "RM-5"
+        ],
+        "B/C-1": [
+          "B/C-2",
+          "B/C-3"
+        ],
+        "B/C-1.5": [
+          "B/C-2",
+          "B/C-3"
+        ],
+        "B/C-2": [
+          "B/C-3"
+        ],
+        "B/C-3": [
+          "B/C-5"
+        ]
       }
     },
     {
       "id": "parking",
-      "rule": "car parking 1 space per unit outside transit-served locations; 0 inside them, with bike parking 1 per unit",
-      "params": {"spaces_per_unit": 1, "transit_served_spaces_per_unit": 0, "bike_spaces_per_unit": 1},
-      "section": "17-10-0207 (ratios, to confirm), 17-10-0102-B (transit-served)"
+      "rule": "car parking by district and building type outside transit-served locations; inside them 0 by right, except lots served only by a Metra station (50% by right, below that by administrative adjustment). Detached houses and two-flats on lots of record 33 ft wide or less with no improved alley need none. Bike parking 1 per unit in transit-served locations",
+      "params": {
+        "spaces_per_unit": {
+          "RS-1": 2,
+          "RS-2": 2,
+          "RS-3": 2,
+          "default": 1
+        },
+        "two_flat_spaces_per_unit": {
+          "RS-3": 1.5
+        },
+        "large_building": {
+          "district": "B/C-5",
+          "after_units": 100,
+          "spaces_per_unit": 0.6
+        },
+        "narrow_lot_exemption_ft": 33,
+        "metra_only_share_by_right": 0.5,
+        "transit_served_spaces_per_unit": 0,
+        "bike_spaces_per_unit": 1
+      },
+      "section": "17-10-0207 (ratios); 17-10-0102-B as amended by O2025-0015577 (adopted 2025-07-16, effective 2025-09-25)",
+      "sources": [
+        "https://codelibrary.amlegal.com/codes/chicago/latest/chicagozoning_il/0-0-0-50685",
+        "https://www.taftlaw.com/news-events/law-bulletins/chicago-eliminates-parking-requirements-for-transit-served-locations/"
+      ]
     },
     {
       "id": "transit_density_bonus",
       "rule": "B3-3 and C3-3 lots in a transit-served location may use lower lot area per unit and higher FAR with on-site affordable units under the ARO",
-      "params": {"districts": ["B3-3", "C3-3"], "tiers": [
-        {"aro_on_site_share": 0.5, "lot_area_per_unit_sqft": 350, "far": 3.5},
-        {"aro_on_site_share": 0.75, "lot_area_per_unit_sqft": 325, "far": 3.75},
-        {"aro_on_site_share": 1.0, "lot_area_per_unit_sqft": 300, "far": 4.0}
-      ]},
+      "params": {
+        "districts": [
+          "B3-3",
+          "C3-3"
+        ],
+        "tiers": [
+          {
+            "aro_on_site_share": 0.5,
+            "lot_area_per_unit_sqft": 350,
+            "far": 3.5
+          },
+          {
+            "aro_on_site_share": 0.75,
+            "lot_area_per_unit_sqft": 325,
+            "far": 3.75
+          },
+          {
+            "aro_on_site_share": 1.0,
+            "lot_area_per_unit_sqft": 300,
+            "far": 4.0
+          }
+        ]
+      },
       "approval": "transit-served development approval under 17-3-0308",
       "section": "17-3-0402-B, 17-3-0403-B, 17-3-0408-B"
     },
     {
       "id": "ground_floor_residential",
       "rule": "an all-residential building in a B or C district needs ground-floor dwelling units: by right in B2, special use in B1, B3, C1 and C2, not allowed in C3",
-      "params": {"B1": "special use", "B2": "by right", "B3": "special use", "C1": "special use", "C2": "special use", "C3": "not allowed"},
+      "params": {
+        "B1": "special use",
+        "B2": "by right",
+        "B3": "special use",
+        "C1": "special use",
+        "C2": "special use",
+        "C3": "not allowed"
+      },
       "section": "17-3-0207 (use table: dwelling units below the second floor)"
     },
     {
       "id": "aro_flag",
       "rule": "flag the Affordable Requirements Ordinance when a rezoning scenario reaches 10+ units",
-      "params": {"units": 10}
+      "params": {
+        "units": 10
+      }
     },
     {
       "id": "flags",

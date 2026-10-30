@@ -96,3 +96,33 @@ def test_seeded_rules_match_the_files(db_url):
 
 def test_zoning_endpoint_rejects_bad_pin():
     assert TestClient(app_module.app).get("/parcels/12ab/zoning").status_code == 400
+
+
+def test_parking_ratios_by_district_and_building():
+    rs3_two_flat = paths(evaluate(Site("1", "RS-3", 3125, 40, block_lots=10, block_multi_lots=6), RULES))
+    assert rs3_two_flat["rs3_two_flat"].parking_spaces == 3  # 2 units x 1.5
+    rs2_house = paths(evaluate(Site("1", "RS-2", 5000, 40), RULES))
+    assert rs2_house["by_right"].units == 1 and rs2_house["by_right"].parking_spaces == 2
+
+
+def test_metra_only_lots_get_half_parking_by_right():
+    p = paths(evaluate(Site("1", "RT-4", 5000, 40, transit_served="Metra station"), RULES))
+    assert p["by_right"].units == 5 and p["by_right"].parking_spaces == 3 and p["by_right"].bike_spaces == 5
+    assert any("Metra station only" in n for n in p["by_right"].notes)
+
+
+def test_narrow_lot_parking_note():
+    p = paths(evaluate(Site("1", "RS-3", 3125, 25), RULES))
+    assert any("no improved alley" in n for n in p["by_right"].notes)
+
+
+def test_adu_approval_depends_on_district():
+    rs3 = paths(evaluate(Site("1", "RS-3", 5000, 40, adu_zone="Zone 6", adu_limits="No Limitations"), RULES))
+    rt4 = paths(evaluate(Site("1", "RT-4", 3125, 25), RULES))
+    assert "17-13-1003-QQ" in rs3["adu"].approval and rt4["adu"].approval == "ADU permit (as of right)"
+
+
+def test_split_zoned_flag_names_both_districts():
+    res = evaluate(Site("1", "RT-4", 3125, 25, zone_share=0.7, zone_class_2="B3-2", zone_share_2=0.3), RULES)
+    flag = next(f for f in res.flags if f.id == "split_zoned")
+    assert "RT-4" in flag.text and "B3-2" in flag.text

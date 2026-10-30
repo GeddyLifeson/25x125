@@ -37,7 +37,14 @@
       "rule": "preset x index now / base value, monthly; show base month and change"
     }
   },
-  "neighborhood_adjustment": "1 + 0.5 * (index - 1), index from data/reference/cost_index_by_area_v2.csv (computed within unit-count groups)",
+  "neighborhood_adjustment": {
+    "rule": "production preset only: 1 + 0.5 * (min(index, 1.3) - 1); standard and high presets: 1.0, because the same index already picks those presets (index 1.3 or more: standard, 1.8 or more: high)",
+    "index_file": "data/reference/cost_index_by_area_v2.csv (computed within unit-count groups)",
+    "why": "applying the adjustment to every preset counts the area twice: a Lincoln Park 3-flat (index 1.94) would cost $250 x 1.47 = $368 per sq ft. This is the rule the calibration used (scripts/research/2026-10-29/cal.py).",
+    "index_caveat": "permit reported costs are rough guesses (69% are exact multiples of $50,000) and the city's permit fee does not depend on them; use the index as a coarse ranking only",
+    "source": "docs/research/reports/Methods review for V1 build.md",
+    "verified_on": "2026-10-30"
+  },
   "sprinklers_per_sqft_at_4_plus_units": 5,
   "sprinklers_note": "applies to the building with 4+ units; a detached coach house does not add the main building's count (verify against the 2026 code)",
   "hard_cost_contingency": 0.05,
@@ -70,11 +77,13 @@
       "interest": "loan_to_cost * cost_before_financing * rate * (months_build/12 * avg_drawn + months_sell/12)",
       "tax_and_insurance": "tax_and_insurance_pct_cost_per_year * cost_before_financing * (months_build + months_sell) / 12",
       "note": "computed on cost before financing, so there is no circular reference"
-    }
+    },
+    "origination_fee_pct_of_loan": 0.01,
+    "origination_fee_status": "placeholder until a lender quote"
   },
   "sell": {
     "net_sale_factor": 0.94,
-    "target_return_on_cost": 0.15,
+    "target_return_on_cost": 0.2,
     "reference_margin_on_cost": {
       "source": "https://www.feasly.com.au/guides/development-margin-on-cost-vs-revenue-australia",
       "verified_on": "2026-10-29",
@@ -109,7 +118,8 @@
         "note": "commercial loan and commercial appraisal"
       },
       "display": "financing class per scenario; flag whole-building price above the FHA limit"
-    }
+    },
+    "target_note": "20% on cost; 15% is the low end of published benchmarks (RICS, PPG para 019). Show 15%, 20% and 25% reference lines and the margin on net sale. Decision 26, docs/research/decisions-2026-10-30.md"
   },
   "hold": {
     "vacancy_factor": 0.95,
@@ -125,6 +135,11 @@
         0.65
       ],
       "display": "reference lines beside the result; never a pass/fail verdict"
+    },
+    "property_tax": {
+      "line": "explicit tax line; value = NOI before tax / (cap rate + effective tax rate)",
+      "effective_tax_rate": "from the Assessor and Clerk tax rate for the tax code, 1.52-2.0% typical",
+      "source": "CCAO cap rate policy 2023; Civic Federation; decision 31"
     }
   },
   "rents": {
@@ -134,11 +149,11 @@
     "applies_to": "all cost lines except land; land is a known or entered price",
     "feasibility": {
       "low": -0.2,
-      "high": 0.3
+      "high": 0.35
     },
     "layout": {
       "low": -0.15,
-      "high": 0.2
+      "high": 0.25
     },
     "drawings": {
       "low": -0.1,
@@ -146,13 +161,20 @@
     },
     "bids": {
       "low": -0.05,
-      "high": 0.05
-    }
+      "high": 0.1
+    },
+    "revised_on": "2026-10-30",
+    "why": "ASTM E2516 / AACE class ranges and the Alberta estimate series put early-stage overruns above the original highs; kept until the contractor's job costs refit them (decisions 16-17, docs/research/decisions-2026-10-30.md)"
   },
   "sale_value_range": {
-    "low": "25th percentile of weighted comps",
-    "high": "75th percentile of weighted comps",
-    "note": "profit range = low sale minus high cost, to high sale minus low cost"
+    "low": "central x (1 + 10th percentile of leave-one-out errors)",
+    "high": "central x (1 + 90th percentile of leave-one-out errors)",
+    "by": "distance ring x kind (condo unit or whole building), refit nightly",
+    "starting_value": "about x0.74 to x1.36 (2,450-sale pool, 2026-10-30)",
+    "label": "80% range",
+    "replaces": "25th-75th percentile of weighted comps, which covered 49% of test sales",
+    "source": "Bastos & Paquette; decision 8, docs/research/decisions-2026-10-30.md",
+    "revised_on": "2026-10-30"
   },
   "sale_comps": {
     "pool": "2-6 unit buildings (class 211, x54s-btds) and condo units in 2-6 unit buildings (3r7i-mrz4) built 2014 or later, first arm's-length sale after construction (wvhk-k5uv)",
@@ -193,7 +215,7 @@
   },
   "residual": {
     "name": "residual land value (shown as max land price)",
-    "formula": "net sale / (1 + target return) - (total cost - land)",
+    "formula": "net sale / ((1 + target return) * (1 + finance share)) - cost before land and finance (exact solve; decision 25)",
     "profit_shown_as": [
       "percent of cost (return on cost)",
       "percent of net sale value (margin on value)"
@@ -204,9 +226,10 @@
     "source": "Homes England reference class forecasting (docs/international-practices.md)",
     "show": {
       "P50": "central estimate",
-      "P80": "central x (1 + high margin for the stage)"
+      "high_case": "central x (1 + high margin for the stage); about P90, not P80 (AACE ranges; a lognormal fit puts P80 near +19% when the high is +30%)"
     },
-    "refit": "replace the stage margins with percentiles of actual overrun from users completed projects once 20 or more exist"
+    "refit": "replace the stage margins with percentiles of actual overrun from users completed projects once 20 or more exist",
+    "corrected_on": "2026-10-30"
   },
   "cost_index_method": {
     "source": "BCIS location indices (docs/international-practices.md)",
@@ -271,5 +294,13 @@
     "affordable_unit_fee": 100,
     "exemptions": "replacement unit with a demolition permit under one year old; credits for on-site open space",
     "check": "2025 worksheet shows $418/$836/$1,254/$1,672, matching the formula at $16"
+  },
+  "range_method": {
+    "method": "seeded 10,000-draw Monte Carlo in the engine; sale errors from leave-one-out residuals, cost lognormal fit to the stage margins; show P10, P50, P90 and the share of draws with a loss",
+    "corner_case": "low sale with high cost shown as 'stress case'",
+    "sale_cost_correlation": 0.3,
+    "correlation_note": "editable; 0 available as a toggle; no Chicago estimate exists",
+    "also": "5 x 5 sale-by-cost grid in dollars",
+    "source": "Evans 1992; Iman & Conover 1982; decisions 54-56"
   }
 }

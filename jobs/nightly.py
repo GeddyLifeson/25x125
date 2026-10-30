@@ -23,6 +23,7 @@ from jobs import (
     load_permits,
     load_sales,
     load_signals,
+    load_streets,
     load_transit,
     load_zoning,
     report,
@@ -47,6 +48,7 @@ def steps(year: int, skip_yearly: bool) -> list[tuple[str, Callable]]:
         ("building characteristics", lambda: load_building_chars.run(year)),
         ("condos", lambda: load_condos.run(year)),
         ("boundaries", lambda: load_boundaries.run()),
+        ("street segments", lambda: load_streets.run()),
     ]
     build = [
         ("parcel sites", lambda: build_parcel_site.run()),

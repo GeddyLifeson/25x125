@@ -1,7 +1,7 @@
 """Join parcels to zoning and lot measures into parcel_site.
 
-Zoning comes from the district under the parcel point; the share of the lot polygon inside that district
-is kept so split-zoned lots can be flagged. Lot size comes from the PIN's polygon. A PIN created after the
+Zoning is the district covering the largest share of the lot polygon (the parcel point when there is no
+polygon); its share and the second district are kept so split-zoned lots can be flagged. Lot size comes from the PIN's polygon. A PIN created after the
 polygon layer (new condo units, divided or combined lots) takes the polygon under its point instead,
 and failing that the Assessor's land square feet.
 Overlays add the historic survey rating (Red or Orange means a 90-day demolition hold), landmark name and
@@ -36,14 +36,27 @@ left join lateral (
   limit 1
 ) s on true
 left join lateral (
+  -- The district covering the largest share of the lot; the parcel point when there is no polygon.
   select zone_class, geom from zoning_district_area z
-  where st_intersects(z.geom, coalesce(st_pointonsurface(s.geom), p.geom))
+  where st_intersects(z.geom, coalesce(s.geom, p.geom))
+  order by case when s.geom is null then 0 else st_area(st_intersection(z.geom, s.geom)) end desc
   limit 1
 ) z on true
 left join lateral (
   select land_sqft from building_char b where b.pin = p.pin and b.land_sqft > 0
   order by tax_year desc, card limit 1
 ) bc on true;
+
+-- Second district on split-zoned lots, ignoring slivers under 2% of the lot.
+update parcel_site ps set zone_class_2 = x.zone_class, zone_share_2 = x.share
+from (
+  select distinct on (s.pin10) s.pin10, z.zone_class,
+         round((st_area(st_intersection(z.geom, s.geom)) / st_area(s.geom))::numeric, 2) as share
+  from parcel_site q join parcel_shape s on s.pin10 = q.pin10
+  join zoning_district_area z on st_intersects(z.geom, s.geom) and z.zone_class <> q.zone_class
+  where q.zone_share < 0.98 and st_area(s.geom) > 0
+  order by s.pin10, st_area(st_intersection(z.geom, s.geom)) desc
+) x where ps.pin10 = x.pin10 and x.share >= 0.02;
 
 -- Historic survey Red and Orange buildings and landmarks: those whose footprint centers sit on the lot.
 update parcel_site ps set historic_rating = x.rating
@@ -76,13 +89,33 @@ update parcel_site ps set
               from transit_station t where t.mode = 'metra' order by t.geom <-> p.geom limit 1)
 from parcel p where ps.pin = p.pin and p.geom is not null;
 
--- Signals: the source PIN where given, else the lot polygon under the point, else the nearest lot within
--- 15 m (address points often sit on the sidewalk in front of the lot).
-update parcel_signal g set pin10 = coalesce(left(g.pin, 10),
-  (select s.pin10 from parcel_shape s where st_contains(s.geom, g.geom) limit 1),
-  (select n.pin10 from (select s.pin10, s.geom from parcel_shape s order by s.geom <-> g.geom limit 1) n
-   where st_dwithin(n.geom::geography, g.geom::geography, 15)))
-where g.geom is not null or g.pin is not null;
+-- Signals: the source PIN where given, else an exact match of the source address to one lot's address, else
+-- the lot polygon under the point, else the nearest lot within 15 m (address points often sit on the
+-- sidewalk). The method is kept so screens can show how each record was tied to the lot.
+create temp table address_lot on commit drop as
+select addr, min(pin10) as pin10 from (
+  select regexp_replace(upper(a.address),
+           '\\s(AVE|ST|BLVD|RD|DR|PL|CT|PKWY|TER|WAY|LN|HWY|SQ|PLZ|CIR|ROW)\\s.*$', ' \\1') as addr,
+         left(a.pin, 10) as pin10
+  from parcel_address a where a.address is not null
+) x group by addr having count(distinct pin10) = 1;
+create index on address_lot (addr);
+analyze address_lot;
+
+update parcel_signal set pin10 = null, match_method = null;
+update parcel_signal g set pin10 = left(g.pin, 10), match_method = 'source pin' where g.pin is not null;
+update parcel_signal g set pin10 = al.pin10, match_method = 'address'
+from address_lot al
+where g.pin is null and al.addr = regexp_replace(upper(g.address), '\\s+', ' ', 'g');
+update parcel_signal g set
+  pin10 = coalesce(
+    (select s.pin10 from parcel_shape s where st_contains(s.geom, g.geom) limit 1),
+    (select n.pin10 from (select s.pin10, s.geom from parcel_shape s order by s.geom <-> g.geom limit 1) n
+     where st_dwithin(n.geom::geography, g.geom::geography, 15))),
+  match_method = case when exists (select 1 from parcel_shape s where st_contains(s.geom, g.geom))
+                      then 'point in lot' else 'nearest lot within 15 m' end
+where g.pin is null and g.match_method is distinct from 'address' and g.geom is not null;
+update parcel_signal set match_method = null where pin10 is null;
 
 update parcel_site ps set
   open_violations = x.open_violations, last_violation_date = x.last_violation_date,

@@ -216,7 +216,7 @@ Every input below is a default the user can override. Defaults are starting valu
 
 - Profit = net sale - total cost. Return on cost = profit / total cost.
 
-- Max land price = net sale / (1 + target return) - (total cost - land). Target return: 15%.
+- Max land price = net sale / ((1 + target return) x (1 + finance share)) - (total cost - land - finance), solved exactly. Target return: 20% on cost, with 15%, 20% and 25% reference lines (changed 2026-10-30, `docs/research/decisions-2026-10-30.md`).
 
 **Build and hold**
 
@@ -228,7 +228,7 @@ Every input below is a default the user can override. Defaults are starting valu
 
 **Margins in dollars**
 
-- Total cost shows as the central figure with -20% / +30% margins at this stage, in dollars, applied to every line except land.
+- Total cost shows as the central figure with -20% / +35% margins at this stage, in dollars, applied to every line except land.
 
 - Profit shows as a range: low net sale minus high cost, to high net sale minus low cost, with the central profit between.
 
@@ -240,7 +240,7 @@ Hard cost = base cost per sq ft x a neighborhood adjustment, shown with dollar m
 
 > Chart in the live doc. Data behind it: `data/reference/cost_index_by_area.csv`. Source: Chicago building permits (ydr8-5enu) · 836 new 2-6 unit residential permits, Jan 2022 to Oct 2026 · pulled Oct 28, 2026
 
-Reported costs run low because permit fees are based on them, so they set how neighborhoods compare, not the dollar level. Part of the spread is finish level (Lincoln Park and Lake View build to a higher spec), so version 1 applies half of each neighborhood's difference from the city median: adjustment = 1 + 0.5 x (index - 1). On the revised index (computed within unit-count groups, `cost_index_by_area_v2.csv`), Humboldt Park's 0.78 becomes a 0.89 adjustment; Lincoln Park's 1.94 becomes 1.47. The half-weight is a starting assumption to tune against the test parcels.
+Reported costs run low because permit fees are based on them, so they set how neighborhoods compare, not the dollar level. Part of the spread is finish level (Lincoln Park and Lake View build to a higher spec), so version 1 applies half of each neighborhood's difference from the city median, on the production preset only, with the index capped at 1.3: adjustment = 1 + 0.5 x (min(index, 1.3) - 1). The index also picks the preset (1.3 or more: standard, 1.8 or more: high), and those presets take no further adjustment, so the area is not counted twice. Humboldt Park's 0.78 becomes 0.89; Lincoln Park (1.94) takes the high preset at 1.0. This is the rule the 2026-10-29 calibration used (changed 2026-10-30).
 
 **Rules**
 
@@ -250,7 +250,7 @@ Reported costs run low because permit fees are based on them, so they set how ne
 
 - Refresh the index monthly from the daily permit feed.
 
-- Margins follow the estimate stage: -20% / +30% at feasibility, shown in dollars.
+- Margins follow the estimate stage: -20% / +35% at feasibility, shown in dollars.
 
 - Users can override the base, the adjustment, or any line, and their own job costs replace the defaults over time.
 
@@ -266,7 +266,7 @@ Sale values come from Cook County sales of new buildings in the same neighborhoo
 
 2.  Search: same unit-count group (2, 3, 4-6) within 0.75 mile, then 1.5 miles, then any unit count within 1.5 miles, then 3 miles; at least 6 comps; sales within 4 years.
 
-3.  Estimate: inverse-distance weighted median price per unit, adjusted to today with the sales trend. Range: weighted 25th to 75th percentile. Widen the margin and say so when the search reaches 3 miles.
+3.  Estimate: inverse-distance weighted median price per unit, adjusted to today with the sales trend. Range: a calibrated 80% band from leave-one-out errors by distance ring and kind (about x0.74 to x1.36 on 2026-10-30; the 25th-75th percentile covered 49% of test sales). Widen the margin and say so when the search reaches 3 miles.
 
 4.  Show the comps used, their dates, and distance.
 
@@ -311,7 +311,7 @@ Details and sources in `docs/international-practices.md`.
 
 - **Land value map** (Germany, Singapore): land sale price per sq ft of lot and per buildable sq ft for each Assessor neighborhood, from vacant-land and teardown sales in the last 36 months, with count and dates. Feeds the land default in Feasibility math.
 - **Residual land value** (UK): max land price is labeled residual land value. Profit shows as a percent of cost and of net sale value. Parcels with a building compare residual land value with existing-use value and flag when it falls short.
-- **P50 and P80 cost** (UK Homes England): the central estimate is P50; the high margin is shown as P80. Margins are refit from actual job costs once 20 or more projects are in.
+- **P50 and P80 cost** (UK Homes England): the central estimate is P50; the high margin is about P90 and is labeled "high case"; ranges on profit come from a seeded Monte Carlo (P10, P50, P90). Margins are refit from actual job costs once 20 or more projects are in.
 - **Recency-weighted cost index** (UK BCIS): permits weighted 1.00, 0.75, 0.56, 0.42 by quarter of age; thin areas blend with their side of the city.
 - **Pattern library** (BC, NSW, Germany): six standard buildings sized for a 25 x 125 lot in `data/rules/building_patterns.json`. Feasibility scenarios pick a pattern; a custom program is still allowed.
 - **Eligibility questions** (Netherlands): incentive toggles are set by short questions in `data/rules/incentive_questions.json`.
@@ -349,13 +349,13 @@ The test set is 37 real Chicago buildings: new 2-4 unit buildings permitted betw
 
 **Acceptance criteria before launch**
 
-- Sale value: for each test building, the sale estimate (computed without that building's own sale) lands within 15% of the actual sale for at least 70% of the set. Status 2026-10-29: 65% (24 of 37), median error 12%.
+- Sale value: for each test building, the sale estimate (computed without that building's own sale) lands within 15% of the actual sale for at least 70% of the set. Status 2026-10-29: 69% (24 of 35, after the 2 removals in `test_parcels_removed.csv`), median error 12%.
 
-- Market check on cost: at its actual sale price and \$60,000 of land, at least 60% of test buildings show a profit of \$0 or more. Status 2026-10-29: 57% (21 of 37) with provisional presets.
+- Market check on cost: at its actual sale price and \$60,000 of land, at least 60% of test buildings show a profit of \$0 or more. Status 2026-10-29: 57% (20 of 35) with provisional presets.
 
 - Zoning: units allowed by right on each test lot equal or exceed the units built, or the screen shows the approval path the builder must have used.
 
-- Cost: total cost for a standard 3-flat lands within the -20% / +30% margin of the city's Missing Middle per-unit budgets.
+- Cost: total cost for a standard 3-flat lands within the -20% / +35% margin of the city's Missing Middle per-unit budgets.
 
 - Contractor review: your partner contractor checks five feasibility runs and agrees the costs are reasonable.
 
