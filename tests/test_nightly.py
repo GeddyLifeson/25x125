@@ -30,5 +30,6 @@ def test_skip_yearly_leaves_only_nightly_steps():
         "parcel sites",
         "lot use and block faces",
         "comps",
+        "cost index",
         "rules",
     ]

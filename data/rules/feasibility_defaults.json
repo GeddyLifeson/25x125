@@ -263,7 +263,8 @@
       0.42
     ],
     "older": "multiply by 0.75 per quarter",
-    "thin_areas": "blend with the side-of-city index (North, Northwest, West, Southwest, South, Far South) weighted by permit count until the area has 10 or more permits"
+    "thin_areas": "an area with fewer than 10 permits is blended with its neighboring community areas (community_area_neighbor): area weight n / 10, neighbors the rest. Changed 2026-10-30 from a side-of-city blend, to follow the neighborhood fallback in CLAUDE.md rule 4",
+    "job": "python -m jobs.build_cost_index (cost_index, cost_permit, permit_wait tables); 861 permits on 2026-10-30"
   },
   "fast_path": {
     "source": "Japan by-right zoning, NSW complying development, Chicago self-certification",
@@ -287,7 +288,8 @@
         161
       ]
     },
-    "use": "months of land carry before construction = days / 30; job recomputes monthly by review path"
+    "use": "months of land carry before construction = days / 30; job recomputes monthly by review path",
+    "job": "python -m jobs.build_cost_index writes permit_wait; 2026-10-30: self-cert median 48.5 days (p25 0, p75 94, 372 permits), standard plan review 83 (55, 161, 489)"
   },
   "open_space_impact_fee": {
     "source": [
