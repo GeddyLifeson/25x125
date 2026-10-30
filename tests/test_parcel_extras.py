@@ -1,7 +1,7 @@
 import psycopg
 
 from db.migrate import migrate
-from jobs import load_parcel_extras, load_parcel_shapes
+from jobs import build_parcel_site, load_parcel_extras, load_parcel_shapes, load_signals
 from jobs.load_parcel_extras import day, footprint_row, permit_row, proximity_row
 from jobs.load_signals import to_row
 from tests.test_loaders import FakeClient
@@ -67,10 +67,27 @@ def test_footprint_ties_to_lot_and_proximity_keeps_chicago_lots(db_url):
     shape = {"type": "MultiPolygon", "coordinates": [lot["coordinates"]]}
     fp = {"bldg_id": "1", "bldg_statu": "ACTIVE", "stories": "3", "no_of_unit": "3", "the_geom": shape}
     assert load_parcel_extras.run_source("footprints", client=FakeClient([[fp]]), url=db_url) == 1
-    prox = [{"pin10": "1602226037", "year": "2025"}, {"pin10": "0101100002", "year": "2025"}]
+    prox = [
+        {"pin10": "1602226037", "year": "2025", "num_foreclosure_in_half_mile_past_5_years": "7"},
+        {"pin10": "0101100002", "year": "2025"},
+    ]
     assert load_parcel_extras.run_source("proximity", client=FakeYearClient([prox]), url=db_url) == 2
     with psycopg.connect(db_url) as conn:
         assert conn.execute("select pin10, stories, units from building_footprint").fetchall() == [
             ("1602226037", 3, 3)
         ]
         assert conn.execute("select pin10 from parcel_proximity").fetchall() == [("1602226037",)]
+    exempt = [{"pin": "16022260370000", "year": "2025", "owner_name": "COOK COUNTY LAND BANK"}]
+    load_parcel_extras.run_source("exempt", client=FakeYearClient([exempt]), url=db_url)
+    with psycopg.connect(db_url) as conn:
+        lon, lat = conn.execute(
+            "select st_x(c), st_y(c) from (select st_pointonsurface(geom) c from parcel_shape) x"
+        ).fetchone()
+    fine = {"id": "H1", "violation_date": "2026-05-01T00:00:00.000", "imposed_fine": "1000",
+            "latitude": str(lat), "longitude": str(lon)}  # fmt: skip
+    load_signals.run_kind("hearing_fine", client=FakeClient([[fine]]), url=db_url)
+    build_parcel_site.run(db_url)
+    with psycopg.connect(db_url) as conn:
+        assert conn.execute(
+            "select foreclosures_half_mile_5y, stories, footprint_units, hearing_fines_3y, exempt_owner from parcel_site"
+        ).fetchone() == (7, 3, 3, 1000, "COOK COUNTY LAND BANK")

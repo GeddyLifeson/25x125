@@ -10,6 +10,8 @@ Signals (violations, 311 vacant requests, scofflaw list, city-owned land, demoli
 the lot their point falls on (or the nearest lot within 15 m), or the source PIN where one is given, and
 summed per lot. City map layers (transit-served areas, ADU zones, special districts, ARO areas, pedestrian
 streets, Enterprise Zones, 2018 Opportunity Zones, fire limits) are tested at the lot's point on surface.
+Depth channels add foreclosures within half a mile and distance to new construction (Assessor proximity),
+stories and units (city footprints), fines owed, environmental holds, foreclosed rentals and exempt owners.
 Run: python -m jobs.build_parcel_site
 """
 
@@ -135,6 +137,33 @@ from (
     max(signal_date) filter (where kind = 'demolition_notice') as demolition_notice_date
   from parcel_signal where pin10 is not null group by pin10
 ) x where ps.pin10 = x.pin10;
+
+update parcel_site ps set
+  hearing_fines_3y = x.hearing_fines_3y, vacant_building_fine_due = x.vacant_building_fine_due,
+  environmental_hold = x.environmental_hold, foreclosed_rental_date = x.foreclosed_rental_date
+from (
+  select pin10,
+    sum((attrs->>'imposed_fine')::numeric) filter (where kind = 'hearing_fine' and signal_date > current_date - 1095)
+      as hearing_fines_3y,
+    sum((attrs->>'current_amount_due')::numeric) filter (where kind = 'vacant_building_fine')
+      as vacant_building_fine_due,
+    (array_agg(detail order by signal_date desc nulls last) filter (where kind = 'environmental_hold'))[1]
+      as environmental_hold,
+    max(signal_date) filter (where kind = 'foreclosed_rental') as foreclosed_rental_date
+  from parcel_signal
+  where pin10 is not null and kind in ('hearing_fine', 'vacant_building_fine', 'environmental_hold', 'foreclosed_rental')
+  group by pin10
+) x where ps.pin10 = x.pin10;
+
+-- Depth channels keyed by lot or PIN: Assessor proximity, city footprints, tax-exempt owners.
+update parcel_site ps set foreclosures_half_mile_5y = x.foreclosures_half_mile_5y,
+  nearest_new_construction_ft = x.nearest_new_construction_ft
+from parcel_proximity x where ps.pin10 = x.pin10;
+update parcel_site ps set stories = x.stories, footprint_units = x.units
+from (select pin10, max(stories) as stories, sum(units) as units from building_footprint
+      where pin10 is not null and status = 'ACTIVE' group by pin10) x
+where ps.pin10 = x.pin10;
+update parcel_site ps set exempt_owner = x.owner_name from exempt_parcel x where ps.pin = x.pin;
 
 -- City map layers, tested at one point per PIN.
 create temp table site_point on commit drop as
