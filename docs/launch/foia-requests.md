@@ -8,7 +8,7 @@ Drafted 2026-10-30 from the channel audit (https://claude.ai/artifact/KDGRZ9tKEg
 | --- | --- | --- | --- |
 | 1 | Chicago Department of Buildings | Email DOBfoia@cityofchicago.org (listed on the department's FOIA page) | Sent 2026-10-30 |
 | 2 | Chicago Department of Planning and Development | Email DPDfoia@cityofchicago.org (listed on DPD's FOIA page) | Sent 2026-10-30 |
-| 3 | Cook County Treasurer | Online portal https://foia.cookcountytreasurer.com/ needs an account and login (or mail/fax to the FOIA Officer, 118 N. Clark St., Room 112; fax 312-603-6967) | Waiting on Marlon to log in |
+| 3 | Cook County Treasurer | Online portal https://foia.cookcountytreasurer.com/ (Marlon's account), category Tax Sale | Sent 2026-10-30 11:49, reference lHcL1CI0hwZwA10 |
 | 4 | Cook County Clerk | Email FOIA.ccclerk@cookcountyil.gov (listed on the Clerk's FOIA portal) | Sent 2026-10-30 |
 | 5 | Cook County Land Bank Authority | Email Info@CookCountyLandBank.org (the only address on its site), asking them to forward if FOIA goes elsewhere | Sent 2026-10-30 |
 
