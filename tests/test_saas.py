@@ -390,39 +390,43 @@ def test_billing_without_keys_says_so(db, make_member, monkeypatch):
 # ---- deletion ----
 
 
-def test_delete_account_removes_owned_org_data(db, make_member):
+def test_delete_account_hands_org_to_teammate(db, make_member):
     a_h = make_member("a@test.example", "test-a")
-    m_h = make_member("m@test.example", "test-a", role="member")
-    other = client(make_member("o@test.example", "test-o"))
+    make_member("m@test.example", "test-a", role="member")
     a = client(a_h)
     d = a.post("/deals", json={"pin": PIN}).json()
-    a.post(f"/deals/{d['id']}/events", json={"kind": "note", "note": "x"})
-    a.put(f"/overrides/{PIN}", json={"overrides": {}})
-    keep = other.post("/deals", json={"pin": PIN}).json()
-
     assert a.delete("/account?confirm=wrong@test.example").status_code == 400
     r = a.delete("/account?confirm=a@test.example").json()
-    assert r["orgs_deleted"] == 1 and r["rows_deleted"]["deal"] == 1 and r["rows_deleted"]["deal_event"] == 1
-    assert r["rows_deleted"]["other_members"] == 1
+    assert r["orgs_deleted"] == 0 and r["orgs_handed_over"] == 1
     with psycopg.connect(db) as conn:
-        assert conn.execute("select count(*) from org where id = 'test-a'").fetchone()[0] == 0
         assert (
             conn.execute("select count(*) from account_user where email = 'a@test.example'").fetchone()[0]
             == 0
         )
-        assert (
-            conn.execute("select count(*) from account_user where email = 'm@test.example'").fetchone()[0]
-            == 1
-        )
+        owner = conn.execute(
+            "select u.email from membership m join account_user u on u.id = m.user_id"
+            " where m.org_id = 'test-a' and m.role = 'owner'"
+        ).fetchone()
+        assert owner == ("m@test.example",)
+        assert conn.execute("select count(*) from deal where id = %s", (d["id"],)).fetchone()[0] == 1
+
+
+def test_delete_account_removes_solo_org_data(db, make_member):
+    a = client(make_member("a@test.example", "test-a"))
+    other = client(make_member("o@test.example", "test-o"))
+    d = a.post("/deals", json={"pin": PIN}).json()
+    a.post(f"/deals/{d['id']}/events", json={"kind": "note", "note": "x"})
+    a.put(f"/overrides/{PIN}", json={"overrides": {}})
+    keep = other.post("/deals", json={"pin": PIN}).json()
+    r = a.delete("/account?confirm=a@test.example").json()
+    assert r["orgs_deleted"] == 1 and r["rows_deleted"]["deal"] == 1 and r["rows_deleted"]["deal_event"] == 1
+    with psycopg.connect(db) as conn:
+        assert conn.execute("select count(*) from org where id = 'test-a'").fetchone()[0] == 0
         assert conn.execute("select count(*) from deal where org_id = 'test-a'").fetchone()[0] == 0
+        assert conn.execute("select count(*) from deal where id = %s", (keep["id"],)).fetchone()[0] == 1
         assert (
             conn.execute("select count(*) from deletion_log where requested_by = 'self'").fetchone()[0] >= 1
         )
-    assert [x["id"] for x in other.get("/deals").json()] == [keep["id"]]
-    assert client(m_h).get("/deals").status_code == 403  # the org is gone
-
-
-# ---- health and errors ----
 
 
 def test_health_flags_stale_nightly_sources(db, monkeypatch):

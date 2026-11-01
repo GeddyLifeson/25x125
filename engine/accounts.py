@@ -376,7 +376,8 @@ def audit_log(c: Annotated[Caller, Depends(owner)], limit: int = 200) -> list[di
 
 
 def delete_user(conn: psycopg.Connection, user_id: str, requested_by: str) -> dict:
-    """Delete a user. Organizations where they are the owner go too, with all their deals, outreach log,
+    """Delete a user. Organizations they own with teammates pass to the longest-standing member; organizations
+    they own alone go too, with all their deals, outreach log,
     saved searches, saved edits, invites and audit log; their Stripe subscription is canceled when billing is
     set up. Other members keep their accounts. Records the deletion without the email address.
 
@@ -391,6 +392,23 @@ def delete_user(conn: psycopg.Connection, user_id: str, requested_by: str) -> di
     ).fetchall()
     counts: dict[str, int] = {}
     canceled = 0
+    handed_over = 0
+    kept = []
+    for org_id, sub in owned:
+        # An organization with teammates passes to its longest-standing member instead of being deleted.
+        heir = conn.execute(
+            "select user_id from membership where org_id = %s and user_id <> %s order by created_at, user_id limit 1",
+            (org_id, user_id),
+        ).fetchone()
+        if heir:
+            conn.execute("delete from membership where org_id = %s and user_id = %s", (org_id, user_id))
+            conn.execute(
+                "update membership set role = 'owner' where org_id = %s and user_id = %s", (org_id, heir[0])
+            )
+            handed_over += 1
+            continue
+        kept.append((org_id, sub))
+    owned = kept
     for org_id, sub in owned:
         conn.execute("select set_config('app.org_id', %s, true)", (org_id,))
         for t in ("deal", "deal_event", "saved_search", "saved_override", "audit_log"):
@@ -417,7 +435,7 @@ def delete_user(conn: psycopg.Connection, user_id: str, requested_by: str) -> di
         ),
     )
     return {"email": user[0], "orgs_deleted": len(owned), "rows_deleted": counts,
-            "subscriptions_canceled": canceled}  # fmt: skip
+            "orgs_handed_over": handed_over, "subscriptions_canceled": canceled}  # fmt: skip
 
 
 @router.delete("/account")
