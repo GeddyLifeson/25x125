@@ -1,65 +1,47 @@
-# Claude API practices (from the Combining Games project)
+# Claude API practices (master copy from the Combining Games project)
 
 Every session working on 25x125 reads this before calling the Claude API or planning bulk model work.
 
-Copied 2026-11-01 from Marlon's Combining Games project. The master text there is `/mnt/project-files/CLAUDE.md` section 1 in that project's own shared folder. That folder is not mounted in this project, and the file is not committed to any repo, so this copy is built from what the repos do carry:
+Source: section 1 of Marlon's master CLAUDE.md, copied word for word on 2026-11-01.
+- Stable link (works once DiaithirRPG PR #199 is merged): https://github.com/GeddyLifeson/DiaithirRPG/blob/engine/docs/MASTER_CLAUDE.md
+- Until then: https://github.com/GeddyLifeson/DiaithirRPG/blob/claude/project-thread-wixpzc/docs/MASTER_CLAUDE.md (commit 069323b)
 
-- `GeddyLifeson/DiaithirRPG`, branch `claude/project-thread-wixpzc`, commit `567f979`: `CLAUDE.md` (essentials), `tools/compute/README.md`, `tools/compute/api_lane/README.md`, `tools/compute/api_lane/{watch,batch,sync,common,recover}.py`, `.claude/skills/free-compute/SKILL.md`.
-- `GeddyLifeson/diaithir-ports` and `GeddyLifeson/diaithir-laptop`, same branch name: CLAUDE.md files that point to the master and repeat the same essentials.
+If the master changes, copy its section 1 again. Do not edit the copied section here; put 25x125 differences in the last section.
 
-Facts about the API (prices, cache minimums, Batch limits) were checked against Anthropic's API reference on 2026-11-01. If Marlon uploads the master file, replace this copy with its section 1 and keep the 25x125 notes at the end.
+The master's routing order (its Essentials, item 1): ModelRouter and free lanes first, then the Claude API (job folder, Haiku Batch), then Claude sessions. Session tokens are the scarce resource; spend them on judgment and integration only.
 
-## 1. Routing order
+---
 
-1. **Scripts first.** Anything a regex, lookup, sum or join can do is a script, not a model call. (25x125 rule: the engine computes; models only read text we can't parse.)
-2. **Free lanes next.** In Combining Games this is ModelRouter on Marlon's desktop (port 11435) and free hosted pools. 25x125 has no free lane yet; do not add one without Marlon. No local models on his PC or laptop.
-3. **Claude API job, Batch first.** Bulk work goes to the API as a batch on the small model (`claude-haiku-5-5`). Use Sonnet or Opus only where a sample shows the small model gets it wrong.
-4. **Claude session last.** Session tokens are the scarce resource. Spend them on design, judgment and integration, never on row-by-row bulk calls the API can do.
+## 1. Claude API practices (all lanes)
+Where it runs: bulk text work is a job folder `/mnt/project-files/compute/jobs/<name>/` holding `in.jsonl` (`{id,prompt[,system][,images]}`) and a README. The watcher (compute-lanes thread, `tools/compute/api_lane/` in DiaithirRPG) claims it within ~1 minute and writes `out.jsonl` (`{id,text,lane}`) beside it. Owners validate and merge; failed rows go in `<name>-retry`. Lane map: `/mnt/project-files/compute/LANES.md`. Spend log: `/mnt/project-files/compute/ledger.csv` (`ts,job,model,input,output,cache_write,cache_read`).
 
-## 2. Batch for bulk
+Job README keys the watcher reads: `max_tokens N` (required), `model: haiku|sonnet|opus` (default haiku), `effort: low|medium|high|max`, the word `sync` (force direct calls). A `schema.json` beside `in.jsonl` turns on structured outputs.
 
-- Message Batches cost 50% of list price. Limits: 100,000 requests or 256 MB per batch; most finish within an hour, maximum 24 hours; results are kept 29 days.
-- Rule from the Combining Games watcher: Haiku jobs always go to Batch. Sonnet or Opus jobs of 40 rows or more go to Batch unless the job says `sync` (needs results now).
-- Results come back in any order. Key them by `custom_id`, never by position.
-- Save batch ids to disk as soon as they are submitted. A restarted container must be able to collect results from batches whose runner died (`recover.py` in DiaithirRPG does this).
-- Make jobs resumable: skip rows already in the output file.
+Features in use, with why:
+- **Batch API** (50% off, up to 100k requests per batch; we chunk at 1,500). Every bulk job. Sonnet/Opus jobs of 40+ rows also go Batch unless README says `sync`. Do not use `stream`, `speed` (fast mode) or `max_tokens: 0` in a batch.
+- **Prompt caching, 1-hour TTL.** Put everything shared FIRST (instructions, rules, few-shot, source text), then the per-row part. The runner puts `cache_control` on the common prompt prefix when it is over ~2,400 characters (minimum cacheable is 512 tokens on the 5.5 models) and on any `system` over that size. Batch hits are best effort, so keep the 1h TTL. Changing `output_config.format` invalidates the cache. Check `usage.cache_read_input_tokens`: the ledger's last column should be large on every row but the first.
+- **Model choice.** Batch prices per MTok in/out: Haiku 5.5 $0.05/$0.25 (default, classify, extract, rewrite, pick); Sonnet 5.5 $1/$5 (judgment, adjudication, fact checks); Opus 5.5 $2/$10 (hardest only); Fable 5.1 $5/$25 (almost never). Haiku 5.5 input costs 5x more above 100k tokens per prompt, so keep prompts small.
+- **Thinking.** Off for Haiku (`disabled`), `between_tools` for Sonnet/Opus, or max_tokens is eaten and text comes back empty. Use `effort` instead to tune depth: `low` for simple extraction and picks.
+- **Structured outputs** (`output_config.format` json_schema) for any job whose output is JSON (capitals lat/lon, photo picks, validators). Guarantees valid JSON and removes retry rows. Not compatible with citations or prefill.
+- **Files API** for images: each image is uploaded once and referenced by `file_id` (map in `/tmp/claude-0/run/files.json`), instead of base64 per row. Shrinks batch payloads and re-uses uploads across the pick and review passes.
+- **Token counting** (free `count_tokens`, text only; file sources are rejected) runs at claim time and writes `<job>/.estimate` with a ceiling cost, so large jobs are visible before spend.
+- **Not used, on purpose:** citations (conflicts with schemas; assay text is grounded by giving real page text in the prompt), context editing and compaction, memory tool, tool use and agents, fast mode, task budgets, streaming. Our calls are single-turn and stateless. Revisit if a job becomes multi-turn.
+- If the API would cost more than doing the work in a session, do it in the session. Never pad or invent rows to use credits.
 
-## 3. Prompt caching with the 1-hour TTL
+After a container restart the watcher and runners die but submitted batches keep going on Anthropic's side: export the key from the secrets file (`export ANTHROPIC_API_KEY=$(cat /mnt/project-files/compute/secrets/anthropic_key)`), run `recover.py`, relaunch `watch.py` under `nohup bash -c 'while true; do python3 -I watch.py; sleep 5; done'`. The file is on a network mount, so chmod 600 is not enforced there; treat the whole `compute/secrets/` folder as private and never move it into a repo.
 
-- Put the stable text first: system prompt, then the instructions shared by every row, then the row's own content.
-- Mark the end of the shared part with `"cache_control": {"type": "ephemeral", "ttl": "1h"}`. Use the 1-hour TTL because batch requests and parallel runs can be spread out over more than 5 minutes.
-- Only text of at least 512 tokens caches on the current models (Haiku 5.5, Sonnet 5.5, Opus 5.5). Shorter prefixes are ignored without an error. The Combining Games code caches only when the shared part is over about 2,400 characters.
-- Cost: a 1-hour cache write is 2x the input price, a read is about 0.1x (0.05x on Opus 5.5). It pays off from the third request that shares the prefix.
-- For direct (non-batch) runs, send one request first to write the cache, then start the parallel requests so they read it.
-- Check `usage.cache_read_input_tokens`. If it stays at zero, something in the prefix changes per request (a date, a row id, unsorted JSON).
+---
 
-## 4. Files API
+## How this applies in 25x125
 
-- Upload a file once (`POST /v1/files`, no beta header now) and send its `file_id` in each request instead of the bytes. Combining Games keeps a map of file hash to `file_id` so the same image or PDF is never uploaded twice.
-- Fall back to base64 if the upload fails.
-- Use `"type": "document"` for PDFs and text, `"type": "image"` for images. The block type must match the file type.
+Paths in the section above (`/mnt/project-files/compute/...`, the watcher, the ledger, the secrets file) live in the Combining Games project's shared folder. They do not exist in this project. In 25x125:
 
-## 5. Structured outputs
-
-- Ask for JSON with a schema: `"output_config": {"format": {"type": "json_schema", "schema": {...}}}`. The old `output_format` parameter is deprecated.
-- Keep the schema in the job's folder (`schema.json`) next to the prompt so a rule change is a file edit.
-- Effort goes in the same object: `"output_config": {"effort": "low"}`. Use `low` for extraction and classification.
-- Structured outputs cannot be combined with citations.
-
-## 6. Cost control
-
-- Before any paid run, count tokens with `POST /v1/messages/count_tokens` (free) on one row, multiply by the row count, and price it at Batch rates. Write the estimate next to the job.
-- Log every run's model, input tokens, output tokens, cache write tokens and cache read tokens. (Combining Games: `compute/ledger.csv`. 25x125: `docs/ai-runs.md`.)
-- Thinking: on Haiku 5.5 send `"thinking": {"type": "disabled"}` for plain extraction (allowed at effort `high` or below). On Sonnet 5.5 the off setting is `{"type": "between_tools"}`. On Opus 5.5 thinking cannot be turned off; lower the effort instead. (The Combining Games batch code sends `between_tools` to every non-Haiku model, which Opus 5.5 rejects.)
-
-## 7. The API key
-
-- The key lives only in the `ANTHROPIC_API_KEY` environment variable. Never print it, commit it, or write it into a CLAUDE.md, PR, job file, log or memory.
-- In Combining Games the key is read from a secrets file in that project's shared folder. That file is not in this project. For 25x125 the key goes in the cloud environment's secrets or in the local `.env` (see the repo CLAUDE.md).
-
-## 25x125 rules that sit on top of these
-
-- Warn Marlon before anything that costs money and give a dollar estimate. Runs over about $5 wait for his go-ahead.
-- Model output is data to check, not a source. Store which model produced each value and the date, and spot-check a sample against the original before it reaches a screen.
-- MLS (MRED) data never goes to any model.
-- The Combining Games rules about Minecraft mods, the Panscriptum, ModelRouter lanes and desktop shortcuts do not apply here.
+- **Where jobs run.** API jobs are Python jobs in `jobs/` (for example `jobs/extract_rezoning_districts.py`), using the same features: Batch, the 1-hour cache, structured outputs, the Files API for files sent more than once, and a free `count_tokens` estimate before submit.
+- **Routing.** Scripts first (the engine computes; models only read text we can't parse), then a Haiku 5.5 batch, then a Claude session. 25x125 has no free lane or ModelRouter; do not add one without Marlon. No local models.
+- **Key.** `ANTHROPIC_API_KEY` comes from the cloud environment's secrets or the local `.env`. There is no secrets file in this project's shared folder. The never-print, never-commit rule is the same.
+- **Spend log.** `docs/ai-runs.md` in the repo, with the ledger's columns: model, rows, input, output, cache write, cache read, dollars.
+- **Cost warnings.** Warn Marlon before any paid run with a dollar estimate. Runs likely over about $5 wait for his go-ahead.
+- **Thinking on Opus 5.5.** The master says `between_tools` for Sonnet and Opus. Per Anthropic's API reference (checked 2026-11-01), only Sonnet 5.5 accepts `between_tools`; Opus 5.5 rejects both `disabled` and `between_tools`, so omit `thinking` there and set `effort` low. Haiku 5.5 accepts `disabled` at effort `high` or below.
+- **Checking output.** Model output is data to check, not a source. Store the model and date on each value and spot-check a sample against the original before it reaches a screen.
+- **MLS.** MRED data never goes to any model.
+- The rest of the master (Minecraft pack, Panscriptum, novels, PC rules) does not apply to 25x125.

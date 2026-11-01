@@ -6,7 +6,7 @@ Owner: Marlon (imarlonlee@gmail.com, GitHub GeddyLifeson).
 
 ## Read these first
 
-- **Before any Claude API work, read `docs/claude-api-practices.md`** (the same file is at `/mnt/project-files/claude-api-practices.md` in the project's shared folder). It carries Marlon's practices from his Combining Games project: routing order, Batch for bulk, prompt caching with the 1-hour TTL, the Files API, and structured outputs. Every session follows it.
+- **Before any Claude API work, read `docs/claude-api-practices.md`** (also at `/mnt/project-files/claude-api-practices.md` in the project's shared folder). It is section 1 of Marlon's master CLAUDE.md, copied word for word, plus how it applies here: routing order, Batch for bulk, prompt caching with the 1-hour TTL, the Files API, structured outputs. Every session follows it. The master itself is https://github.com/GeddyLifeson/DiaithirRPG/blob/engine/docs/MASTER_CLAUDE.md (that link works once DiaithirRPG PR #199 is merged; until then use branch `claude/project-thread-wixpzc`).
 - `docs/calibration-2026-10-29.md` records the cost and comp calibration; read it before touching defaults.
 - `docs/v1-spec.md` is the build spec. If code and spec disagree, the spec wins until Marlon changes it.
 - `TASKS.md` is the milestone checklist. Work one milestone at a time and tick items as they finish.
