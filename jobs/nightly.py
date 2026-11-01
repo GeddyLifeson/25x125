@@ -20,7 +20,10 @@ from jobs import (
     load_building_chars,
     load_city_layers,
     load_condos,
+    load_cost_escalation,
+    load_foreclosure_auctions,
     load_hpi,
+    load_lots_for_sale,
     load_overlays,
     load_parcel_extras,
     load_parcel_shapes,
@@ -47,6 +50,9 @@ def steps(year: int, skip_yearly: bool) -> list[tuple[str, Callable]]:
         ("signals", lambda: load_signals.run()),
         ("assessor permits", lambda: load_parcel_extras.run_source("permits")),
         ("city layers", lambda: load_city_layers.run()),
+        ("cost escalation", lambda: load_cost_escalation.run()),
+        ("lots for sale", lambda: load_lots_for_sale.run()),
+        ("foreclosure auctions", lambda: load_foreclosure_auctions.run()),
     ]
     yearly = [
         ("parcels", lambda: load_parcels.run(year)),
