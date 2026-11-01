@@ -297,7 +297,9 @@ def simulate(d, x: Inputs, c: Cost, net_central: float, lo_m: float, hi_m: float
     smu, ssig = _lognormal_sigma(lo_m, hi_m)
     cmu, csig = _lognormal_sigma(1 + m["low"], 1 + m["high"])
     z1, zc = _draws(x.seed, x.draws, rho)
-    profits = np.sort(net_central * np.exp(smu + ssig * z1) - (c.land + (c.total - c.land) * np.exp(cmu + csig * zc)))
+    profits = np.sort(
+        net_central * np.exp(smu + ssig * z1) - (c.land + (c.total - c.land) * np.exp(cmu + csig * zc))
+    )
     n = len(profits)
     q = lambda p: round(float(profits[min(int(p * n), n - 1)]))
     return {

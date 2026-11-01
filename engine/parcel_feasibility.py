@@ -117,42 +117,7 @@ def feasibility(
         est = estimate(Target(ctx["lat"], ctx["lon"], min(units, 6), today, unit_sqft,
                               "condo" if sell_as == "condo" else None), pool, params, index)  # fmt: skip
         r = rent(conn, bedrooms_for(unit_sqft), ctx["tract"], ctx["zip"], d, today)
-        lv = ctx["land_values"]
-        lot = z.lot_sqft or 0
-        if "land" in o:
-            land, land_basis = float(o["land"]), "entered"
-        elif lv and lv["per_buildable_sqft"] and (now := _buildable_now(rules, z)):
-            land = lv["per_buildable_sqft"] * now
-            land_basis = (f"land map: ${lv['per_buildable_sqft']:,.0f} per buildable sq ft under the current district,"
-                          f" {lv['sales']} sales {lv['first_sale']} to {lv['last_sale']} ({lv['geo']} {lv['geo_id']})")  # fmt: skip
-        elif lv:
-            land, land_basis = (
-                lv["per_lot_sqft"] * lot,
-                f"land map: ${lv['per_lot_sqft']:,.0f} per lot sq ft, {lv['sales']} sales",
-            )
-        else:
-            land, land_basis = 0.0, "no land sales nearby: enter the asking price"
-        ci = ctx["cost_index"] or {}
-        x = Inputs(
-            units=units,
-            sale_per_unit=float(o["sale_per_unit"]) if "sale_per_unit" in o else (est.per_unit if est else None),
-            sale_low_mult=(est.low / est.per_unit) if est and est.low else None,
-            sale_high_mult=(est.high / est.per_unit) if est and est.high else None,
-            sale_comps=est.n if est else None,
-            rent_per_unit=float(o["rent_per_unit"]) if "rent_per_unit" in o else (r["per_month"] if r else None),
-            rent_low_mult=r["low"] / r["per_month"] if r else None,
-            rent_high_mult=r["high"] / r["per_month"] if r else None,
-            land=land, land_basis=land_basis,
-            cost_index=float(o["cost_index"]) if "cost_index" in o else ci.get("index"),
-            cost_index_thin=bool(ci.get("thin")),
-            lot_sqft=z.lot_sqft, far=path.floor_area_sqft / z.lot_sqft if z.lot_sqft and path.floor_area_sqft else None,
-            gross_sqft=float(o["gross_sqft"]) if "gross_sqft" in o else pick["gross_sqft"],
-            unit_sqft=unit_sqft, preset=o.get("preset"), rezoning=path.id == "rezoning",
-            stage=o.get("stage", "feasibility"), commercial_sqft=float(pick.get("commercial_sqft") or 0),
-            in_enterprise_zone=bool(ctx["enterprise_zone"]), in_opportunity_zone=bool(ctx["opportunity_zone"]),
-            in_tif=bool(ctx["tif"]), toggles=o.get("toggles", {}), answers=o.get("answers", {}),
-            escalation=float(o.get("escalation", esc["factor"])),
-        )  # fmt: skip
+        x = inputs_for(ctx, z, rules, pick, units, unit_sqft, est, r, esc, o)
         letter = "ABC"[i]
         sc = scenario(d, x, exit_, f"{letter} · {_label(pick, path)}", path.approval, today.year)
         sc["path"] = {"id": path.id, "district": path.district, "units": path.units,
@@ -172,6 +137,52 @@ def feasibility(
         for f, why in [pattern_fits(pt, p, z.lot_sqft)]
     ]
     return out
+
+
+def inputs_for(
+    ctx: dict, z, rules: Rules, pick: dict, units: int, unit_sqft: float, est, r, esc: dict, o: dict
+) -> Inputs:
+    """Scenario inputs for one pick. Shared by the live screen and the nightly scorer so they cannot drift."""
+    path = pick["path"]
+    land, land_basis = (
+        (float(o["land"]), "entered") if "land" in o else land_for(ctx["land_values"], rules, z)
+    )
+    ci = ctx["cost_index"] or {}
+    x = Inputs(
+        units=units,
+        sale_per_unit=float(o["sale_per_unit"]) if "sale_per_unit" in o else (est.per_unit if est else None),
+        sale_low_mult=(est.low / est.per_unit) if est and est.low else None,
+        sale_high_mult=(est.high / est.per_unit) if est and est.high else None,
+        sale_comps=est.n if est else None,
+        rent_per_unit=float(o["rent_per_unit"]) if "rent_per_unit" in o else (r["per_month"] if r else None),
+        rent_low_mult=r["low"] / r["per_month"] if r else None,
+        rent_high_mult=r["high"] / r["per_month"] if r else None,
+        land=land, land_basis=land_basis,
+        cost_index=float(o["cost_index"]) if "cost_index" in o else ci.get("index"),
+        cost_index_thin=bool(ci.get("thin")),
+        lot_sqft=z.lot_sqft, far=path.floor_area_sqft / z.lot_sqft if z.lot_sqft and path.floor_area_sqft else None,
+        gross_sqft=float(o["gross_sqft"]) if "gross_sqft" in o else pick["gross_sqft"],
+        unit_sqft=unit_sqft, preset=o.get("preset"), rezoning=path.id == "rezoning",
+        stage=o.get("stage", "feasibility"), commercial_sqft=float(pick.get("commercial_sqft") or 0),
+        in_enterprise_zone=bool(ctx["enterprise_zone"]), in_opportunity_zone=bool(ctx["opportunity_zone"]),
+        in_tif=bool(ctx["tif"]), toggles=o.get("toggles", {}), answers=o.get("answers", {}),
+        escalation=float(o.get("escalation", esc["factor"])),
+    )  # fmt: skip
+    return x
+
+
+def land_for(lv: dict | None, rules: Rules, z) -> tuple[float, str]:
+    """Land from the land map: per buildable sq ft x lot x FAR of the current district, else per lot sq ft."""
+    if lv and lv["per_buildable_sqft"] and (now := _buildable_now(rules, z)):
+        return lv["per_buildable_sqft"] * now, (
+            f"land map: ${lv['per_buildable_sqft']:,.0f} per buildable sq ft under the current district,"
+            f" {lv['sales']} sales {lv['first_sale']} to {lv['last_sale']} ({lv['geo']} {lv['geo_id']})"
+        )
+    if lv:
+        return lv["per_lot_sqft"] * (
+            z.lot_sqft or 0
+        ), f"land map: ${lv['per_lot_sqft']:,.0f} per lot sq ft, {lv['sales']} sales"
+    return 0.0, "no land sales nearby: enter the asking price"
 
 
 def _buildable_now(rules: Rules, z) -> float | None:

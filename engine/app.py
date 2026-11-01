@@ -1,14 +1,17 @@
+import csv
+import io
 import json
 from datetime import date
 from typing import Annotated
 
 import psycopg
-from fastapi import Body, FastAPI, HTTPException
+from fastapi import Body, FastAPI, HTTPException, Query
+from fastapi.responses import Response
 
 from core.db import connect
 from engine.comps import RULES_DIR, Target, estimate, index_from_db, params_from_files, pool_from_db
 from engine.parcel_feasibility import feasibility
-from engine.parcels import parcel, search
+from engine.parcels import LOT_COLUMNS, lots, parcel, search
 from engine.rents import rent
 from engine.rules import Rules
 from engine.sites import site_by_pin
@@ -139,6 +142,37 @@ def search_parcels(q: str, limit: int = 10) -> list[dict]:
         raise HTTPException(400, "type at least 3 characters")
     with connect() as conn:
         return search(conn, q, min(limit, 25))
+
+
+@app.get("/lots")
+def list_lots(
+    community_area: int | None = None,
+    zone: str | None = None,
+    min_score: float = 0,
+    min_units: int = 0,
+    signal: str | None = None,
+    for_sale: bool = False,
+    vacant: bool = False,
+    sort: Annotated[str, Query(pattern="^(score|return|upside|lot)$")] = "score",
+    limit: int = 100,
+    offset: int = 0,
+    format: Annotated[str, Query(pattern="^(json|csv)$")] = "json",
+):
+    """Scored lots for the list and map, with filters. format=csv returns the same rows as a CSV file."""
+    with connect() as conn:
+        rows = lots(conn, community_area=community_area, zone_prefix=zone, min_score=min_score, min_units=min_units,
+                    signal=signal, for_sale=for_sale, vacant=vacant, sort=sort,
+                    limit=min(limit, 5000 if format == "csv" else 500), offset=offset)  # fmt: skip
+    if format == "json":
+        return rows
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow([*LOT_COLUMNS, "source"])
+    for r in rows:
+        w.writerow([json.dumps(r[c]) if c == "details" else r[c] for c in LOT_COLUMNS]
+                   + ["25x125 nightly score; estimates, not tax, legal, zoning or appraisal advice"])  # fmt: skip
+    return Response(buf.getvalue(), media_type="text/csv",
+                    headers={"Content-Disposition": "attachment; filename=25x125-lots.csv"})  # fmt: skip
 
 
 @app.get("/parcels/{pin}")

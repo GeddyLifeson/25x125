@@ -38,4 +38,5 @@ def test_skip_yearly_leaves_only_nightly_steps():
         "cost index",
         "land values",
         "rules",
+        "development score",
     ]

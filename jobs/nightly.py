@@ -37,6 +37,7 @@ from jobs import (
     load_transit,
     load_zoning,
     report,
+    score_parcels,
     seed_rules,
 )
 
@@ -77,6 +78,7 @@ def steps(year: int, skip_yearly: bool) -> list[tuple[str, Callable]]:
         ("cost index", lambda: build_cost_index.run()),
         ("land values", lambda: build_land_values.run()),
         ("rules", lambda: seed_rules.run()),
+        ("development score", lambda: score_parcels.run()),
     ]
     return ([] if skip_yearly else yearly) + nightly + build
 

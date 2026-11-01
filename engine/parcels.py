@@ -91,3 +91,58 @@ def parcel(conn, pin: str) -> dict | None:
         "signals": "City of Chicago violations, 311, scofflaw, city land, demolition notices",
     }
     return out
+
+
+LOT_SORTS = {"score": "s.score desc", "return": "s.return_on_cost_p25 desc nulls last",
+             "upside": "s.by_right_units - coalesce(s.units_now, 0) desc", "lot": "ps.lot_sqft desc nulls last"}  # fmt: skip
+LOT_COLUMNS = ["pin10", "pin", "address", "zip", "community_area", "zone_class", "lot_sqft", "score", "zoning_upside",
+               "profit", "acquisition", "location", "incentives", "penalties", "units_now", "by_right_units",
+               "units_priced", "sale_per_unit", "sale_comps", "land", "total_cost", "profit_central", "profit_p25",
+               "return_on_cost", "return_on_cost_p25", "max_land_price", "details", "computed_on", "lat", "lon"]  # fmt: skip
+
+
+def lots(conn, *, community_area: int | None = None, zone_prefix: str | None = None, min_score: float = 0,
+         min_units: int = 0, signal: str | None = None, for_sale: bool = False, vacant: bool = False,
+         sort: str = "score", limit: int = 100, offset: int = 0) -> list[dict]:  # fmt: skip
+    """The list screen: scored lots with filters, from parcel_score (jobs/score_parcels.py)."""
+    where, args = ["s.score >= %s"], [min_score]
+    if community_area:
+        where.append("p.community_area_num = %s")
+        args.append(community_area)
+    if zone_prefix:
+        where.append("ps.zone_class like %s")
+        args.append(zone_prefix.upper() + "%")
+    if min_units:
+        where.append("s.by_right_units >= %s")
+        args.append(min_units)
+    if signal:
+        where.append("s.details->'signals' ? %s")
+        args.append(signal)
+    if for_sale:
+        where.append("s.details->'signals' ? 'city_owned_for_sale'")
+    if vacant:
+        where.append("s.details->'signals' ? 'vacant_land'")
+    rows = conn.execute(
+        f"""select s.pin10, s.pin, a.address, a.zip, p.community_area_name, ps.zone_class, ps.lot_sqft, s.score,
+                   s.zoning_upside, s.profit, s.acquisition, s.location, s.incentives, s.penalties, s.units_now,
+                   s.by_right_units, s.units_priced, s.sale_per_unit, s.sale_comps, s.land, s.total_cost,
+                   s.profit_central, s.profit_p25, s.return_on_cost, s.return_on_cost_p25, s.max_land_price,
+                   s.details, s.computed_on, st_y(p.geom), st_x(p.geom)
+            from parcel_score s
+            join parcel_site ps on ps.pin = s.pin
+            join lateral (select * from parcel x where x.pin = s.pin order by x.tax_year desc limit 1) p on true
+            left join parcel_address a on a.pin = s.pin
+            where {" and ".join(where)}
+            order by {LOT_SORTS.get(sort, LOT_SORTS["score"])}, s.pin10
+            limit %s offset %s""",
+        [*args, limit, offset],
+    ).fetchall()
+    out = []
+    for r in rows:
+        row = dict(zip(LOT_COLUMNS, r, strict=True))
+        for k, v in row.items():
+            if hasattr(v, "is_finite"):  # Decimal
+                row[k] = float(v)
+        row["computed_on"] = row["computed_on"].isoformat()
+        out.append(row)
+    return out
