@@ -37,7 +37,7 @@ Paths in the section above (`/mnt/project-files/compute/...`, the watcher, the l
 
 - **Where jobs run.** API jobs are Python jobs in `jobs/` (for example `jobs/extract_rezoning_districts.py`), using the same features: Batch, the 1-hour cache, structured outputs, the Files API for files sent more than once, and a free `count_tokens` estimate before submit.
 - **Routing.** Scripts first (the engine computes; models only read text we can't parse), then a Haiku 5.5 batch, then a Claude session. 25x125 has no free lane or ModelRouter; do not add one without Marlon. No local models.
-- **Key.** `ANTHROPIC_API_KEY` comes from the cloud environment's secrets or the local `.env`. There is no secrets file in this project's shared folder. The never-print, never-commit rule is the same.
+- **Key.** `CLAUDE_API_KEY_25X125` comes from the cloud environment (Claude Code settings ignore `ANTHROPIC_API_KEY` there) or the local `.env`, where `ANTHROPIC_API_KEY` also works. Jobs pass it to the SDK client explicitly. There is no secrets file in this project's shared folder. The never-print, never-commit rule is the same.
 - **Spend log.** `docs/ai-runs.md` in the repo, with the ledger's columns: model, rows, input, output, cache write, cache read, dollars.
 - **Cost warnings.** Warn Marlon before any paid run with a dollar estimate. Runs likely over about $5 wait for his go-ahead.
 - **Thinking on Opus 5.5.** The master says `between_tools` for Sonnet and Opus. Per Anthropic's API reference (checked 2026-11-01), only Sonnet 5.5 accepts `between_tools`; Opus 5.5 rejects both `disabled` and `between_tools`, so omit `thinking` there and set `effort` low. Haiku 5.5 accepts `disabled` at effort `high` or below.

@@ -93,3 +93,13 @@ def test_clean_district_fixes_common_ocr_errors():
     assert x.clean_district("BL-1") == "B1-1"
     assert x.clean_district("ML-2") == "M1-2"
     assert x.clean_district("RT3.S") == "RT-3.5"
+
+
+def test_api_key_prefers_project_name(monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "a")
+    monkeypatch.setenv("CLAUDE_API_KEY_25X125", "b")
+    assert x.api_key() == "b"
+    monkeypatch.delenv("CLAUDE_API_KEY_25X125")
+    assert x.api_key() == "a"
+    monkeypatch.delenv("ANTHROPIC_API_KEY")
+    assert x.api_key() is None
