@@ -6,7 +6,8 @@ def test_example_env_reads_and_flags_only_the_placeholders(tmp_path):
     assert env["APP_URL"] == "https://x25x125-web.fly.dev"
     assert env["DATABASE_URL"].endswith("?sslmode=require")
     assert deploy.check_env(env) == [
-        "ENGINE_SHARED_SECRET is still the example placeholder; make one (see the example file)"
+        "ENGINE_SHARED_SECRET is still the example placeholder; make one (see the example file)",
+        "EMAIL_SERVER is still the example placeholder; put in your Gmail address and app password",
     ]
     # Every secret the apps take is documented in the example file.
     names = {k for app in deploy.APPS.values() for k in app["secrets"]}

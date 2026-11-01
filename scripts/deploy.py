@@ -162,6 +162,8 @@ def gmail_problems(server: str, sender: str) -> list[str]:
     u = urlparse(server)
     if u.hostname != "smtp.gmail.com":
         return []
+    if "replace-" in server:
+        return ["EMAIL_SERVER is still the example placeholder; put in your Gmail address and app password"]
     problems = []
     user = unquote(u.username or "")
     password = unquote(u.password or "")
