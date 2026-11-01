@@ -57,6 +57,15 @@ The markdown copies in `docs/` were exported on 2026-10-28. If Marlon updates a 
   - `permits_2to6_clean_city.json`: the cleaned permit rows behind the index.
 - `scripts/research/` holds the throwaway scripts that built those files. Port the logic into proper jobs; don't import them.
 
+## AI tooling for the build
+
+- Marlon wants Claude API credits and a model router used to speed up building V1 (2026-11-01). No local models.
+- Keys: `ANTHROPIC_API_KEY` and `OPENROUTER_API_KEY` (the router; change the name if Marlon uses a different one). Locally they go in `.env` (placeholders in `.env.example`); in cloud sessions they are environment secrets in project settings. Never commit a key or paste one in chat.
+- Use the cheapest model that does the job: the Batch API and the small model for bulk extraction (scanned ordinances, permit text), larger models only where accuracy needs it.
+- Before any run likely to cost more than about $5, post a rough estimate (calls x tokens x price) and wait for Marlon's go-ahead. Log each run's model, row count and cost in `docs/ai-runs.md`.
+- AI output is data to check, not a source: store which model produced each value and spot-check a sample against the original before it reaches a screen. Every number still shows its source and date (rule 2).
+- MLS data never goes to any model (see MLS rules).
+
 ## MLS (MRED) rules
 
 MRED data isn't in version 1. Marlon is handling the license separately. Don't build anything that uses MLS data until he says the feed is approved. When it comes in (via MLS Grid, `api.mlsgrid.com/v2`):
