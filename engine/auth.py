@@ -174,9 +174,19 @@ def owner(c: Annotated[Caller, Depends(member)]) -> Caller:
     return c
 
 
+def is_local() -> bool:
+    """Single-user desktop mode (LOCAL_MODE=1). Refused together with APP_ENV=production."""
+    if settings.local_mode and is_production():
+        raise HTTPException(500, "LOCAL_MODE cannot be on with APP_ENV=production")
+    return settings.local_mode
+
+
 def admin_emails() -> frozenset[str]:
-    """Product admins: the emails in ADMIN_EMAILS (comma-separated)."""
-    return frozenset(e.strip().lower() for e in settings.admin_emails.split(",") if e.strip())
+    """Product admins: the emails in ADMIN_EMAILS (comma-separated). In local mode the local user is one."""
+    emails = {e.strip().lower() for e in settings.admin_emails.split(",") if e.strip()}
+    if is_local():
+        emails.add(settings.local_user_email.lower())
+    return frozenset(emails)
 
 
 def user_email(conn: psycopg.Connection, user_id: str | None) -> str | None:

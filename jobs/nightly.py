@@ -126,7 +126,10 @@ def main(argv: list[str] | None = None) -> int:
 
 def _run(a: argparse.Namespace) -> int:
     failures = 0
-    for name, step in steps(a.year, a.skip_yearly):
+    todo = steps(a.year, a.skip_yearly)
+    for i, (name, step) in enumerate(todo, 1):
+        # A start line per step, so a watcher (the desktop program's status window) sees the long ones begin.
+        print(f"[{i}/{len(todo)}] {name}: starting", flush=True)
         try:
             print(f"{name}: {step()}", flush=True)
         except Exception as e:  # noqa: BLE001 - one failed source must not stop the others; the report lists it

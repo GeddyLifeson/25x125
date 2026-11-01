@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export type NavAccount = { email: string; plan: string; isAdmin?: boolean } | null;
+export type NavAccount = { email: string; plan: string; isAdmin?: boolean; local?: boolean } | null;
 
 export function Nav({ account }: { account?: NavAccount }) {
   const path = usePathname() ?? "/";
@@ -50,7 +50,9 @@ export function Nav({ account }: { account?: NavAccount }) {
       </nav>
       <div className="note">
         Every number is an estimate and can be edited ·{" "}
-        {account ? (
+        {account?.local ? (
+          <span data-testid="nav-local">Desktop, this computer only</span>
+        ) : account ? (
           <Link href="/account" style={{ color: "#fff" }} data-testid="nav-account">
             {account.email} ({account.plan})
           </Link>

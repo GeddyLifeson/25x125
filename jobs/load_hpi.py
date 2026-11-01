@@ -8,7 +8,6 @@ Each run replaces the table. Run: python -m jobs.load_hpi
 
 import csv
 import io
-import tempfile
 import urllib.request
 from collections.abc import Callable, Iterator
 
@@ -32,7 +31,7 @@ def tract_rows(fh: io.TextIOBase) -> Iterator[tuple]:
             yield "tract", r["tract"], int(r["year"]), 0, v
 
 
-def zip_rows(path: str) -> Iterator[tuple]:
+def zip_rows(path) -> Iterator[tuple]:
     import openpyxl
 
     ws = openpyxl.load_workbook(path, read_only=True).active
@@ -59,10 +58,8 @@ def run(opener: Callable = urllib.request.urlopen, url: str | None = None) -> in
             try:
                 with opener(BASE + path, timeout=300) as resp:
                     if kind == "zip":
-                        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp:
-                            tmp.write(resp.read())
-                            tmp.flush()
-                            rows = list(zip_rows(tmp.name))
+                        # In memory: Windows cannot reopen an open temporary file by name.
+                        rows = list(zip_rows(io.BytesIO(resp.read())))
                     else:
                         fh = io.TextIOWrapper(resp, encoding="utf-8", errors="replace")
                         rows = list(tract_rows(fh) if kind == "tract" else metro_rows(fh))

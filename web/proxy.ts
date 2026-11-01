@@ -13,7 +13,10 @@ export function proxy(req: NextRequest) {
       return new NextResponse("Cross-site request refused.", { status: 403 });
     }
   }
-  if (PROTECTED.some((r) => r.test(pathname)) && !req.cookies.get(SESSION_COOKIE)) {
+  // Desktop mode (LOCAL_MODE=1) has no sign-in: the engine treats every call as the one local user.
+  const local = process.env.LOCAL_MODE === "1" && process.env.APP_ENV !== "production";
+  if (local && pathname === "/signin") return NextResponse.redirect(new URL("/", req.url));
+  if (!local && PROTECTED.some((r) => r.test(pathname)) && !req.cookies.get(SESSION_COOKIE)) {
     const url = req.nextUrl.clone();
     url.pathname = "/signin";
     url.search = `?next=${encodeURIComponent(pathname + search)}`;
@@ -22,4 +25,4 @@ export function proxy(req: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: ["/deals", "/deals/:path*", "/account", "/account/:path*", "/api/:path*"] };
+export const config = { matcher: ["/deals", "/deals/:path*", "/account", "/account/:path*", "/api/:path*", "/signin"] };

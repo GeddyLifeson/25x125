@@ -1,0 +1,91 @@
+# Windows desktop program (desktop/): builds the installer on windows-latest, starts the unpacked program in
+# self-test mode (database, engine, web app, local mode, one real data loader), installs it silently, and on a
+# desktop-v* tag publishes the installer as a GitHub Release. Free on a public repository.
+name: Desktop
+
+on:
+  push:
+    branches: [main]
+    tags: ["desktop-v*"]
+  pull_request:
+    paths:
+      - "desktop/**"
+      - "core/**"
+      - "db/**"
+      - "engine/**"
+      - "jobs/**"
+      - "web/**"
+      - "data/rules/**"
+      - "pyproject.toml"
+      - ".github/workflows/desktop.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            desktop/package-lock.json
+            web/package-lock.json
+      - name: Cache the Postgres, PostGIS and Python downloads
+        uses: actions/cache@v4
+        with:
+          path: desktop/build/cache
+          key: desktop-downloads-${{ hashFiles('desktop/scripts/prepare-runtime.mjs') }}
+      - run: npm ci --no-audit --no-fund
+      - name: Build the runtime (Postgres + PostGIS, Python + packages, engine, web app)
+        run: node scripts/prepare-runtime.mjs
+      - name: Build the installer
+        run: npx electron-builder --win nsis --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - name: Self-test the program
+        shell: pwsh
+        run: |
+          $out = Join-Path $env:RUNNER_TEMP "self-test.json"
+          $data = Join-Path $env:RUNNER_TEMP "x25-data"
+          $p = Start-Process -FilePath "dist\win-unpacked\25x125.exe" -PassThru `
+            -ArgumentList "--self-test", "--self-test-load", "--self-test-out=$out", "--data-dir=$data"
+          $null = $p.Handle
+          if (-not $p.WaitForExit(900000)) { $p.Kill(); Write-Error "self-test timed out" }
+          if (Test-Path $out) { Get-Content $out } else { Write-Output "no self-test report" }
+          Get-ChildItem (Join-Path $data "logs") -File | ForEach-Object { Write-Output "---- $($_.Name)"; Get-Content $_.FullName -Tail 80 }
+          if ($p.ExitCode -ne 0) { Write-Error "self-test failed (exit $($p.ExitCode))"; exit 1 }
+          $r = Get-Content $out | ConvertFrom-Json
+          if (-not $r.ok) { exit 1 }
+      - name: Install silently and check the files
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem dist -Filter "25x125-Setup-*.exe" | Select-Object -First 1
+          "Installer: $($setup.Name), $([math]::Round($setup.Length / 1MB)) MB"
+          $p = Start-Process -FilePath $setup.FullName -ArgumentList "/S" -PassThru
+          $null = $p.Handle
+          $p.WaitForExit(600000) | Out-Null
+          $exe = Join-Path $env:LOCALAPPDATA "Programs\25x125\25x125.exe"
+          if (-not (Test-Path $exe)) { Write-Error "not installed at $exe"; exit 1 }
+          "Installed at $exe"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 25x125-windows-installer
+          path: desktop/dist/25x125-Setup-*.exe
+          retention-days: 14
+      - name: Publish the release (desktop-v* tags)
+        if: startsWith(github.ref, 'refs/tags/desktop-v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem dist -Filter "25x125-Setup-*.exe" | Select-Object -First 1
+          gh release create "${{ github.ref_name }}" $setup.FullName --title "25x125 desktop ${{ github.ref_name }}" --notes-file RELEASE_NOTES.md

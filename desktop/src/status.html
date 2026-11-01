@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'unsafe-inline'">
+<title>25x125: status and data loads</title>
+<style>
+  :root { --bg: #f7f6f2; --fg: #1d1d1b; --muted: #6b6a66; --line: #d9d6cc; --accent: #1f4e79; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1b1b1a; --fg: #eceae4; --muted: #a3a19a; --line: #3a3936; --accent: #7fb0e0; } }
+  body { margin: 0; font: 14px/1.45 system-ui, "Segoe UI", sans-serif; background: var(--bg); color: var(--fg); }
+  header { padding: 16px 20px 8px; }
+  h1 { font-size: 18px; margin: 0 0 6px; }
+  #status { font-size: 15px; margin: 0 0 8px; }
+  .facts { color: var(--muted); font-size: 13px; }
+  button { font: inherit; padding: 6px 14px; border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 4px; cursor: pointer; }
+  #log { margin: 8px 20px 20px; height: calc(100vh - 190px); overflow: auto; border: 1px solid var(--line); padding: 8px; font: 12px/1.4 Consolas, monospace; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<header>
+  <h1>25x125 on this computer</h1>
+  <p id="status">Starting...</p>
+  <p class="facts" id="facts"></p>
+  <button id="open">Open 25x125</button>
+</header>
+<div id="log" aria-live="polite"></div>
+<script src="status.js"></script>
+</body>
+</html>

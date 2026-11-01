@@ -8,6 +8,8 @@ export const CLAIM_HEADER = "x-25x125-claim";
 const DEV_SECRET = "dev-only-shared-secret-not-for-production";
 
 export const isProduction = () => process.env.APP_ENV === "production";
+/** Single-user desktop mode (desktop/): no sign-in, the engine treats every call as the local user on Pro. */
+export const isLocal = () => process.env.LOCAL_MODE === "1" && !isProduction();
 
 function secret(): string {
   const s = process.env.ENGINE_SHARED_SECRET;

@@ -1,0 +1,35 @@
+{
+  "name": "x25x125-desktop",
+  "productName": "25x125",
+  "version": "0.1.0",
+  "private": true,
+  "description": "25x125 on one Windows computer: the database, engine and web app run locally, no sign-in.",
+  "author": "Marlon Lee",
+  "main": "src/main.js",
+  "scripts": {
+    "prepare-runtime": "node scripts/prepare-runtime.mjs",
+    "start": "electron .",
+    "dist": "electron-builder --win nsis --publish never"
+  },
+  "devDependencies": {
+    "electron": "44.9.0",
+    "electron-builder": "26.17.0"
+  },
+  "build": {
+    "appId": "com.x25x125.desktop",
+    "productName": "25x125",
+    "executableName": "25x125",
+    "asar": true,
+    "directories": { "output": "dist" },
+    "files": ["src/**/*", "package.json"],
+    "extraResources": [{ "from": "build/runtime", "to": "runtime" }],
+    "win": { "target": "nsis", "icon": "src/icon.png" },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "artifactName": "25x125-Setup-${version}.exe",
+      "shortcutName": "25x125",
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}
