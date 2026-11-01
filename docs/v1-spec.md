@@ -194,7 +194,7 @@ Every input below is a default the user can override. Defaults are starting valu
 
 - Hard cost = gross floor area x base cost per sq ft x neighborhood adjustment (Cost model section).
 
-- Base cost by build-spec preset (2-3 units / 4-6 units): production \$165 / \$170, standard \$200 / \$215, high \$250 / \$265 per sq ft. Default preset by the area's cost index: below 1.3 production, 1.3-1.8 standard, 1.8 and up high. Set from published evidence (docs/construction-costs-2026-10-29.md); real job costs replace them when available.
+- Base cost by build-spec preset (2-3 units / 4-6 units): production \$155 / \$160 (lowered from \$165 / \$170 on 2026-11-01; docs/calibration-2026-10-29.md), standard \$200 / \$215, high \$250 / \$265 per sq ft. Default preset by the area's cost index: below 1.3 production, 1.3-1.8 standard, 1.8 and up high. Set from published evidence (docs/construction-costs-2026-10-29.md); real job costs replace them when available.
 
 - Sprinklers: \$5 per sq ft of the building that has 4+ units. A detached coach house does not count toward the main building (verify).
 
