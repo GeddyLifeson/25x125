@@ -22,6 +22,8 @@ export type OrgView = {
 
 export type Session = {
   user: { id: string; email: string; name: string | null };
+  /** Product admin (ADMIN_EMAILS on the engine): sees /admin/feedback. */
+  is_admin?: boolean;
   org: OrgView;
   orgs: { id: string; name: string; role: string }[];
   expires_at: string;

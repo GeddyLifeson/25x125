@@ -1,9 +1,11 @@
-// Smoke check of sign-in, search, parcel, feasibility, map, deals and account screens in Chromium.
+// Smoke check of sign-in, search, parcel, feasibility, map, deals, feedback and account screens in Chromium.
 // Run with the engine and the web app up: node scripts/smoke.cjs [base url], default http://localhost:3010
 // Needs the playwright package and a Chromium it can launch, and the tile server (docker compose up -d);
 // screenshots go to web/screenshots/. Sign-in uses the engine's dev mode (EMAIL_SERVER unset): the link is
 // read from .dev-mail/ in the repo root (DEV_MAIL_DIR to change), so no email is sent. The run deletes the
 // deals it creates, then deletes its own account (smoke-test@example.com) through the data deletion route.
+// The feedback admin check needs the smoke email in ADMIN_EMAILS on the engine (ADMIN_EMAILS=smoke-test@example.com);
+// the run deletes the feedback entries it sends.
 const path = require("path");
 const fs = require("fs");
 const { chromium } = require("playwright");
@@ -17,6 +19,7 @@ let storageState; // the signed-in browser's cookies, shared by every page after
 
 let failures = 0;
 const dealIds = [];
+const feedbackIds = [];
 function check(ok, what) {
   console.log(`${ok ? "ok  " : "FAIL"} ${what}`);
   if (!ok) failures++;
@@ -128,13 +131,15 @@ async function settled(page) {
   try {
     await mapChecks(browser);
     await dealChecks(browser);
+    await feedbackChecks(browser);
     await accountChecks(browser);
   } catch (e) {
     check(false, `map, deals or account check stopped: ${e.message.split("\n")[0]}`);
   }
 
-  // Remove the deals this run made, then the account itself (data deletion on request).
+  // Remove the deals and feedback this run made, then the account itself (data deletion on request).
   for (const id of dealIds) await page.request.delete(`${BASE}/api/deals/${id}`);
+  for (const id of feedbackIds) await page.request.delete(`${BASE}/api/feedback/${id}`);
   const del = await page.request.delete(`${BASE}/api/account?confirm=${encodeURIComponent(EMAIL)}`);
   const gone = del.ok() ? await del.json() : {};
   check(del.ok() && gone.orgs_deleted === 1, `account deleted on request (${gone.orgs_deleted} organization, ${JSON.stringify(gone.rows_deleted)})`);
@@ -176,6 +181,20 @@ async function signedOutChecks(browser) {
   check(pdf.status() === 303 && (pdf.headers().location || "").includes("/signin"), `signed out, the PDF link goes to sign-in (${pdf.status()})`);
   const api = await page.request.get(`${BASE}/api/deals`);
   check(api.status() === 401, `signed out, the deals API answers 401 (${api.status()})`);
+  // Signed out: the general feedback form from the nav asks for an email; the admin page asks to sign in.
+  await page.click("[data-testid=nav-feedback]");
+  await page.waitForSelector("[data-testid=feedback-form]");
+  await page.click("label:has-text('Maybe') input");
+  await page.fill("textarea[name=missing]", "Smoke signed-out note: utility tap fees");
+  await page.fill("input[name=email]", "smoke-visitor@example.com");
+  await page.click("[data-testid=feedback-send]");
+  await page.waitForSelector("[data-testid=feedback-thanks]");
+  feedbackIds.push(Number(await page.locator("[data-testid=feedback-id]").textContent()));
+  check(feedbackIds[0] > 0, `signed out, general feedback saved with an email (entry ${feedbackIds[0]})`);
+  await page.goto(`${BASE}/admin/feedback`);
+  check(decodeURIComponent(page.url()).includes("/signin?next=/admin/feedback"), "signed out, the feedback admin page goes to sign-in");
+  const fbApi = await page.request.get(`${BASE}/api/feedback`);
+  check(fbApi.status() === 401, `signed out, the feedback list API answers 401 (${fbApi.status()})`);
   const health = await page.request.get(`${process.env.ENGINE_URL || "http://localhost:8000"}/health`).then((r) => r.json()).catch(() => null);
   if (health && health.status === "stale") {
     check((await page.locator("[data-testid=stale-note]").count()) === 1, `stale-data note shown (${health.stale.length} nightly sources over 36 hours)`);
@@ -213,7 +232,7 @@ async function accountChecks(browser) {
   await page.goto(`${BASE}/account`);
   await page.waitForSelector("[data-testid=audit]");
   const audit = await page.locator("[data-testid=audit]").textContent();
-  for (const a of ["deal.create", "export.pdf", "override.save", "search.save", "auth.sign_in"]) {
+  for (const a of ["deal.create", "export.pdf", "override.save", "search.save", "auth.sign_in", "feedback.create"]) {
     check(audit.includes(a), `audit log has ${a}`);
   }
   check((await page.locator("[data-testid=saved-searches] li").count()) >= 1, "saved search listed on the account page");
@@ -397,4 +416,52 @@ async function dealChecks(browser) {
     await phone.screenshot({ path: path.join(OUT, shot) });
   }
   await phone.close();
+}
+
+async function feedbackChecks(browser) {
+  const page = await newPage(browser, { width: 1280, height: 900 });
+  await page.goto(`${BASE}/parcels/${PIN}/feasibility`);
+  await page.waitForSelector(".sc");
+  check((await page.locator("[data-testid^=check-numbers-]").count()) === 3, "each scenario has a Check these numbers button");
+  const shownTotal = (await page.locator("tr.total td.num").textContent()).match(/\$[\d,]+/)[0];
+  await page.click("[data-testid=check-numbers-A]");
+  await page.waitForURL("**/feedback?*");
+  const u = new URL(page.url());
+  check(u.searchParams.get("pin") === PIN && u.searchParams.get("scenario") === "A", "the button opens /feedback for this lot and scenario A");
+  const appNums = await page.locator("[data-testid=app-numbers]").textContent();
+  check(appNums.includes(shownTotal) && /Hard cost per sq ft\$\d/.test(appNums), `the app's figures are carried over read-only (total ${shownTotal})`);
+  check((await page.locator("input[name=email]").count()) === 0 && (await page.locator("text=Sent as smoke-test@example.com").count()) === 1,
+    "signed in, the form uses the account email");
+  await page.fill("input[name=cost_per_sqft_own]", "200");
+  await page.fill("input[name=cost_total_own]", "1,400,000");
+  await page.fill("input[name=sale_per_unit_own]", "450000");
+  const diffText = await page.locator("table.fbcmp tbody tr").first().locator("td").last().textContent();
+  check(/^[+-]\$\d+\.\d\d \(\d\.\d\dx the app\)$/.test(diffText.trim()), `difference shown in dollars and as a ratio (${diffText.trim()})`);
+  await page.click("label:has-text('4') input[name=rating]");
+  await page.fill("textarea[name=numbers_wrong]", "Smoke: soft cost looks low, I use 25%");
+  await page.fill("input[name=minutes_spent]", "20");
+  await page.click("label:has-text('Yes') input[name=would_use]");
+  await page.screenshot({ path: path.join(OUT, "feedback.png"), fullPage: true });
+  await page.click("[data-testid=feedback-send]");
+  await page.waitForSelector("[data-testid=feedback-thanks]");
+  const id = Number(await page.locator("[data-testid=feedback-id]").textContent());
+  feedbackIds.push(id);
+  check(id > 0, `feedback saved with the scenario's figures (entry ${id})`);
+
+  // Admin view (needs ADMIN_EMAILS=smoke-test@example.com on the engine).
+  await page.goto(`${BASE}/admin/feedback`);
+  const isAdmin = (await page.locator("[data-testid=feedback-summary]").count()) === 1;
+  check(isAdmin, "feedback admin page opens for an admin (set ADMIN_EMAILS=smoke-test@example.com on the engine)");
+  if (!isAdmin) return page.close();
+  check((await page.locator("[data-testid=nav-admin]").count()) === 1, "nav shows the feedback admin link to an admin");
+  const count = Number(await page.locator("[data-testid=feedback-count]").textContent());
+  const table = await page.locator("[data-testid=feedback-table]").textContent();
+  check(count >= 2 && table.includes("soft cost looks low") && table.includes("utility tap fees"), `admin page lists the entries (${count} in all)`);
+  check(/\$200\.00 vs \$[\d.]+/.test(table), "admin page shows their cost per sq ft next to the app's");
+  const summary = await page.locator("[data-testid=feedback-summary]").textContent();
+  check(/Hard cost per sq ft\d+[\d.]+x \(/.test(summary), "summary shows the cost per sq ft ratio with its range");
+  await page.screenshot({ path: path.join(OUT, "admin-feedback.png"), fullPage: true });
+  const csv = await (await page.request.get(`${BASE}/api/feedback/csv`)).text();
+  check(csv.startsWith("id,created_at,email") && csv.includes("soft cost looks low") && csv.includes("cost_per_sqft_ratio"), "feedback CSV download has the entries and ratios");
+  await page.close();
 }

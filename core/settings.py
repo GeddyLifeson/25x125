@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     stripe_price_founding_monthly: str = ""
     # Error tracking. Empty = errors are only logged.
     sentry_dsn: str = ""
+    # Product admins (comma-separated emails): they read the feedback entries at /admin/feedback.
+    admin_emails: str = ""
 
 
 settings = Settings()
