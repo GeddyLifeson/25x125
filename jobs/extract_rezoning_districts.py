@@ -10,7 +10,10 @@ Steps (each one picks up where the last stopped, so a run can be resumed):
   python -m jobs.extract_rezoning_districts estimate  # page counts and a dollar estimate (free)
   python -m jobs.extract_rezoning_districts submit    # send the batches (paid, needs CLAUDE_API_KEY_25X125)
   python -m jobs.extract_rezoning_districts collect   # results into data/reference/rezoning_districts.csv
-  python -m jobs.extract_rezoning_districts apply     # copy the CSV into the rezoning table
+  python -m jobs.extract_rezoning_districts recheck   # re-clean codes and flags in the CSV (free, no API calls)
+  python -m jobs.extract_rezoning_districts apply     # CSV + hand checks into the rezoning table (jobs.nightly runs it)
+Flagged rows (needs_check) are checked by hand in data/reference/rezoning_districts_checked.csv; a flagged row with
+no hand check, or one marked unresolved, keeps no districts in the table, so it never reaches a screen.
 Paid steps need: python -m pip install -e ".[ai]"
 Options: --limit N (first N ordinances only, for a test run), --ids O2026-0025357,... (just these).
 """
@@ -38,6 +41,7 @@ PDFS = RAW / "pdf"
 INDEX = RAW / "index.csv"
 STATE = RAW / "batches.json"
 OUT = ROOT / "data" / "reference" / "rezoning_districts.csv"
+CHECKED = ROOT / "data" / "reference" / "rezoning_districts_checked.csv"  # hand checks of the flagged rows
 MATTER = "https://api.chicityclerkelms.chicago.gov/matter/{id}"
 
 MODEL = "claude-haiku-5-5"
@@ -52,7 +56,7 @@ BATCH_BYTES = 150_000_000  # API cap is 256 MB per batch; stay well under it
 INDEX_COLUMNS = ["record_number", "matter_id", "title", "pdf_url", "file_name", "pages", "path", "error"]
 OUT_COLUMNS = [
     "record_number", "from_district", "to_district", "changes", "pd_number", "map_no", "readable",
-    "confidence", "codes_valid", "app_from_district", "app_to_district", "input_kind", "note", "model", "pdf_url", "extracted_on", "input_tokens", "output_tokens",
+    "confidence", "codes_valid", "app_from_district", "app_to_district", "text_to_district", "needs_check", "input_kind", "note", "model", "pdf_url", "extracted_on", "input_tokens", "output_tokens",
 ]  # fmt: skip
 
 PROMPT = """This is a Chicago City Council zoning map amendment (a rezoning ordinance): a scan, or the OCR text
@@ -289,6 +293,23 @@ APPLICATION = re.compile(
 )
 
 
+SECTION1_TO = re.compile(
+    r"to\s+those\s+of\s+an?\s+([A-Z]{1,3}[0-9lI]?[\- ]?[0-9lIS]{1,2}(?:\.[0-9S])?)[,\s]", re.IGNORECASE
+)
+
+
+def section1_to_district(text: str) -> str | None:
+    """Free cross-check on OCR text: the first "to those of a <district>" in Section 1. Two-step and
+    multi-parcel ordinances name more than one, so a mismatch is a flag for a hand check, not a verdict."""
+    m = SECTION1_TO.search(" ".join(text.split()))
+    if not m:
+        return None
+    raw = m.group(1).upper()
+    raw = raw[:1] + re.sub(r"(?<=[\d\-])[LI]|[LI](?=[\-\d])", "1", raw[1:])
+    d = clean_district(raw)
+    return d if valid_district(d) else None
+
+
 def application_districts(text: str) -> tuple[str | None, str | None]:
     """Free cross-check: the application's question 9 states the present and proposed district."""
     m = APPLICATION.search(text)
@@ -368,38 +389,97 @@ def submit(rows: list[dict], max_dollars: float) -> list[str]:
 
 
 def clean_district(d: str | None) -> str | None:
-    """Normalize spacing and hyphens: 'rt4' -> 'RT-4', 'B3 2' -> 'B3-2', 'PD1234' -> 'PD 1234'."""
+    """Normalize a district as the model wrote it: 'rt4' -> 'RT-4', 'B3 2' -> 'B3-2', 'PD1234' -> 'PD 1234',
+    'Residential-Business Planned Development No. 368, as amended' -> 'PD 368', 'PMD 11, Subarea B' -> 'PMD 11',
+    'C1-2 Neighborhood Commercial District' -> 'C1-2'."""
     if not d:
         return None
-    s = " ".join(d.upper().replace("–", "-").split())
-    pd = re.match(r"^(?:.*PLANNED DEVELOPMENT|PD)\s*(?:NO\.?|#)?\s*(\d+)?\s*$", s)
-    if pd:
-        return f"PD {pd.group(1)}" if pd.group(1) else "PD"
-    pmd = re.match(r"^PMD\s*(?:NO\.?)?\s*(\d+[A-Z]?)?$", s)
-    if pmd:
-        return f"PMD {pmd.group(1)}" if pmd.group(1) else "PMD"
+    s = " ".join(d.upper().replace("–", "-").replace("-", " ").split())
+    s = re.sub(r"[,(]?\s*\(?AS AMENDED\)?.*$", "", s).strip(" ,")
+    if "PLANNED MANUFACTURING" in s or re.match(r"^PMD\b", s):
+        m = re.search(r"(?:PMD|DISTRICT)\s*(?:NO\.?|#)?\s*(\d+[A-Z]?)\b", s)
+        return f"PMD {m.group(1)}" if m else "PMD"
+    if "PLANNED DEVELOPMENT" in s or re.match(r"^(?:[A-Z]{0,3}PD|BUSINESS PD)(?=[\s\d#]|$)", s):
+        if " AND " in s:  # two districts in one string: leave for a hand check
+            return s.replace(" ", "-")
+        m = re.search(r"(?:DEVELOPMENT|PD)\s*(?:NO\.?|NUMBER|#)?\s*(\d+)", s)
+        return f"PD {m.group(1)}" if m else "PD"
     s = s.replace(" ", "-")
     s = re.sub(r"^([BCM])[LI](?=-?\d)", r"\g<1>1", s)  # OCR reads B1-1 as BL-1
+    s = re.sub(r"^([BCM]\d)-?[LI]$", r"\g<1>-1", s)  # and C3-1 as C3-I
     s = re.sub(r"^(RT|RM)-?(\d)\.S$", r"\1-\2.5", s)  # OCR reads RT-3.5 as RT3.S
-    m = re.match(r"^(RS|RT|RM|DX|DC|DR|DS|POS)-?(\d+(?:\.\d)?)$", s)
+    s = re.sub(r"^RMS(?=$|-)", "RM-5", s)  # OCR reads RM5 as RMS
+    s = re.sub(r"^RM-?5-5$", "RM-5.5", s)
+    lead = re.match(r"^((?:RS|RT|RM|DX|DC|DR|DS|POS|[BCM]\d)-?\d+(?:\.\d)?)-[A-Z(]", s)  # code + its name
+    if lead:
+        s = lead.group(1)
+    if re.match(r"^T-TRANSPORTATION", s):
+        return "T"
+    m = re.match(r"^(RS|RT|RM|DX|DC|DR|DS|POS)-?(\d+(?:\.\d)?A?)$", s)
     if m:
         return f"{m.group(1)}-{m.group(2)}"
-    m = re.match(r"^([BCM]\d)-?(\d)$", s)
+    m = re.match(r"^([BCM]\d)-?(\d(?:\.5)?)$", s)
     if m:
         return f"{m.group(1)}-{m.group(2)}"
     return s
 
 
-# Every district code the Chicago Zoning Ordinance (Title 17) uses. A code outside this list is kept but
-# flagged, so it gets checked by hand before it reaches a screen.
+# Every district code on the city's zoning map (dj47-wfun, distinct zone_class, checked 2026-11-01). A code
+# outside this list is kept but flagged, so it gets checked by hand before it reaches a screen.
 VALID = re.compile(
     r"^(?:RS-[123]|RT-3\.5|RT-4A?|RM-(?:4\.5|5|5\.5|6|6\.5)|[BC][123]-(?:1|1\.5|2|3|5)|M[123]-[123]"
-    r"|PMD(?: \d+[A-Z]?)?|DC-1[26]|DX-(?:3|5|7|12|16)|DR-(?:3|5|7|10)|DS-[35]|PD(?: \d+)?|POS-[12]|T)$"
+    r"|PMD(?: \d+[A-Z]?)?|DC-1[26]|DX-(?:3|5|7|10|12|16)|DR-(?:3|5|7|10)|DS-[357]|PD(?: \d+)?|POS-[123]|T)$"
 )
 
 
 def valid_district(d: str | None) -> bool:
     return bool(d and VALID.match(d))
+
+
+def derive(
+    changes: list[dict], confidence: str | None, readable: bool, app_to: str | None, text_to: str | None
+) -> dict:
+    """First old and last new district, whether every code is a real Title 17 code, and whether the row needs a
+    hand check: a code outside the list, low confidence, unreadable, or a free cross-check that disagrees."""
+    to_codes = {c["to"] for c in changes}
+    codes_valid = bool(changes) and all(
+        valid_district(c["from"]) and valid_district(c["to"]) for c in changes
+    )
+    needs_check = (
+        not codes_valid
+        or confidence == "low"
+        or not readable
+        or bool(app_to and valid_district(app_to) and app_to not in to_codes)
+        or bool(text_to and text_to not in to_codes and not any((t or "").startswith("PD") for t in to_codes))
+    )
+    return {
+        "from_district": changes[0]["from"] if changes else None,
+        "to_district": changes[-1]["to"] if changes else None,
+        "codes_valid": codes_valid,
+        "needs_check": needs_check,
+    }
+
+
+def recheck() -> int:
+    """Re-clean the stored codes and recompute the flags without calling the API again (free, seconds)."""
+    with OUT.open(newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    for r in rows:
+        changes = [
+            {"from": clean_district(c["from"]), "to": clean_district(c["to"])}
+            for c in json.loads(r["changes"] or "[]")
+        ]
+        r["changes"] = json.dumps(changes) if changes else ""
+        r |= derive(
+            changes, r["confidence"], r["readable"] == "True", r["app_to_district"], r["text_to_district"]
+        )
+    with OUT.open("w", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, OUT_COLUMNS)
+        w.writeheader()
+        w.writerows(rows)
+    flagged = sum(1 for r in rows if r["needs_check"])
+    print(f"rechecked {len(rows):,} rows; {flagged:,} need a hand check")
+    return flagged
 
 
 def collect() -> int:
@@ -434,22 +514,24 @@ def collect() -> int:
                 {"from": clean_district(c["from_district"]), "to": clean_district(c["to_district"])}
                 for c in ans.get("changes") or []
             ]
-            first, last = (changes[0], changes[-1]) if changes else ({}, {})
             kind, data = source_for(ROOT / src["path"])
             app_from, app_to = application_districts(data) if kind == "text" else (None, None)
+            text_to = section1_to_district(data) if kind == "text" else None
+            d = derive(changes, ans.get("confidence"), bool(ans.get("readable")), app_to, text_to)
             rows[src["record_number"]] = {
                 "record_number": src["record_number"],
-                "from_district": first.get("from"),
-                "to_district": last.get("to"),
+                "from_district": d["from_district"],
+                "to_district": d["to_district"],
                 "changes": json.dumps(changes) if changes else "",
                 "pd_number": ans.get("pd_number") or "",
                 "map_no": ans.get("map_no") or "",
                 "readable": ans.get("readable"),
                 "confidence": ans.get("confidence"),
-                "codes_valid": bool(changes)
-                and all(valid_district(c["from"]) and valid_district(c["to"]) for c in changes),
+                "codes_valid": d["codes_valid"],
                 "app_from_district": app_from or "",
                 "app_to_district": app_to or "",
+                "text_to_district": text_to or "",
+                "needs_check": d["needs_check"],
                 "input_kind": kind,
                 "note": ans.get("note") or "",
                 "model": msg.model,
@@ -474,20 +556,52 @@ def collect() -> int:
     return len(rows)
 
 
-def apply(url: str | None = None) -> int:
-    from core.db import connect
-
+def merged_rows() -> list[dict]:
+    """The model's rows with the hand checks laid over them. A flagged row nobody checked counts as unresolved.
+    Unresolved and not-a-rezoning rows keep no districts, so they never reach a screen."""
     with OUT.open(newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
+    checked = {}
+    if CHECKED.exists():
+        with CHECKED.open(newline="", encoding="utf-8") as f:
+            checked = {r["record_number"]: r for r in csv.DictReader(f)}
+    out = []
+    for r in rows:
+        c = checked.get(r["record_number"])
+        status = c["status"] if c else ("unresolved" if r["needs_check"] == "True" else "model")
+        changes = json.loads(c["changes"] or "[]") if c else json.loads(r["changes"] or "[]")
+        if status in ("unresolved", "not_a_rezoning"):
+            changes = []
+        out.append(
+            r
+            | {
+                "check": status,
+                "changes": json.dumps(changes) if changes else "",
+                "from_district": (changes[0]["from"] if changes else None) or None,
+                "to_district": (changes[-1]["to"] if changes else None) or None,
+            }
+        )
+    return out
+
+
+def apply(url: str | None = None) -> int:
+    """Copy the districts into the rezoning table. The nightly load deletes and reloads that table from eLMS,
+    so jobs.nightly runs this right after it. Free: reads the two CSVs in the repo, no API calls."""
+    from core.db import connect
+
+    if not OUT.exists():
+        print(f"no {OUT.relative_to(ROOT)}; nothing to apply")
+        return 0
+    rows = merged_rows()
     with connect(url) as conn:
         n = 0
         for r in rows:
             cur = conn.execute(
                 "update rezoning set from_district = %s, to_district = %s, district_changes = %s::jsonb,"
                 " district_confidence = %s, district_model = %s, district_source_url = %s,"
-                " district_extracted_on = %s where record_number = %s",
-                (r["from_district"] or None, r["to_district"] or None, r["changes"] or None,
-                 r["confidence"] or None, r["model"], r["pdf_url"], r["extracted_on"], r["record_number"]),
+                " district_extracted_on = %s, district_check = %s where record_number = %s",
+                (r["from_district"], r["to_district"], r["changes"] or None, r["confidence"] or None, r["model"],
+                 r["pdf_url"], r["extracted_on"], r["check"], r["record_number"]),
             )  # fmt: skip
             n += cur.rowcount
     print(f"rezoning rows updated: {n:,}")
@@ -496,7 +610,7 @@ def apply(url: str | None = None) -> int:
 
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("step", choices=["fetch", "estimate", "submit", "collect", "apply"])
+    ap.add_argument("step", choices=["fetch", "estimate", "submit", "collect", "recheck", "apply"])
     ap.add_argument("--limit", type=int)
     ap.add_argument("--ids")
     ap.add_argument("--max-dollars", type=float, default=float(os.environ.get("AI_RUN_MAX_DOLLARS", "5")))
@@ -511,6 +625,8 @@ def main(argv: list[str] | None = None) -> None:
         submit(selected(a.limit, ids), a.max_dollars)
     elif a.step == "collect":
         collect()
+    elif a.step == "recheck":
+        recheck()
     else:
         apply()
 

@@ -1,8 +1,11 @@
+import csv
 import io
 import json
 
+import psycopg
 from pypdf import PdfReader, PdfWriter
 
+from db.migrate import migrate
 from jobs import extract_rezoning_districts as x
 
 
@@ -66,13 +69,16 @@ def test_valid_district_list():
         "C1-1.5",
         "M2-3",
         "DX-12",
+        "DX-10",
+        "DS-7",
+        "POS-3",
         "PD 1234",
         "PMD 4A",
         "POS-2",
         "T",
     ]:
         assert x.valid_district(d), d
-    for d in ["RS-4", "B4-2", "DX-9", "RT4", "XYZ", None]:
+    for d in ["RS-4", "B4-2", "DX-9", "RT4", "RT-4.5", "DC-3", "XYZ", None]:
         assert not x.valid_district(d), d
     assert x.clean_district("PMD 4a") == "PMD 4A"
 
@@ -103,3 +109,115 @@ def test_api_key_prefers_project_name(monkeypatch):
     assert x.api_key() == "a"
     monkeypatch.delenv("ANTHROPIC_API_KEY")
     assert x.api_key() is None
+
+
+def test_clean_district_drops_trailing_district_name():
+    assert x.clean_district("C1-2 Neighborhood Commercial District") == "C1-2"
+    assert x.clean_district("RT-4-RESIDENTIAL-TWO-FLAT,-TOWNHOUSE-AND-MULTI-UNIT") == "RT-4"
+    assert x.clean_district("RM-4.5, as amended") == "RM-4.5"
+    assert x.clean_district("B3-3-TOD") == "B3-3"
+
+
+def test_section1_to_district_reads_ocr_text():
+    assert (
+        x.section1_to_district("... to those of a Cl-1, Neighborhood Commercial District. SECTION 2")
+        == "C1-1"
+    )
+    assert x.section1_to_district("to those of a RT4 Residential Two-Flat") == "RT-4"
+    assert x.section1_to_district("to those of a Bl-3, Neighborhood Shopping") == "B1-3"
+    assert x.section1_to_district("no section here") is None
+
+
+def _write_csvs(tmp_path, monkeypatch):
+    out, checked = tmp_path / "out.csv", tmp_path / "checked.csv"
+    base = {k: "" for k in x.OUT_COLUMNS} | {
+        "model": "claude-haiku-5-5",
+        "pdf_url": "u",
+        "extracted_on": "2026-11-01",
+    }
+    rows = [
+        base | {"record_number": "A", "changes": '[{"from": "RS-3", "to": "RT-4"}]', "needs_check": "False"},
+        base | {"record_number": "B", "changes": '[{"from": "RS-3", "to": "B1-1"}]', "needs_check": "True"},
+        base | {"record_number": "C", "changes": '[{"from": "RS-3", "to": "RT-4.5"}]', "needs_check": "True"},
+        base | {"record_number": "D", "changes": "", "needs_check": "True"},
+        base | {"record_number": "E", "changes": '[{"from": "B3-2", "to": "C-2"}]', "needs_check": "True"},
+    ]
+    with out.open("w", newline="") as f:
+        w = csv.DictWriter(f, x.OUT_COLUMNS)
+        w.writeheader()
+        w.writerows(rows)
+    with checked.open("w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(
+            ["record_number", "status", "changes", "checked_against", "note", "checked_by", "checked_on"]
+        )
+        w.writerow(
+            ["B", "corrected", '[{"from": "RS-3", "to": "C1-1"}]', "Section 1", "Cl-1", "hand", "2026-11-01"]
+        )
+        w.writerow(["C", "unresolved", "", "Section 1", "RT-4.5", "hand", "2026-11-01"])
+        w.writerow(["D", "not_a_rezoning", "", "Section 1", "Pedestrian Street", "hand", "2026-11-01"])
+    monkeypatch.setattr(x, "OUT", out)
+    monkeypatch.setattr(x, "CHECKED", checked)
+
+
+def test_hand_checks_override_and_flagged_rows_stay_hidden(tmp_path, monkeypatch):
+    _write_csvs(tmp_path, monkeypatch)
+    got = {r["record_number"]: (r["check"], r["from_district"], r["to_district"]) for r in x.merged_rows()}
+    assert got == {
+        "A": ("model", "RS-3", "RT-4"),
+        "B": ("corrected", "RS-3", "C1-1"),
+        "C": ("unresolved", None, None),
+        "D": ("not_a_rezoning", None, None),
+        "E": ("unresolved", None, None),  # flagged and never checked
+    }
+
+
+def test_apply_copies_checked_districts_into_the_table(db_url, tmp_path, monkeypatch):
+    migrate(db_url)
+    _write_csvs(tmp_path, monkeypatch)
+    with psycopg.connect(db_url) as conn:
+        conn.execute("delete from rezoning")
+        for rec in "ABCDE":
+            conn.execute(
+                "insert into rezoning (record_number, matter_id, title, type1, alderman_filed) values (%s, 'm', 't', false, false)",
+                (rec,),
+            )
+    assert x.apply(db_url) == 5
+    with psycopg.connect(db_url) as conn:
+        got = conn.execute(
+            "select record_number, from_district, to_district, district_check from rezoning order by 1"
+        ).fetchall()
+    assert got == [
+        ("A", "RS-3", "RT-4", "model"),
+        ("B", "RS-3", "C1-1", "corrected"),
+        ("C", None, None, "unresolved"),
+        ("D", None, None, "not_a_rezoning"),
+        ("E", None, None, "unresolved"),
+    ]
+
+
+def test_checked_file_covers_every_flagged_row():
+    with x.OUT.open(newline="", encoding="utf-8") as f:
+        flagged = {r["record_number"] for r in csv.DictReader(f) if r["needs_check"] == "True"}
+    with x.CHECKED.open(newline="", encoding="utf-8") as f:
+        checked = {r["record_number"]: r for r in csv.DictReader(f)}
+    assert flagged <= set(checked)
+    assert {r["status"] for r in checked.values()} <= {
+        "confirmed",
+        "corrected",
+        "not_a_rezoning",
+        "unresolved",
+    }
+    for r in checked.values():
+        for c in json.loads(r["changes"] or "[]"):
+            assert c["from"] is None or x.valid_district(c["from"]), (r["record_number"], c)
+            assert x.valid_district(c["to"]), (r["record_number"], c)
+
+
+def test_nightly_imports_without_the_ai_extra():
+    """The desktop app installs only the main dependencies, so jobs.nightly must not import anthropic."""
+    import subprocess
+    import sys
+
+    code = "import sys, jobs.nightly; sys.exit(1 if 'anthropic' in sys.modules else 0)"
+    assert subprocess.run([sys.executable, "-c", code], check=False).returncode == 0

@@ -1,0 +1,131 @@
+record_number,status,changes,checked_against,note,checked_by,checked_on
+O2010-7170,not_a_rezoning,,Section 1 OCR text,Pedestrian Street designation only; no district change,"Claude session, by hand",2026-11-01
+O2011-264,confirmed,"[{""from"": ""B1-2"", ""to"": ""RT-4""}]",Section 1 OCR text,,"Claude session, by hand",2026-11-01
+O2011-3950,corrected,"[{""from"": ""PD 26"", ""to"": ""PD 26""}]",Section 1 OCR text,"Amends PD 26; Section 1 changes PD 26 to PD 26, as amended","Claude session, by hand",2026-11-01
+O2011-3956,unresolved,,Section 1 OCR text,"prints RT-4.5, which is not a Chicago district (RT-4 or RM-4.5?)","Claude session, by hand",2026-11-01
+O2011-5464,corrected,"[{""from"": ""M1-2"", ""to"": ""B1-3""}]",model note (Bl-3 in source),"Bl-3 is B1-3, not B3-1","Claude session, by hand",2026-11-01
+O2011-606,corrected,"[{""from"": ""B3-2"", ""to"": ""B3-2""}, {""from"": ""RT-4"", ""to"": ""B3-2""}]",application Q9 (B3-2/RT-4 to B3-2),file holds only the application,"Claude session, by hand",2026-11-01
+O2011-6335,corrected,"[{""from"": ""M1-2"", ""to"": ""C1-2""}]",Section 1 OCR text,Cl-2 is C1-2,"Claude session, by hand",2026-11-01
+O2011-768,corrected,"[{""from"": ""RS-3"", ""to"": ""C1-1""}]",Section 1 OCR text,Cl-1 is C1-1,"Claude session, by hand",2026-11-01
+O2011-7776,corrected,"[{""from"": ""B2-5"", ""to"": ""M3-3""}]",Section 1 OCR text,file also holds the 2007 M3-3 to B2-5 ordinance; Section 1 of this one is B2-5 to M3-3,"Claude session, by hand",2026-11-01
+O2011-8808,not_a_rezoning,,Section 1 OCR text,Pedestrian Street designation only; no district change,"Claude session, by hand",2026-11-01
+O2012-1419,corrected,"[{""from"": ""RM-4.5"", ""to"": ""RT-4""}]",Section 1 OCR text,printed RT4.5 Residential Multi-Unit; the district name and the code list point to RM-4.5,"Claude session, by hand",2026-11-01
+O2012-5698,corrected,"[{""from"": ""C1-1"", ""to"": ""C1-1""}, {""from"": ""RS-3"", ""to"": ""C1-1""}]",Section 1 OCR text,Cl-1 is C1-1,"Claude session, by hand",2026-11-01
+O2012-7154,corrected,"[{""from"": ""RT-4"", ""to"": ""C1-1""}]",Section 1 OCR text,Cl-1 is C1-1,"Claude session, by hand",2026-11-01
+O2013-1584,corrected,"[{""from"": ""B1-1"", ""to"": ""B1-3""}]",Section 1 OCR text,"Bl-3 is B1-3, not B3-1","Claude session, by hand",2026-11-01
+O2013-2486,corrected,"[{""from"": ""C1-1"", ""to"": ""C1-3""}]",Section 1 OCR text,CI-3 Neighborhood Commercial is C1-3,"Claude session, by hand",2026-11-01
+O2013-3336,confirmed,"[{""from"": ""M1-2"", ""to"": ""B3-3""}]",application narrative,,"Claude session, by hand",2026-11-01
+O2013-3454,not_a_rezoning,,Section 1 OCR text,Pedestrian Street designation only; no district change,"Claude session, by hand",2026-11-01
+O2013-4944,confirmed,"[{""from"": ""B1-1"", ""to"": ""B1-3""}]",application zoning table,,"Claude session, by hand",2026-11-01
+O2013-5514,corrected,"[{""from"": ""M1-1"", ""to"": ""B1-3""}]",Section 1 OCR text,Bl-3 is B1-3,"Claude session, by hand",2026-11-01
+O2013-6016,unresolved,,Section 1 OCR text,new district printed as MS Heavy Industrial; old district not printed,"Claude session, by hand",2026-11-01
+O2014-2329,corrected,"[{""from"": ""B1-1"", ""to"": ""C2-1""}]",Section 1 OCR text,Section 1 prints C2-1,"Claude session, by hand",2026-11-01
+O2014-5905,corrected,"[{""from"": ""POS-1"", ""to"": ""POS-1""}, {""from"": ""RM-5"", ""to"": ""POS-1""}]",Section 1 OCR text,,"Claude session, by hand",2026-11-01
+O2015-135,confirmed,"[{""from"": ""PD 25"", ""to"": ""RM-5""}, {""from"": ""RM-5"", ""to"": ""RM-5""}]",Section 1 OCR text,OCR RMS read as RM-5,"Claude session, by hand",2026-11-01
+O2015-1389,corrected,"[{""from"": ""RM-5"", ""to"": ""B1-2""}, {""from"": ""B1-1"", ""to"": ""B1-2""}]",Section 1 OCR text,Bl-2 is B1-2,"Claude session, by hand",2026-11-01
+O2016-1713,corrected,"[{""from"": ""B1-1"", ""to"": ""B1-1.5""}]",Section 1 OCR text,Bl-1.5 is B1-1.5,"Claude session, by hand",2026-11-01
+O2016-2689,corrected,"[{""from"": ""PD 709"", ""to"": ""DC-16""}]",Section 1 OCR text,,"Claude session, by hand",2026-11-01
+O2016-4766,unresolved,,Section 1 OCR text,"prints RT-4.5, which is not a Chicago district (RT-4 or RM-4.5?)","Claude session, by hand",2026-11-01
+O2016-4810,corrected,"[{""from"": ""B1-1"", ""to"": ""B1-3""}]",Section 1 OCR text,"Bl-3 is B1-3, not B3-1","Claude session, by hand",2026-11-01
+O2016-6364,unresolved,,Section 1 OCR text,new district printed as R1-4 Residential Multi-Unit,"Claude session, by hand",2026-11-01
+O2017-2170,unresolved,,Section 1 OCR text,"file holds the tracking sheet and zoning analysis, not Section 1","Claude session, by hand",2026-11-01
+O2017-3190,corrected,"[{""from"": ""M1-1"", ""to"": ""B1-3""}]",Section 1 OCR text,BI-3 Neighborhood Shopping is B1-3,"Claude session, by hand",2026-11-01
+O2017-5528,corrected,"[{""from"": ""RT-4"", ""to"": ""C1-1""}]",Section 1 OCR text,Cl-1 is C1-1,"Claude session, by hand",2026-11-01
+O2017-5618,corrected,"[{""from"": ""B3-2"", ""to"": ""RS-3""}, {""from"": ""C1-2"", ""to"": ""RS-3""}, {""from"": ""B3-2"", ""to"": ""B1-1""}]",Section 1 OCR text,01-2 Neighborhood Commercial is C1-2,"Claude session, by hand",2026-11-01
+O2017-6442,corrected,"[{""from"": null, ""to"": ""RS-2""}]",Section 1 OCR text,old district printed only as B-1 Neighborhood Shopping,"Claude session, by hand",2026-11-01
+O2017-7893,not_a_rezoning,,Section 1 OCR text,Pedestrian Street designation only; no district change,"Claude session, by hand",2026-11-01
+O2018-5979,corrected,"[{""from"": ""B1-1"", ""to"": ""B1-3""}]",Section 1 OCR text,"Bl-3 is B1-3, not B3-1","Claude session, by hand",2026-11-01
+O2018-8058,corrected,"[{""from"": ""RS-3"", ""to"": ""C1-1""}]",Section 1 OCR text,Cl-1 is C1-1,"Claude session, by hand",2026-11-01
+O2018-9035,unresolved,,Section 1 OCR text,"prints RT-4.5, which is not a Chicago district (RT-4 or RM-4.5?)","Claude session, by hand",2026-11-01
+O2019-1348,unresolved,,Section 1 OCR text,"prints RT-4.5, which is not a Chicago district (RT-4 or RM-4.5?)","Claude session, by hand",2026-11-01
+O2019-262,corrected,"[{""from"": ""RS-3"", ""to"": ""C1-1""}]",Section 1 OCR text,Cl-1 is C1-1,"Claude session, by hand",2026-11-01
+O2019-5540,unresolved,,Section 1 OCR text,old district printed only as Community Shopping District; one-line change B?-? to B2-3,"Claude session, by hand",2026-11-01
+O2019-5785,unresolved,,Section 1 OCR text,"prints POS-4, which is not a Chicago district","Claude session, by hand",2026-11-01
+O2019-6827,corrected,"[{""from"": ""PD 447"", ""to"": ""PD 447""}]",Section 1 OCR text,"Amends PD 447; Section 1 changes PD 447 to PD 447, as amended","Claude session, by hand",2026-11-01
+O2019-9269,corrected,"[{""from"": ""RT-4"", ""to"": ""RT-3.5""}]",Section 1 OCR text,"RTS.5 Two-Flat, Townhouse is RT-3.5","Claude session, by hand",2026-11-01
+O2020-4455,corrected,"[{""from"": ""B1-3"", ""to"": ""B1-3""}]",Section 1 OCR text,Section 1 prints Bl-3 to Bl-3,"Claude session, by hand",2026-11-01
+O2021-4982,corrected,"[{""from"": ""RT-4"", ""to"": ""C1-3""}]",Section 1 OCR text,CI-3 Neighborhood Commercial is C1-3,"Claude session, by hand",2026-11-01
+O2021-622,unresolved,,Section 1 OCR text,new district printed as Q1-2 Neighborhood Mixed-Use,"Claude session, by hand",2026-11-01
+O2022-1165,corrected,"[{""from"": ""C1-2"", ""to"": ""C1-3""}]",Section 1 OCR text,C7-2 Neighborhood Commercial is C1-2,"Claude session, by hand",2026-11-01
+O2022-1625,corrected,"[{""from"": ""PD 735"", ""to"": ""PD 735""}]",Section 1 OCR text,"Amends PD 735; Section 1 changes PD 735 to PD 735, as amended","Claude session, by hand",2026-11-01
+O2022-2735,unresolved,,Section 1 OCR text,"prints RT-4.5, which is not a Chicago district (RT-4 or RM-4.5?)","Claude session, by hand",2026-11-01
+O2022-2805,corrected,"[{""from"": ""B1-1"", ""to"": ""B1-3""}]",Section 1 OCR text,"Bl-3 is B1-3, not B3-1","Claude session, by hand",2026-11-01
+O2022-3599,corrected,"[{""from"": ""PD 889"", ""to"": ""DX-12""}]",Section 1 OCR text,,"Claude session, by hand",2026-11-01
+O2022-3723,corrected,"[{""from"": ""RT-4"", ""to"": ""B2-3""}]",Section 1 OCR text,"Rr-4 Two-Flat, Townhouse is RT-4","Claude session, by hand",2026-11-01
+O2023-0002719,confirmed,"[{""from"": ""RS-3"", ""to"": ""RM-5""}]",Section 1 OCR text,OCR R-M-s Residential Multi-Unit,"Claude session, by hand",2026-11-01
+O2023-0002757,corrected,"[{""from"": ""B1-3"", ""to"": ""B2-3""}]",Section 1 OCR text,BI-3 Neighborhood Shopping is B1-3,"Claude session, by hand",2026-11-01
+O2023-0002770,corrected,"[{""from"": ""PD 1508"", ""to"": ""PD 1508""}]",Section 1 OCR text,"Amends PD 1508; Section 1 changes PD 1508 to PD 1508, as amended","Claude session, by hand",2026-11-01
+O2023-0002948,unresolved,,Section 1 OCR text,"prints DC-3, which is not a Chicago district","Claude session, by hand",2026-11-01
+O2023-0004782,corrected,"[{""from"": ""PD 1403"", ""to"": ""PD 1403""}]",Section 1 OCR text,"Amends PD 1403; Section 1 changes PD 1403 to PD 1403, as amended","Claude session, by hand",2026-11-01
+O2023-260,unresolved,,Section 1 OCR text,Section 1 OCR unreadable,"Claude session, by hand",2026-11-01
+O2024-0014046,unresolved,,scan page 1,prints C-2 Motor Vehicle-Related Commercial with no number,"Claude session, by hand",2026-11-01
+O2025-0014852,unresolved,,Section 1 OCR text,"prints RT-4.5, which is not a Chicago district (RT-4 or RM-4.5?)","Claude session, by hand",2026-11-01
+O2025-0020124,corrected,"[{""from"": ""RT-4"", ""to"": ""C1-2""}]",scan page 1,,"Claude session, by hand",2026-11-01
+O2026-0023284,unresolved,,scan page 1,prints RT with no number,"Claude session, by hand",2026-11-01
+SO2010-7391,unresolved,,Section 1 OCR text,"first pages hold the tracking sheet or staff report, not Section 1","Claude session, by hand",2026-11-01
+SO2011-1472,corrected,"[{""from"": ""RM-5"", ""to"": ""C1-1""}]",Section 1 OCR text,Cl-1 is C1-1; the application agrees,"Claude session, by hand",2026-11-01
+SO2011-2264,unresolved,,Section 1 OCR text,"first pages hold the tracking sheet or staff report, not Section 1","Claude session, by hand",2026-11-01
+SO2011-2291,unresolved,,Section 1 OCR text,new district printed as BZ Neighborhood Mixed-Use,"Claude session, by hand",2026-11-01
+SO2011-3965,unresolved,,Section 1 OCR text,"first pages hold the tracking sheet or staff report, not Section 1","Claude session, by hand",2026-11-01
+SO2011-3978,unresolved,,Section 1 OCR text,"first pages hold the tracking sheet or staff report, not Section 1","Claude session, by hand",2026-11-01
+SO2011-612,unresolved,,Section 1 OCR text,"first pages hold the tracking sheet or staff report, not Section 1","Claude session, by hand",2026-11-01
+SO2011-645,unresolved,,Section 1 OCR text,"first pages hold the tracking sheet or staff report, not Section 1","Claude session, by hand",2026-11-01
+SO2011-8756,unresolved,,Section 1 OCR text,"first pages hold the tracking sheet or staff report, not Section 1","Claude session, by hand",2026-11-01
+SO2011-8910,corrected,"[{""from"": ""PD 842"", ""to"": ""PD 842""}]",Section 1 OCR text,"Amends PD 842; Section 1 changes PD 842 to PD 842, as amended","Claude session, by hand",2026-11-01
+SO2011-9875,corrected,"[{""from"": null, ""to"": ""RS-2""}, {""from"": ""RS-2"", ""to"": ""RS-2""}]",Section 1 OCR text,old M1 district number not legible,"Claude session, by hand",2026-11-01
+SO2012-3346,not_a_rezoning,,Section 1 OCR text,Pedestrian Street designation only; no district change,"Claude session, by hand",2026-11-01
+SO2012-3350,corrected,"[{""from"": ""PD 447"", ""to"": ""PD 447""}]",Section 1 OCR text,"Amends PD 447; Section 1 changes PD 447 to PD 447, as amended","Claude session, by hand",2026-11-01
+SO2012-3734,corrected,"[{""from"": ""PD 98"", ""to"": ""PD 98""}]",Section 1 OCR text,"Amends PD 98; Section 1 changes PD 98 to PD 98, as amended","Claude session, by hand",2026-11-01
+SO2012-603,corrected,"[{""from"": ""PD 368"", ""to"": ""PD 368""}]",Section 1 OCR text,"Amends PD 368; Section 1 changes PD 368 to PD 368, as amended","Claude session, by hand",2026-11-01
+SO2012-643,unresolved,,Section 1 OCR text,"first pages hold the tracking sheet or staff report, not Section 1","Claude session, by hand",2026-11-01
+SO2013-5507,corrected,"[{""from"": ""PD 1167"", ""to"": ""PD 1167""}]",Section 1 OCR text,"Amends PD 1167; Section 1 changes PD 1167 to PD 1167, as amended","Claude session, by hand",2026-11-01
+SO2013-6058,corrected,"[{""from"": ""PD 695"", ""to"": ""PD 695""}]",Section 1 OCR text,"Amends PD 695; Section 1 changes PD 695 to PD 695, as amended","Claude session, by hand",2026-11-01
+SO2013-7553,unresolved,,Section 1 OCR text,"first pages hold the tracking sheet or staff report, not Section 1","Claude session, by hand",2026-11-01
+SO2013-9417,unresolved,,Section 1 OCR text,"first pages hold the tracking sheet or staff report, not Section 1","Claude session, by hand",2026-11-01
+SO2013-9424,corrected,"[{""from"": ""PD 1219"", ""to"": ""PD 1219""}]",Section 1 OCR text,"Amends PD 1219; Section 1 changes PD 1219 to PD 1219, as amended","Claude session, by hand",2026-11-01
+SO2014-7945,not_a_rezoning,,Section 1 OCR text,Pedestrian Street designation only; no district change,"Claude session, by hand",2026-11-01
+SO2014-8812,unresolved,,Section 1 OCR text,"first pages hold the tracking sheet or staff report, not Section 1","Claude session, by hand",2026-11-01
+SO2014-8911A,corrected,"[{""from"": ""PD 561"", ""to"": ""PD 900""}]",model note,area moves from PD 561 to PD 900,"Claude session, by hand",2026-11-01
+SO2015-2620,unresolved,,Section 1 OCR text,"prints RT-4.5, which is not a Chicago district","Claude session, by hand",2026-11-01
+SO2015-5398,unresolved,,Section 1 OCR text,two versions in the file: RM-4.5 and RM-5,"Claude session, by hand",2026-11-01
+SO2015-57,corrected,"[{""from"": ""PD 313"", ""to"": ""PD 313""}]",Section 1 OCR text,"Amends PD 313; Section 1 changes PD 313 to PD 313, as amended","Claude session, by hand",2026-11-01
+SO2016-2665,unresolved,,Section 1 OCR text,"first pages hold the tracking sheet or staff report, not Section 1","Claude session, by hand",2026-11-01
+SO2016-8045,confirmed,"[{""from"": ""POS-1"", ""to"": ""POS-1""}, {""from"": ""RM-5"", ""to"": ""POS-1""}]",Section 1 OCR text,,"Claude session, by hand",2026-11-01
+SO2017-149,corrected,"[{""from"": null, ""to"": ""B3-3""}]",Section 1 OCR text,old district printed only as Community Shopping District,"Claude session, by hand",2026-11-01
+SO2017-3804,corrected,"[{""from"": ""B1-1"", ""to"": ""B1-3""}]",Section 1 OCR text,"Bl-3 is B1-3, not B3-1","Claude session, by hand",2026-11-01
+SO2017-4853,corrected,"[{""from"": ""PD 447"", ""to"": ""PD 447""}]",Section 1 OCR text,"Amends PD 447; Section 1 changes PD 447 to PD 447, as amended","Claude session, by hand",2026-11-01
+SO2017-5515,corrected,"[{""from"": ""M1-1"", ""to"": ""M2-2""}, {""from"": ""M2-2"", ""to"": ""M2-2""}, {""from"": ""C1-2"", ""to"": ""M2-2""}, {""from"": ""M2-2"", ""to"": ""PD""}]",Section 1 OCR text,Section 2 makes it a Manufacturing Planned Development,"Claude session, by hand",2026-11-01
+SO2017-7059,unresolved,,Section 1 OCR text,"first pages hold the tracking sheet or staff report, not Section 1","Claude session, by hand",2026-11-01
+SO2018-3178,corrected,"[{""from"": ""PD 1371"", ""to"": ""PD 1371""}]",Section 1 OCR text,"Amends PD 1371; Section 1 changes PD 1371 to PD 1371, as amended","Claude session, by hand",2026-11-01
+SO2018-387,corrected,"[{""from"": ""M1-1"", ""to"": ""M2-2""}, {""from"": ""M2-2"", ""to"": ""M2-2""}]",Section 1 OCR text,,"Claude session, by hand",2026-11-01
+SO2018-5988,unresolved,,Section 1 OCR text,"prints RT-4.5, which is not a Chicago district (RT-4 or RM-4.5?)","Claude session, by hand",2026-11-01
+SO2018-7759,corrected,"[{""from"": ""PD 70"", ""to"": ""PD 70""}]",Section 1 OCR text,"Amends PD 70; Section 1 changes PD 70 to PD 70, as amended","Claude session, by hand",2026-11-01
+SO2019-1406,corrected,"[{""from"": ""PD 1434"", ""to"": ""PD 1434""}]",Section 1 OCR text,"Amends PD 1434; Section 1 changes PD 1434 to PD 1434, as amended","Claude session, by hand",2026-11-01
+SO2019-259,corrected,"[{""from"": ""PD 368"", ""to"": ""PD 368""}]",Section 1 OCR text,"Amends PD 368; Section 1 changes PD 368 to PD 368, as amended","Claude session, by hand",2026-11-01
+SO2019-2681,corrected,"[{""from"": ""M1-2"", ""to"": ""C2-2""}, {""from"": ""B1-2"", ""to"": ""C2-2""}]",Section 1 OCR text,Section 1 prints C2-2; the attachments say C2-3,"Claude session, by hand",2026-11-01
+SO2019-5518,corrected,"[{""from"": ""PD 381"", ""to"": ""PD 381""}]",Section 1 OCR text,"Amends PD 381; Section 1 changes PD 381 to PD 381, as amended","Claude session, by hand",2026-11-01
+SO2019-5519,corrected,"[{""from"": ""PD 136"", ""to"": ""PD 136""}]",Section 1 OCR text,"Amends PD 136; Section 1 changes PD 136 to PD 136, as amended","Claude session, by hand",2026-11-01
+SO2019-5534,corrected,"[{""from"": ""B1-1"", ""to"": ""B1-3""}]",Section 1 OCR text,"Bl-3 is B1-3, not B3-1","Claude session, by hand",2026-11-01
+SO2020-1853,corrected,"[{""from"": ""PD 1167"", ""to"": ""PD 1167""}]",Section 1 OCR text,"Amends PD 1167; Section 1 changes PD 1167 to PD 1167, as amended","Claude session, by hand",2026-11-01
+SO2020-4575,corrected,"[{""from"": ""PD 1430"", ""to"": ""PD 1430""}]",Section 1 OCR text,"Amends PD 1430; Section 1 changes PD 1430 to PD 1430, as amended","Claude session, by hand",2026-11-01
+SO2020-4581,corrected,"[{""from"": ""PD 1261"", ""to"": ""PD 1261""}]",Section 1 OCR text,"Amends PD 1261; Section 1 changes PD 1261 to PD 1261, as amended","Claude session, by hand",2026-11-01
+SO2021-1499,corrected,"[{""from"": ""PD 376"", ""to"": ""PD 376""}]",Section 1 OCR text,"Amends PD 376; Section 1 changes PD 376 to PD 376, as amended","Claude session, by hand",2026-11-01
+SO2021-3101,unresolved,,Section 1 OCR text,"first pages hold the tracking sheet or staff report, not Section 1","Claude session, by hand",2026-11-01
+SO2021-4546,corrected,"[{""from"": ""PD 796"", ""to"": ""PD 796""}]",Section 1 OCR text,"Amends PD 796; Section 1 changes PD 796 to PD 796, as amended","Claude session, by hand",2026-11-01
+SO2021-4578,corrected,"[{""from"": ""PD 1407"", ""to"": ""PD 1407""}]",Section 1 OCR text,"Amends PD 1407; Section 1 changes PD 1407 to PD 1407, as amended","Claude session, by hand",2026-11-01
+SO2021-4626,corrected,"[{""from"": ""PD 833"", ""to"": ""PD 833""}]",Section 1 OCR text,"Amends PD 833; Section 1 changes PD 833 to PD 833, as amended","Claude session, by hand",2026-11-01
+SO2022-1159,corrected,"[{""from"": ""PD 966"", ""to"": ""PD 966""}]",Section 1 OCR text,"Amends PD 966; Section 1 changes PD 966 to PD 966, as amended","Claude session, by hand",2026-11-01
+SO2022-279,unresolved,,Section 1 OCR text,"first pages hold the tracking sheet or staff report, not Section 1","Claude session, by hand",2026-11-01
+SO2022-2806,corrected,"[{""from"": ""B3-2"", ""to"": ""B3-3""}]",Section 1 OCR text,,"Claude session, by hand",2026-11-01
+SO2022-3875,corrected,"[{""from"": ""PD 666"", ""to"": ""RS-2""}, {""from"": ""RS-1"", ""to"": ""RS-2""}, {""from"": ""RS-2"", ""to"": ""PD 666""}]",Section 1 OCR text,,"Claude session, by hand",2026-11-01
+SO2024-0006990,corrected,"[{""from"": ""PD 1135"", ""to"": ""PD 1135""}]","model note (PD amendment, same number)","Amends PD 1135 to PD 1135, as amended","Claude session, by hand",2026-11-01
+SO2024-0008372,corrected,"[{""from"": ""PD 136"", ""to"": ""PD 136""}]","model note (PD amendment, same number)","Amends PD 136 to PD 136, as amended","Claude session, by hand",2026-11-01
+SO2024-0008991,corrected,"[{""from"": ""PD 1450"", ""to"": ""PD 1450""}]","model note (PD amendment, same number)","Amends PD 1450 to PD 1450, as amended","Claude session, by hand",2026-11-01
+SO2024-0009965,corrected,"[{""from"": ""PD 1480"", ""to"": ""PD 1480""}]","model note (PD amendment, same number)","Amends PD 1480 to PD 1480, as amended","Claude session, by hand",2026-11-01
+SO2024-0013543,corrected,"[{""from"": ""PD 425"", ""to"": ""PD 425""}]",scan page 1,"Amends PD 425 to PD 425, as amended","Claude session, by hand",2026-11-01
+SO2025-0014839,corrected,"[{""from"": ""PD 1323"", ""to"": ""PD 1323""}]","model note (PD amendment, same number)","Amends PD 1323 to PD 1323, as amended","Claude session, by hand",2026-11-01
+SO2025-0015985,not_a_rezoning,,Section 1 OCR text,text amendment to Section 17-12-0903-B.1; no map change,"Claude session, by hand",2026-11-01
+SO2025-0016073,unresolved,,Section 1 OCR text,"prints RT-4.5, which is not a Chicago district (RT-4 or RM-4.5?)","Claude session, by hand",2026-11-01
+SO2025-0018863,corrected,"[{""from"": ""PD 1434"", ""to"": ""PD 1434""}]","model note (PD amendment, same number)","Amends PD 1434 to PD 1434, as amended","Claude session, by hand",2026-11-01
+SO2025-0021890,corrected,"[{""from"": ""PD 1300"", ""to"": ""PD 1300""}]","model note (PD amendment, same number)","Amends PD 1300 to PD 1300, as amended","Claude session, by hand",2026-11-01
+SO2026-0023275,unresolved,,scan pages 1-2,new district is past page 2 of the scan,"Claude session, by hand",2026-11-01
