@@ -31,6 +31,7 @@ def test_skip_yearly_leaves_only_nightly_steps():
         "cost escalation",
         "lots for sale",
         "foreclosure auctions",
+        "rezonings",
         "parcel sites",
         "lot use and block faces",
         "comps",

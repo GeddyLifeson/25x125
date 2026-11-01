@@ -48,3 +48,4 @@ PPI net inputs to residential construction (goods),FRED,WPUIP2311001,https://fre
 Cook County Land Bank property feed,Cook County Land Bank,getPublishedProperties,https://public-cclba.epropertyplus.com/landmgmtpub/remote/public/property/,daily,2026-11-01 yes,lots for sale layer
 Foreclosure auctions (Judicial Sales Corporation),TJSC,UpcomingSales/CompletedSales/CancelledSales,https://www.tjsc.com/Sales/,daily,2026-11-01 yes,foreclosure_auction signals (history kept between runs)
 Foreclosure auctions (Cook County Sheriff),Sheriff,previoussale,https://foreclosure.ccsheriff.org/,daily,2026-11-01 yes,foreclosure_auction signals
+Zoning map amendments (City Clerk eLMS),City Clerk,search,https://api.chicityclerkelms.chicago.gov/,daily,2026-11-01 yes,rezoning history (2010 on); rezoning signals
