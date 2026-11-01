@@ -1,0 +1,58 @@
+{
+  "source": "python -m jobs.check_older_sales: comps (comp table) against older 2-6 unit building sales (older_sale table) within 0.75 or 1.5 mi in the 3 years before each comp's sale",
+  "verified_on": "2026-11-01",
+  "holdout_from": "2025-07-01",
+  "extrapolation_widen": 0.15,
+  "curves": {
+    "building": {
+      "a": 4.8535,
+      "b": 0.6471,
+      "n": 191,
+      "band": [
+        0.742,
+        1.274
+      ],
+      "fit_range": [
+        93177,
+        518513
+      ],
+      "holdout": {
+        "fit_before": {
+          "a": 3.8184,
+          "b": 0.7338,
+          "n": 130
+        },
+        "n": 61,
+        "median_abs_error": 0.155,
+        "within_15pct": 0.492,
+        "median_ratio": 0.966,
+        "cod": 27.1
+      }
+    },
+    "condo": {
+      "a": 0.4652,
+      "b": 1.0279,
+      "n": 2043,
+      "band": [
+        0.739,
+        1.368
+      ],
+      "fit_range": [
+        111823,
+        556732
+      ],
+      "holdout": {
+        "fit_before": {
+          "a": 0.8297,
+          "b": 0.9985,
+          "n": 1821
+        },
+        "n": 222,
+        "median_abs_error": 0.165,
+        "within_15pct": 0.446,
+        "median_ratio": 0.922,
+        "cod": 19.3
+      }
+    }
+  }
+}
