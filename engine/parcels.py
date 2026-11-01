@@ -102,7 +102,7 @@ LOT_COLUMNS = ["pin10", "pin", "address", "zip", "community_area", "zone_class",
 
 
 def lots(conn, *, community_area: int | None = None, zone_prefix: str | None = None, min_score: float = 0,
-         min_units: int = 0, signal: str | None = None, for_sale: bool = False, vacant: bool = False,
+         min_units: int = 0, signal: str | None = None, for_sale: bool = False, vacant: bool = False, fast_path: bool = False,
          sort: str = "score", limit: int = 100, offset: int = 0) -> list[dict]:  # fmt: skip
     """The list screen: scored lots with filters, from parcel_score (jobs/score_parcels.py)."""
     where, args = ["s.score >= %s"], [min_score]
@@ -122,6 +122,8 @@ def lots(conn, *, community_area: int | None = None, zone_prefix: str | None = N
         where.append("s.details->'signals' ? 'city_owned_for_sale'")
     if vacant:
         where.append("s.details->'signals' ? 'vacant_land'")
+    if fast_path:
+        where.append("(s.details->>'fast_path')::boolean")
     rows = conn.execute(
         f"""select s.pin10, s.pin, a.address, a.zip, p.community_area_name, ps.zone_class, ps.lot_sqft, s.score,
                    s.zoning_upside, s.profit, s.acquisition, s.location, s.incentives, s.penalties, s.units_now,

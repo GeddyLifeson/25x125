@@ -153,6 +153,7 @@ def list_lots(
     signal: str | None = None,
     for_sale: bool = False,
     vacant: bool = False,
+    fast_path: bool = False,
     sort: Annotated[str, Query(pattern="^(score|return|upside|lot)$")] = "score",
     limit: int = 100,
     offset: int = 0,
@@ -161,7 +162,7 @@ def list_lots(
     """Scored lots for the list and map, with filters. format=csv returns the same rows as a CSV file."""
     with connect() as conn:
         rows = lots(conn, community_area=community_area, zone_prefix=zone, min_score=min_score, min_units=min_units,
-                    signal=signal, for_sale=for_sale, vacant=vacant, sort=sort,
+                    signal=signal, for_sale=for_sale, vacant=vacant, fast_path=fast_path, sort=sort,
                     limit=min(limit, 5000 if format == "csv" else 500), offset=offset)  # fmt: skip
     if format == "json":
         return rows

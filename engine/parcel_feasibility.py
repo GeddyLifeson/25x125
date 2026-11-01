@@ -7,7 +7,7 @@ import json
 from datetime import date
 
 from engine.comps import RULES_DIR, Target, estimate, index_from_db, params_from_files, pool_from_db
-from engine.feasibility import Inputs, pattern_fits, scenario, scenarios_for
+from engine.feasibility import Inputs, fast_path, pattern_fits, scenario, scenarios_for
 from engine.rents import rent
 from engine.rules import Rules
 from engine.sites import site_by_pin
@@ -48,6 +48,16 @@ def parcel_context(conn, pin: str) -> dict | None:
                          "computed_on": ci[4].isoformat()} if ci else None  # fmt: skip
     ctx["land_values"] = land_value(conn, ctx["nbhd"], ctx["ca_num"])
     return ctx
+
+
+def permit_waits(conn) -> dict:
+    return {r[0]: {"permits": r[1], "p25": float(r[2]), "median": float(r[3]), "p75": float(r[4]),
+                   "computed_on": r[5].isoformat()}
+            for r in conn.execute("select review_type, permits, days_p25, days_median, days_p75, computed_on from permit_wait")}  # fmt: skip
+
+
+def load_questions() -> list[dict]:
+    return json.loads((RULES_DIR / "incentive_questions.json").read_text())["questions"]
 
 
 def escalation(conn, d: dict) -> dict:
@@ -130,6 +140,10 @@ def feasibility(
             "source": "Cook County Assessor sales of buildings built 2014 or later; FHFA metro index"}  # fmt: skip
         sc["rent_source"] = r
         out["scenarios"].append(sc)
+    hold = conn.execute("select environmental_hold from parcel_site where pin = %s", (site.pin,)).fetchone()
+    out["fast_path"] = fast_path(z, site.landmark_name, site.historic_rating, site.use_now, hold[0] if hold else None,
+                                 permit_waits(conn))  # fmt: skip
+    out["questions"] = load_questions()
     out["patterns_checked"] = [
         {"pattern": pt["id"], "path": p.id, "fits": f, "why": why}
         for p in z.paths

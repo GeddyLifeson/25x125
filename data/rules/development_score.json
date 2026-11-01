@@ -12,7 +12,13 @@
     "profit": {
       "max": 30,
       "rule": "build-and-sell return on cost at the 25th percentile of the range: <=0% -> 0, >=25% -> 30, linear between",
-      "note": "needs a nightly by-right feasibility run for every parcel"
+      "note": "needs a nightly by-right feasibility run for every parcel",
+      "requires": {
+        "land_price": true,
+        "max_comp_ring": 3,
+        "rule": "no profit points when the lot has no land price or its sale comps came from citywide (ring 4); the screen still shows the math",
+        "why": "2026-11-01 full run: 8,368 of 19,792 lots with profit points had land priced at $0, and citywide comps put South Chicago 3-flats at $468,000 a unit"
+      }
     },
     "acquisition_signals": {
       "max": 20,
@@ -53,5 +59,5 @@
   },
   "user_weights": true,
   "label": "a sorting aid built from the points shown; it does not rate investment quality",
-  "revised_on": "2026-10-30"
+  "revised_on": "2026-11-01"
 }

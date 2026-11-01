@@ -28,7 +28,7 @@ def row(**kw):
 
 def ctx(**kw):
     c = {"pin10": "1601216031", "lat": 41.9, "lon": -87.7, "nbhd": None, "ca_num": 23, "enterprise_zone": None,
-         "opportunity_zone": None, "tif": None, "open_violations": 0, "scofflaw": False, "demolition_notice_date": None,
+         "opportunity_zone": None, "tif": None, "environmental_hold": None, "open_violations": 0, "scofflaw": False, "demolition_notice_date": None,
          "vacant_building_2y": 0, "for_sale": False, "land_values": None, "cost_index": {"index": 1.0, "thin": False},
          "patterns": load_patterns(), "d": load_defaults(), "esc": {"factor": 1.0}}  # fmt: skip
     c.update(kw)
@@ -49,7 +49,10 @@ def test_vacant_rt4_lot_scores_every_part():
     assert s["zoning_upside"] == 30  # 3 extra units by right
     assert s["acquisition"] == 18 and set(s["details"]["signals"]) == {"city_owned_for_sale", "vacant_land"}
     assert s["location"] == 5  # 6 comps within 0.75 mi, not transit served
-    assert s["profit_p25"] < s["profit_central"] and 0 <= s["profit"] <= 30
+    assert s["profit_p25"] < s["profit_central"]
+    assert (
+        s["profit"] == 0 and "land priced at $0" in s["details"]["profit"]
+    )  # no land sales: no profit points
     assert s["score"] == round(s["zoning_upside"] + s["profit"] + s["acquisition"] + s["location"]
                                + s["incentives"] + s["penalties"], 1)  # fmt: skip
 
@@ -67,3 +70,26 @@ def test_no_by_right_program_gets_no_profit_points():
     s = score_lot(row(zone_class="RS-1", lot_sqft=6000.0, frontage_ft=50.0, use_now="single", units_now=1),
                   W, RULES, ctx(), sale_for, [], TODAY)  # fmt: skip
     assert s.get("units_priced") is None and s["profit"] == 0 and "by right" in s["details"]["profit"]
+
+
+def test_profit_points_with_a_land_price():
+    lv = {"geo": "nbhd", "geo_id": "1", "sales": 9, "per_lot_sqft": 20.0, "per_buildable_sqft": 15.0,
+          "first_sale": "2024-01-01", "last_sale": "2026-06-01"}  # fmt: skip
+    s = score_lot(row(), W, RULES, ctx(land_values=lv), sale_for, [], TODAY)
+    assert s["land"] == round(15.0 * 3125 * 1.2) and s["details"]["sale_ring"] == 0
+    assert s["profit"] == round(min(max(s["return_on_cost_p25"] / 0.25, 0), 1) * 30, 1)
+
+
+def test_fast_path():
+    from engine.feasibility import fast_path
+    from engine.zoning import Site, evaluate
+
+    z = evaluate(Site("1", "RT-4", 3125, 25), RULES)
+    assert fast_path(z, None, None, "vacant", None)["eligible"]
+    assert not fast_path(z, "Wicker Park", None, "vacant", None)["eligible"]
+    assert fast_path(z, None, "Orange", "vacant", None)["eligible"]  # nothing to demolish
+    w = {"SELF CERT": {"permits": 372, "p25": 0, "median": 48.5, "p75": 94, "computed_on": "2026-10-30"}}
+    assert not fast_path(z, None, "Orange", "multi", None, w)["eligible"]
+    assert fast_path(z, None, None, "vacant", None, w)["weeks_to_permit"]["median"] == 7
+    s = score_lot(row(), W, RULES, ctx(), sale_for, [], TODAY)
+    assert s["details"]["fast_path"] is True

@@ -297,14 +297,15 @@ def simulate(d, x: Inputs, c: Cost, net_central: float, lo_m: float, hi_m: float
     smu, ssig = _lognormal_sigma(lo_m, hi_m)
     cmu, csig = _lognormal_sigma(1 + m["low"], 1 + m["high"])
     z1, zc = _draws(x.seed, x.draws, rho)
-    profits = np.sort(
-        net_central * np.exp(smu + ssig * z1) - (c.land + (c.total - c.land) * np.exp(cmu + csig * zc))
-    )
+    costs = c.land + (c.total - c.land) * np.exp(cmu + csig * zc)
+    profits = np.sort(net_central * np.exp(smu + ssig * z1) - costs)
+    costs = np.sort(costs)
     n = len(profits)
     q = lambda p: round(float(profits[min(int(p * n), n - 1)]))
     return {
         "p10": q(0.10), "p25": q(0.25), "p50": q(0.50), "p90": q(0.90),
         "loss_share": round(float((profits < 0).mean()), 3),
+        "cost_p50": round(float(costs[n // 2])), "cost_p80": round(float(costs[int(0.8 * n)])),
         "draws": x.draws, "seed": x.seed, "sale_cost_correlation": rho,
         "label": "profit range from 10,000 seeded draws of sale and cost; the same inputs give the same answer",
     }  # fmt: skip
@@ -409,3 +410,32 @@ def scenarios_for(zoning: Result, patterns: list[dict]) -> list[dict]:
         picks.append({"path": path, "pattern": None, "units": target, "gross_sqft": round(gross),
                       "unit_sqft": round(gross / 1.12 / target), "commercial_sqft": 0})  # fmt: skip
     return picks
+
+
+def fast_path(z: Result, landmark: str | None, historic_rating: str | None, use_now: str | None,
+              environmental_hold: str | None, waits: dict | None = None) -> dict:  # fmt: skip
+    """Fast-path flag (feasibility_defaults.json fast_path): a by-right program of 2-8 units with no zoning
+    relief, outside landmark districts, with no demolition or environmental hold. Weeks to permit come from
+    issued permits by review type (permit_wait)."""
+    by_right = next((p for p in z.paths if p.id == "by_right"), None)
+    why = []
+    if by_right is None or by_right.units < 2:
+        why.append("no 2-unit or larger program by right")
+    elif by_right.units > 8:
+        why.append(f"{by_right.units} units by right; self-certification covers up to 8")
+    if landmark:
+        why.append(f"landmark district ({landmark}): Commission on Chicago Landmarks review")
+    if (historic_rating or "").lower() in ("orange", "red") and use_now not in (None, "vacant"):
+        why.append(f"{historic_rating}-rated building: demolition delay hold of up to 90 days")
+    if environmental_hold:
+        why.append(f"environmental hold: {environmental_hold}")
+    out = {"eligible": not why, "why_not": why, "definition": "by-right units and floor area, no zoning relief, "
+           "2-8 units (self-certification eligible), not landmark, no demolition or environmental hold"}  # fmt: skip
+    if waits:
+        key = "SELF CERT" if not why else "STANDARD PLAN REVIEW"
+        w = waits.get(key)
+        if w:
+            out["weeks_to_permit"] = {"review": key.lower(), "p25": round(w["p25"] / 7), "median": round(w["median"] / 7),
+                                      "p75": round(w["p75"] / 7), "permits": w["permits"],
+                                      "source": f"issued 2-6 unit new construction permits, application to issue ({w['computed_on']})"}  # fmt: skip
+    return out

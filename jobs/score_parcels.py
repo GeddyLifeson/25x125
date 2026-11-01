@@ -20,7 +20,7 @@ from datetime import date
 
 from core.db import connect
 from engine.comps import RULES_DIR, Target, estimate, index_from_db, params_from_files, pool_from_db
-from engine.feasibility import scenario, scenarios_for
+from engine.feasibility import fast_path, scenario, scenarios_for
 from engine.parcel_feasibility import escalation, inputs_for, land_value, load_defaults, load_patterns
 from engine.rules import Rules
 from engine.sites import FIELDS, _site
@@ -35,7 +35,7 @@ select distinct on (ps.pin10)
        ps.landmark_name, ps.fire_limits, lu.use_now, lu.units_now, bf.lots, bf.multi_lots, bf.single_lots,
        bf.two_flat_lots, bf.vacant_lots,
        ps.pin10, st_y(p.geom), st_x(p.geom), p.nbhd_code, p.community_area_num, ps.enterprise_zone,
-       ps.opportunity_zone_2018, ps.tif_name, ps.open_violations, ps.scofflaw, ps.demolition_notice_date,
+       ps.opportunity_zone_2018, ps.tif_name, ps.environmental_hold, ps.open_violations, ps.scofflaw, ps.demolition_notice_date,
        coalesce(vb.n, 0), coalesce(fs.for_sale, false)
 from parcel_site ps
 join parcel p on p.pin = ps.pin and p.geom is not null
@@ -50,7 +50,8 @@ where ps.zone_class is not null
 order by ps.pin10, ps.pin, p.tax_year desc
 {limit}
 """
-EXTRA = ["pin10", "lat", "lon", "nbhd", "ca_num", "enterprise_zone", "opportunity_zone", "tif", "open_violations",
+EXTRA = ["pin10", "lat", "lon", "nbhd", "ca_num", "enterprise_zone", "opportunity_zone", "tif", "environmental_hold",
+         "open_violations",
          "scofflaw", "demolition_notice_date", "vacant_building_2y", "for_sale"]  # fmt: skip
 
 COLUMNS = ["pin10", "pin", "score", "zoning_upside", "profit", "acquisition", "location", "incentives", "penalties",
@@ -72,6 +73,8 @@ def score_lot(row, w: dict, rules: Rules, ctx: dict, sale_for, sur_match: list[s
     by_right = next((pa.units for pa in z.paths if pa.id == "by_right"), 0)
     out = {"pin10": ctx["pin10"], "pin": site.pin, "units_now": site.units_now, "by_right_units": by_right}
     det: dict = {}
+    fp = fast_path(z, site.landmark_name, site.historic_rating, site.use_now, ctx["environmental_hold"])
+    det["fast_path"] = fp["eligible"]
     zu = linear(by_right - units_now, 0, 3, p["zoning_upside"]["max"])
 
     # Profit: the by-right pick from the same scenario picker the screen uses.
@@ -81,6 +84,10 @@ def score_lot(row, w: dict, rules: Rules, ctx: dict, sale_for, sur_match: list[s
         det["profit"] = "no 2-6 unit program fits by right"
     else:
         units = pick["units"]
+        if by_right > units:
+            det["priced_units"] = (
+                f"{by_right} units allowed by right; version 1 prices {units}, with land for the whole lot"
+            )
         unit_sqft = float(pick["unit_sqft"] or (1300 if units == 2 else 1200 if units == 3 else 1000))
         est = sale_for(ctx["lat"], ctx["lon"], units, unit_sqft)
         x = inputs_for(ctx, z, rules, pick, units, unit_sqft, est, None, ctx["esc"], {})
@@ -95,9 +102,14 @@ def score_lot(row, w: dict, rules: Rules, ctx: dict, sale_for, sur_match: list[s
             out.update(sale_per_unit=s["sale_per_unit"], sale_comps=x.sale_comps, profit_central=s["profit"],
                        profit_p25=p25, return_on_cost=s["return_on_cost"], return_on_cost_p25=round(p25 / total, 4),
                        max_land_price=s["max_land_price"])  # fmt: skip
-            profit_pts = linear(p25 / total, 0.0, 0.25, p["profit"]["max"])
-            if x.land == 0:
-                det["land"] = "no land sales nearby; land priced at $0"
+            req = p["profit"]["requires"]
+            det["sale_ring"] = est.ring
+            if req["land_price"] and x.land == 0:
+                det["profit"] = "no land sales nearby: land priced at $0, so no profit points"
+            elif est.ring > req["max_comp_ring"]:
+                det["profit"] = "sale comps came from across the city, so no profit points"
+            else:
+                profit_pts = linear(p25 / total, 0.0, 0.25, p["profit"]["max"])
         progs = [i["id"] for i in sc["incentives"] if i["on"] and i["value"] > 0]
         det["incentives"] = progs
         inc_pts = min(len(progs) * 2, p["incentives"]["max"])
