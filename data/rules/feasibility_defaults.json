@@ -29,15 +29,36 @@
     },
     "status": "set from published evidence 2026-10-29 (docs/construction-costs-2026-10-29.md); replace with real job costs when available",
     "escalation": {
-      "source": "https://fred.stlouisfed.org/series/WPUIP2311001",
-      "verified_on": "2026-10-29",
-      "series": "WPUIP2311001",
+      "source": "https://www.census.gov/construction/nrs/xls/price_uc_cust.xlsx",
+      "verified_on": "2026-11-01",
+      "series": "census_uc",
+      "series_name": "Census constant-quality price index of new single-family houses under construction (Laspeyres, 2005 = 100)",
       "base_month": "2026-09",
-      "base_value": 355.225,
-      "rule": "preset x index now / base value, monthly; show base month and change"
+      "base_value": 200.7,
+      "signal_series": "ppi_resi_inputs",
+      "signal_source": "https://fred.stlouisfed.org/series/WPUIP2311001",
+      "signal_base_value": 355.225,
+      "table": "cost_escalation_index (latest per series and 12-month change in view cost_escalation)",
+      "rule": "preset x (latest census_uc / base_value), then x (1 + 12-month change) ^ (build months / 2 / 12) to reach the build midpoint; show base month, latest month and both changes",
+      "why": "decision 23: the Census index prices whole houses (labor and margin included); PPI goods covers materials only and runs hotter (+9.7% vs +1.6% in the 12 months to September 2026), so it is shown as a signal, not applied"
+    },
+    "production_adjustment": {
+      "slope": 0.5,
+      "floor": 1.0,
+      "cap_index": 1.3,
+      "rule": "production preset x (1 + slope x (min(index, cap_index) - 1)), never below floor",
+      "why": "2026-11-01: the production preset was set from West Chatham Missing Middle 3-flats, already a low-index South Side build, so adjusting below 1.0 counted the low area twice (South Chicago 3-flat at $167,000 a unit vs the $303,000 Missing Middle check). Declared permit values also run low where owners build for themselves.",
+      "verified_on": "2026-11-01"
     }
   },
-  "neighborhood_adjustment": "1 + 0.5 * (index - 1), index from data/reference/cost_index_by_area_v2.csv (computed within unit-count groups)",
+  "neighborhood_adjustment": {
+    "rule": "production preset only: 1 + 0.5 * (min(index, 1.3) - 1); standard and high presets: 1.0, because the same index already picks those presets (index 1.3 or more: standard, 1.8 or more: high)",
+    "index_file": "data/reference/cost_index_by_area_v2.csv (computed within unit-count groups)",
+    "why": "applying the adjustment to every preset counts the area twice: a Lincoln Park 3-flat (index 1.94) would cost $250 x 1.47 = $368 per sq ft. This is the rule the calibration used (scripts/research/2026-10-29/cal.py).",
+    "index_caveat": "permit reported costs are rough guesses (69% are exact multiples of $50,000) and the city's permit fee does not depend on them; use the index as a coarse ranking only",
+    "source": "docs/research/reports/Methods review for V1 build.md",
+    "verified_on": "2026-10-30"
+  },
   "sprinklers_per_sqft_at_4_plus_units": 5,
   "sprinklers_note": "applies to the building with 4+ units; a detached coach house does not add the main building's count (verify against the 2026 code)",
   "hard_cost_contingency": 0.05,
@@ -70,11 +91,13 @@
       "interest": "loan_to_cost * cost_before_financing * rate * (months_build/12 * avg_drawn + months_sell/12)",
       "tax_and_insurance": "tax_and_insurance_pct_cost_per_year * cost_before_financing * (months_build + months_sell) / 12",
       "note": "computed on cost before financing, so there is no circular reference"
-    }
+    },
+    "origination_fee_pct_of_loan": 0.01,
+    "origination_fee_status": "placeholder until a lender quote"
   },
   "sell": {
     "net_sale_factor": 0.94,
-    "target_return_on_cost": 0.15,
+    "target_return_on_cost": 0.2,
     "reference_margin_on_cost": {
       "source": "https://www.feasly.com.au/guides/development-margin-on-cost-vs-revenue-australia",
       "verified_on": "2026-10-29",
@@ -109,6 +132,13 @@
         "note": "commercial loan and commercial appraisal"
       },
       "display": "financing class per scenario; flag whole-building price above the FHA limit"
+    },
+    "target_note": "20% on cost; 15% is the low end of published benchmarks (RICS, PPG para 019). Show 15%, 20% and 25% reference lines and the margin on net sale. Decision 26, docs/research/decisions-2026-10-30.md",
+    "small_unit_sale_elasticity": {
+      "value": 0.5,
+      "rule": "when lot x FAR caps the building below the pattern's area, sale per unit x (capped area / pattern area) ^ 0.5",
+      "source": "condo size elasticity measured by python -m jobs.check_comps (sale_comps.method.size_elasticity)",
+      "verified_on": "2026-11-01"
     }
   },
   "hold": {
@@ -125,20 +155,42 @@
         0.65
       ],
       "display": "reference lines beside the result; never a pass/fail verdict"
-    }
+    },
+    "property_tax": {
+      "line": "explicit tax line; value = NOI before tax / (cap rate + effective tax rate)",
+      "effective_tax_rate": "from the Assessor and Clerk tax rate for the tax code, 1.52-2.0% typical",
+      "source": "CCAO cap rate policy 2023; Civic Federation; decision 31",
+      "effective_tax_rate_default": 0.018,
+      "rate_note": "midpoint of 1.52-2.0% of market value (Civic Federation, research notes); replace with the parcel's tax-code rate x 10% assessment x the state equalizer when loaded"
+    },
+    "opex_ratio_before_tax": 0.3,
+    "opex_note": "share of effective gross income for insurance, water, repairs, management and reserves, before property tax. Assumption: the Assessor's 2024 worksheets use about 0.45 for Chicago low-rise apartments (84 of 2-6 units), but whether that includes tax is not confirmed; 2-6 flats with tenant-paid heat run lower. Replace with the contractor's or lender's figure.",
+    "formula": "EGI = rent x 12 x units x vacancy factor; NOI before tax = EGI x (1 - opex ratio); value = NOI before tax / (cap rate + effective tax rate); property tax = value x tax rate; NOI = NOI before tax - property tax",
+    "replaces": "operating_factor 0.65 (after costs and taxes), kept for reference"
   },
   "rents": {
-    "new_construction_premium": 0.25
+    "base": "Census ACS 2020-2024 median gross rent by bedrooms (B25031), tract, then ZIP area, then the tract's overall median (B25064 for the all-units figure); keyless summary files, python -m jobs.load_rents",
+    "growth": "Zillow ZORI by ZIP from the ACS midpoint (2022-07) to the estimate date, as a ratio only; never displayed",
+    "new_construction_factor": 0.98,
+    "factor_range": [
+      0.79,
+      1.43
+    ],
+    "replaces": "new_construction_premium 0.25 (a starting assumption)",
+    "evidence": "python -m jobs.check_rents, 2026-10-30: Assessor 2024 Chicago income worksheets (csik-bsws), potential gross income / 12 / units over the unit-mix ACS rent moved to 2024-01 with ZIP growth. 171 apartment buildings built 2014 or later: median 0.984, 10th-90th percentile 0.785-1.425 (56 low-rise: 0.928). 6,846 older buildings: 0.846. New buildings rent 16% above older ones on the same basis.",
+    "why_below_the_old_premium": "ACS gross rent includes utilities and the Assessor's income does not, so older buildings come in at 0.85 of ACS; new buildings land near ACS, 16% above older stock",
+    "caveat": "Assessor rents are the office's market estimates, not signed leases. Replace with a rent API or MRED leases when available.",
+    "verified_on": "2026-10-30"
   },
   "margins_by_stage": {
     "applies_to": "all cost lines except land; land is a known or entered price",
     "feasibility": {
       "low": -0.2,
-      "high": 0.3
+      "high": 0.35
     },
     "layout": {
       "low": -0.15,
-      "high": 0.2
+      "high": 0.25
     },
     "drawings": {
       "low": -0.1,
@@ -146,24 +198,64 @@
     },
     "bids": {
       "low": -0.05,
-      "high": 0.05
-    }
+      "high": 0.1
+    },
+    "revised_on": "2026-10-30",
+    "why": "ASTM E2516 / AACE class ranges and the Alberta estimate series put early-stage overruns above the original highs; kept until the contractor's job costs refit them (decisions 16-17, docs/research/decisions-2026-10-30.md)"
   },
   "sale_value_range": {
-    "low": "25th percentile of weighted comps",
-    "high": "75th percentile of weighted comps",
-    "note": "profit range = low sale minus high cost, to high sale minus low cost"
+    "low": "central x (1 + 10th percentile of leave-one-out errors)",
+    "high": "central x (1 + 90th percentile of leave-one-out errors)",
+    "by": "distance ring x kind (condo unit or whole building), refit nightly",
+    "starting_value": "about x0.74 to x1.36 (2,450-sale pool, 2026-10-30)",
+    "label": "80% range",
+    "replaces": "25th-75th percentile of weighted comps, which covered 49% of test sales",
+    "source": "Bastos & Paquette; decision 8, docs/research/decisions-2026-10-30.md",
+    "revised_on": "2026-10-30"
   },
   "sale_comps": {
     "pool": "2-6 unit buildings (class 211, x54s-btds) and condo units in 2-6 unit buildings (3r7i-mrz4) built 2014 or later, first arm's-length sale after construction (wvhk-k5uv)",
-    "search": "same unit-count group within 0.75 mi, then 1.5 mi, then any unit count within 1.5 mi, then 3 mi; at least 6 comps; sales within 4 years",
-    "weighting": "inverse distance (1 / (0.2 + miles)); weighted median",
+    "search": "same unit-count group within 0.75 mi, then 1.5 mi, then any unit count within 1.5 mi, then 3 mi, then citywide; at least 6 comps; sales within 3 years",
     "time_adjustment": {
       "source": "https://www.fhfa.gov/data/hpi/datasets",
       "verified_on": "2026-10-29",
-      "index": "FHFA HPI annual by census tract, then ZIP, then Chicago metro quarterly",
+      "index": "FHFA all-transactions HPI, Chicago-Naperville-Schaumburg metro division, annual mean of quarters; tract and ZIP loaded for testing",
       "note": "public domain; can be shown on screen"
-    }
+    },
+    "filters": {
+      "verified_on": "2026-10-29",
+      "rules": [
+        "keep warranty, trustee and special warranty deeds; drop quit claim, other and executor deeds",
+        "drop a sale whose price repeats an earlier sale of the same PIN within 24 months",
+        "drop a sale below 50% of the weighted comp median per sq ft for its unit group (likely sold before completion)",
+        "use the Assessor sale_filter flags and is_multisale as published"
+      ],
+      "why": "two of 37 test sales failed these checks on 2026-10-29 (data/reference/test_parcels_removed.csv)"
+    },
+    "kind": "condo-unit scenarios use condo comps only; whole-building scenarios use both kinds (191 building comps are too few alone)",
+    "method": {
+      "min_comps": 6,
+      "max_age_years": 3,
+      "distance_offset_mi": 0.2,
+      "size_elasticity": {
+        "condo": 0.5
+      },
+      "blend_k": 0,
+      "time_index_levels": [
+        "metro"
+      ],
+      "chosen_on": "2026-10-30",
+      "evidence": "python -m jobs.check_comps (see docs/research/step3-comps-2026-10-30.md)",
+      "why": {
+        "metro index": "tract and ZIP indexes (FHFA, built from single-family loans) gave 15.0-15.4% holdout median error against 14.5% for metro; only 653 Cook tracts have a 2025 tract value",
+        "condo size only": "building size elasticity 0.37 raised test-set error from 10.3% to 12.9% because unit sizes for planned buildings are defaults, not measured",
+        "3 years": "12.5% holdout median error against 13.7% at 4 years and 14.0% at 5 (IAAO allows up to 5 with time adjustment)",
+        "no blend": "blend k=6 and k=12 gave 13.9-14.0% holdout median error and worse COD on buildings",
+        "condo to building 0.70": "whole buildings sell for less per unit than condo units nearby: buildings estimated mostly from condo comps sold at 0.67 of the estimate. Fit on 129 building sales before 2025-07-01 (grid 0.65-1.0; 0.70 gave the lowest median error, 10.6%), then checked on the 61 holdout buildings (median error 11.7% to 10.1%, COD 40.1 to 24.8)"
+      },
+      "condo_to_building": 0.7
+    },
+    "weighting": "inverse distance (1 / (0.2 + miles)); weighted median"
   },
   "thin_data": {
     "min_permits_for_area_index": 10,
@@ -174,16 +266,22 @@
     "source": "Germany Bodenrichtwerte and Singapore price per buildable area (docs/international-practices.md)",
     "measures": [
       "land sale price per sq ft of lot",
-      "land sale price per buildable sq ft (lot area x FAR of the current district)"
+      "per sq ft moved to a 3,125 sq ft lot: price x (3125 / lot) ^ 0.858 / 3125",
+      "per buildable sq ft (lot area x FAR of the current district)"
     ],
-    "sales": "vacant land (class 100, 190, 241) and teardown sales (building value under 20% of assessed value) in the last 36 months",
-    "unit": "Assessor neighborhood; fall back to community area, then side of city",
+    "sales": "vacant land (class 100, 190, 241) and teardowns (a residential building sale followed within 24 months by a demolition or new construction permit on the lot) in the last 36 months; same arm's-length checks as comps",
+    "unit": "Assessor neighborhood; fall back to community area, then neighboring community areas",
     "refresh": "monthly",
-    "show": "median, sale count, date range"
+    "show": "vacant and teardown medians separately and pooled, each with sale count and date range",
+    "teardown_source": "McMillen and Singh, Land Value Estimation using Teardowns (Lincoln Institute); Dye and McMillen (2007), teardown prices approximate land value",
+    "lot_size_elasticity": 0.858,
+    "standard_lot_sqft": 3125,
+    "job": "python -m jobs.build_land_values (land_sale, land_value); 2026-10-30: 664 vacant and 407 teardown sales, 71 community areas",
+    "verified_on": "2026-10-30"
   },
   "residual": {
     "name": "residual land value (shown as max land price)",
-    "formula": "net sale / (1 + target return) - (total cost - land)",
+    "formula": "net sale / ((1 + target return) * (1 + finance share)) - cost before land and finance (exact solve; decision 25)",
     "profit_shown_as": [
       "percent of cost (return on cost)",
       "percent of net sale value (margin on value)"
@@ -194,9 +292,10 @@
     "source": "Homes England reference class forecasting (docs/international-practices.md)",
     "show": {
       "P50": "central estimate",
-      "P80": "central x (1 + high margin for the stage)"
+      "high_case": "central x (1 + high margin for the stage); about P90, not P80 (AACE ranges; a lognormal fit puts P80 near +19% when the high is +30%)"
     },
-    "refit": "replace the stage margins with percentiles of actual overrun from users completed projects once 20 or more exist"
+    "refit": "replace the stage margins with percentiles of actual overrun from users completed projects once 20 or more exist",
+    "corrected_on": "2026-10-30"
   },
   "cost_index_method": {
     "source": "BCIS location indices (docs/international-practices.md)",
@@ -207,7 +306,8 @@
       0.42
     ],
     "older": "multiply by 0.75 per quarter",
-    "thin_areas": "blend with the side-of-city index (North, Northwest, West, Southwest, South, Far South) weighted by permit count until the area has 10 or more permits"
+    "thin_areas": "an area with fewer than 10 permits is blended with its neighboring community areas (community_area_neighbor): area weight n / 10, neighbors the rest. Changed 2026-10-30 from a side-of-city blend, to follow the neighborhood fallback in CLAUDE.md rule 4",
+    "job": "python -m jobs.build_cost_index (cost_index, cost_permit, permit_wait tables); 861 permits on 2026-10-30"
   },
   "fast_path": {
     "source": "Japan by-right zoning, NSW complying development, Chicago self-certification",
@@ -231,7 +331,8 @@
         161
       ]
     },
-    "use": "months of land carry before construction = days / 30; job recomputes monthly by review path"
+    "use": "months of land carry before construction = days / 30; job recomputes monthly by review path",
+    "job": "python -m jobs.build_cost_index writes permit_wait; 2026-10-30: self-cert median 48.5 days (p25 0, p75 94, 372 permits), standard plan review 83 (55, 161, 489)"
   },
   "open_space_impact_fee": {
     "source": [
@@ -261,5 +362,13 @@
     "affordable_unit_fee": 100,
     "exemptions": "replacement unit with a demolition permit under one year old; credits for on-site open space",
     "check": "2025 worksheet shows $418/$836/$1,254/$1,672, matching the formula at $16"
+  },
+  "range_method": {
+    "method": "seeded 10,000-draw Monte Carlo in the engine; sale errors from leave-one-out residuals, cost lognormal fit to the stage margins; show P10, P50, P90 and the share of draws with a loss",
+    "corner_case": "low sale with high cost shown as 'stress case'",
+    "sale_cost_correlation": 0.3,
+    "correlation_note": "editable; 0 available as a toggle; no Chicago estimate exists",
+    "also": "5 x 5 sale-by-cost grid in dollars",
+    "source": "Evans 1992; Iman & Conover 1982; decisions 54-56"
   }
 }

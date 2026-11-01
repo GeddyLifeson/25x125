@@ -6,6 +6,7 @@ Owner: Marlon (imarlonlee@gmail.com, GitHub GeddyLifeson).
 
 ## Read these first
 
+- **Before any Claude API work, read `docs/claude-api-practices.md`** (also at `/mnt/project-files/claude-api-practices.md` in the project's shared folder). It is section 1 of Marlon's master CLAUDE.md, copied word for word, plus how it applies here: routing order, Batch for bulk, prompt caching with the 1-hour TTL, the Files API, structured outputs. Every session follows it. The master itself is https://github.com/GeddyLifeson/DiaithirRPG/blob/engine/docs/MASTER_CLAUDE.md (that link works once DiaithirRPG PR #199 is merged; until then use branch `claude/project-thread-wixpzc`).
 - `docs/calibration-2026-10-29.md` records the cost and comp calibration; read it before touching defaults.
 - `docs/v1-spec.md` is the build spec. If code and spec disagree, the spec wins until Marlon changes it.
 - `TASKS.md` is the milestone checklist. Work one milestone at a time and tick items as they finish.
@@ -50,12 +51,22 @@ The markdown copies in `docs/` were exported on 2026-10-28. If Marlon updates a 
 - Census ACS needs a free key (`CENSUS_API_KEY`).
 - Zillow ZORI: use growth rates internally only. Never display Zillow figures in the product without written permission.
 - Reference data from research on 2026-10-28 is in `data/reference/`:
-  - `test_parcels.csv`: 37 real buildings (permit matched to later sale). This is the acceptance test set.
+  - `test_parcels.csv`: 35 real buildings (permit matched to later sale; 2 removed on 2026-10-29, see `test_parcels_removed.csv`). This is the acceptance test set.
   - `new_construction_sales.csv`: 2,450 first sales of 2-6 unit buildings and condo units built 2014 or later (pulled 2026-10-29); the comp pool.
   - `cost_index_by_area_v2.csv`: cost index computed within unit-count groups; replaces the v1 file.
   - `cost_index_by_area.csv`: neighborhood cost index from 836 permits; city median $166,667 per unit.
   - `permits_2to6_clean_city.json`: the cleaned permit rows behind the index.
 - `scripts/research/` holds the throwaway scripts that built those files. Port the logic into proper jobs; don't import them.
+
+## AI tooling for the build
+
+- Marlon wants Claude API credits used to speed up building V1 (2026-11-01). No local models.
+- Follow `docs/claude-api-practices.md`. In short: scripts first, then a Claude API batch on the small model (`claude-haiku-5-5`), then a Claude session. Bigger models only where a sample shows the small one gets it wrong.
+- Every API job: Batch for bulk (50% off), shared instructions first with a 1-hour cache marker when they reach 512 tokens, the Files API for any file sent more than once, a JSON schema in `output_config.format`, and a free `count_tokens` estimate before it runs.
+- Keys: `ANTHROPIC_API_KEY`, and `OPENROUTER_API_KEY` if Marlon sets up a router later (change the name if he uses a different one). Locally they go in `.env` (placeholders in `.env.example`); in cloud sessions they are environment secrets in project settings. Never commit a key or paste one in chat.
+- Warn Marlon before any paid run with a dollar estimate (calls x tokens x price). Runs likely to cost more than about $5 wait for his go-ahead. Log each run's model, row count, tokens (including cache reads and writes) and cost in `docs/ai-runs.md`.
+- AI output is data to check, not a source: store which model produced each value and spot-check a sample against the original before it reaches a screen. Every number still shows its source and date (rule 2).
+- MLS data never goes to any model (see MLS rules).
 
 ## MLS (MRED) rules
 

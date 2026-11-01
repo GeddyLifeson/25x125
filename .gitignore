@@ -8,3 +8,10 @@ dist/
 data/raw/
 *.log
 .DS_Store
+*.egg-info/
+web/next-env.d.ts
+*.tsbuildinfo
+.pytest_cache/
+.ruff_cache/
+web/screenshots/
+.dev-mail/

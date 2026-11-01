@@ -10,10 +10,10 @@ Building permits,Chicago,ydr8-5enu,https://data.cityofchicago.org/resource/,dail
 Building violations,Chicago,22u3-xenr,https://data.cityofchicago.org/resource/,daily,2026-10-29 yes,signals
 311 service requests,Chicago,v6vf-nfxy,https://data.cityofchicago.org/resource/,daily,2026-10-29 yes,vacant building/lot signals
 Scofflaw list,Chicago,rz4d-qp2m,https://data.cityofchicago.org/resource/,monthly,2026-10-29 yes,signals
-City-owned land,Chicago,aksk-kvfp,https://data.cityofchicago.org/resource/,weekly,2026-10-29 yes,signals
+City-owned land,Chicago,aksk-kvfp,https://data.cityofchicago.org/resource/,weekly,2026-10-29 yes,signals; lots for sale layer
 Asbestos and demolition notices,Chicago,qhb4-qx8k,https://data.cityofchicago.org/resource/,daily,2026-10-29 yes,signals
 TIF districts,Chicago,eejr-xtfb,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,incentives
-Enterprise Zones,Chicago,64xf-pyvh,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,incentives
+Enterprise Zones,Chicago GIS,operational/MapServer/73,https://gisapps.chicago.gov/arcgis/rest/services/ExternalApps/,as changed,2026-10-30 yes (6 zones; portal 64xf-pyvh has empty geometry),incentives
 Historic survey,Chicago,2u8t-236p,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,penalties
 Landmarks,Chicago,uct4-hrvh,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,penalties
 CTA rail stations,Chicago,8pix-ypme,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,transit-served
@@ -21,14 +21,31 @@ ACS 5-year (B25031 B25064),Census API,acs/acs5,https://api.census.gov/data/,year
 HUD Small Area FMR FY2027,HUD,safmr,https://www.huduser.gov/portal/datasets/fmr/smallarea/,yearly,no,rent floor
 Zillow ZORI by ZIP,Zillow,zori,https://files.zillowstatic.com/research/public_csvs/zori/Zip_zori_uc_sfrcondomfr_sm_month.csv,monthly,yes,rent growth only; never display
 Condo unit characteristics,Cook County,3r7i-mrz4,https://datacatalog.cookcountyil.gov/resource/,yearly,2026-10-29 yes,new-construction condo comps; unit sq ft; building PIN count
-Parcel polygons (2021),Cook County,77tz-riq7,https://datacatalog.cookcountyil.gov/resource/,yearly,2026-10-29 found; check Cook County GIS hub for a newer year,lot area for vacant land; frontage
+Parcel polygons (2025),Cook County,parcelHistorical/MapServer/2025,https://gis.cookcountyil.gov/traditional/rest/services/,yearly,2026-10-29 yes (ArcGIS REST; the data catalog's 77tz-riq7 stops at 2021),lot area; frontage; depth
 Community area boundaries,Chicago,igwz-8jzy,https://data.cityofchicago.org/resource/,as changed,2026-10-29 found,map layer
 Ward boundaries (2023-),Chicago,p293-wvbd,https://data.cityofchicago.org/resource/,as changed,2026-10-29 found,map layer
 Census tracts 2020,Chicago,7qjk-677h,https://data.cityofchicago.org/resource/,as changed,2026-10-29 found,map layer
 Assessor neighborhood boundaries,Cook County,pcdw-pxtg,https://datacatalog.cookcountyil.gov/resource/,as changed,2026-10-29 found,comp areas
-Metra stations,Chicago,nqm8-q2ym,https://data.cityofchicago.org/resource/,as changed (last 2011; check RTA GTFS),2026-10-29 found,transit-served
-Transit-served locations,Chicago,not on the data portal (searched 2026-10-29); get from city GIS or digitize from the ordinance map,,as changed,no,parking rules; score
-Fire limits,Chicago,not on the data portal (searched 2026-10-29); get from city GIS or digitize from the ordinance map,,as changed,no,flags; penalties
-606 and Pilsen demolition surcharge districts,Chicago,not on the data portal (searched 2026-10-29); get from city GIS or digitize from the ordinance map,,as changed,no,flags; penalties
-ADU eligibility map,Chicago,not on the data portal as of 2026-10-29 (ttjb-ayff is the 2021 pilot areas; j4h8-ug9m lists current preapproval applications and works as a signal); ask adu@cityofchicago.org for the layer,,as changed,no,ADU path in RS districts
-Opportunity Zone tracts,US Treasury,2018 list; 2027 list when certified,,as changed,no,incentives
+Metra stations,Metra,gtfs/schedule.zip (stops.txt),https://schedules.metrarail.com/,as changed,2026-10-29 yes (portal nqm8-q2ym returns 403),transit-served
+Transit-served locations,Chicago GIS,"Zoning/MapServer/13 (CTA station buffers), 24 (Metra station buffers), 14 (225 bus corridor buffers, Table 17-17-0400-B)",https://gisapps.chicago.gov/arcgis/rest/services/ExternalApps/,as changed,2026-10-30 yes,parking rules; score
+Fire limits,Municipal Code,13-116-010 (traced to data/rules/fire_limits.geojson),https://codelibrary.amlegal.com/codes/chicago/latest/chicago_il/0-0-0-2503899,as changed,2026-10-30 yes,flags; penalties
+606 and Pilsen districts (zoning special districts),Chicago GIS,Zoning/MapServer/9 (81 special districts incl. 17-7-0580 Pilsen and 17-7-0590 606),https://gisapps.chicago.gov/arcgis/rest/services/ExternalApps/,as changed,2026-10-30 yes; the 606 shape may predate the 2025-07-16 boundary expansion,flags; penalties; two-flat rules
+ADU areas,Chicago GIS,Zoning/MapServer/17 (Zones 1-10 with limits),https://gisapps.chicago.gov/arcgis/rest/services/ExternalApps/,as changed,2026-10-30 yes,ADU path in RS districts
+Opportunity Zone tracts (2018),US DOT copy of the Treasury list,OZ_Opportunity_Zones/FeatureServer/0 (181 Cook tracts); 2027 list due from Treasury by 2026-12-27,https://geo.dot.gov/server/rest/services/hosted/,as changed,2026-10-30 yes,incentives
+Affordable Requirements Ordinance areas,Chicago GIS,Zoning/MapServer/20,https://gisapps.chicago.gov/arcgis/rest/services/ExternalApps/,as changed,2026-10-30 yes,ARO flags
+Pedestrian streets,Chicago GIS,Zoning/MapServer/4,https://gisapps.chicago.gov/arcgis/rest/services/ExternalApps/,as changed,2026-10-30 yes,curb cut and parking flags
+Street center lines,Chicago,pr57-gg9e,https://data.cityofchicago.org/resource/,as changed,2026-10-30 yes,fire limits corners
+Parcel proximity,Cook County,ydue-e5u3,https://datacatalog.cookcountyil.gov/resource/,yearly,2026-10-30 yes,"foreclosures within half a mile (5 years), nearest new construction and vacant land, airport noise, CTA/Metra stop distance (2025 rows)"
+Assessor permits,Cook County,6yjf-dfxs,https://datacatalog.cookcountyil.gov/resource/,monthly,2026-10-30 yes,permits tied to PINs; some date_issued values are out of range (e.g. 2210) and load as blank
+Tax-exempt parcels,Cook County,vgzx-68gb,https://datacatalog.cookcountyil.gov/resource/,yearly,2026-10-30 yes,exempt owner filter (Chicago townships 70-77)
+Building footprints,Chicago,syp8-uezg,https://data.cityofchicago.org/resource/,as changed (last 2015),2026-10-30 yes,"stories, units, year built per building; tied to the lot under each footprint"
+Environmental permit holds and LUST NFR,Chicago,6gqn-e2ij,https://data.cityofchicago.org/resource/,as changed,2026-10-30 yes,flags
+Administrative hearing cases (Buildings),Chicago,6br9-quuz,https://data.cityofchicago.org/resource/,daily,2026-10-30 yes,signals: fines imposed and dispositions since 2021
+Vacant and abandoned building violations,Chicago,kc9i-wq85,https://data.cityofchicago.org/resource/,as changed,2026-10-30 yes,signals: fines and amount due
+Foreclosed rental property registry,Chicago,yhcw-iu53,https://data.cityofchicago.org/resource/,daily,2026-10-30 yes,signals: lender-owned rentals
+Census price index of new single-family houses under construction,Census,price_uc_cust.xlsx,https://www.census.gov/construction/nrs/xls/,monthly,2026-11-01 yes,cost escalation (decision 23)
+PPI net inputs to residential construction (goods),FRED,WPUIP2311001,https://fred.stlouisfed.org/graph/fredgraph.csv?id=,monthly,2026-11-01 yes,cost escalation signal
+Cook County Land Bank property feed,Cook County Land Bank,getPublishedProperties,https://public-cclba.epropertyplus.com/landmgmtpub/remote/public/property/,daily,2026-11-01 yes,lots for sale layer
+Foreclosure auctions (Judicial Sales Corporation),TJSC,UpcomingSales/CompletedSales/CancelledSales,https://www.tjsc.com/Sales/,daily,2026-11-01 yes,foreclosure_auction signals (history kept between runs)
+Foreclosure auctions (Cook County Sheriff),Sheriff,previoussale,https://foreclosure.ccsheriff.org/,daily,2026-11-01 yes,foreclosure_auction signals
+Zoning map amendments (City Clerk eLMS),City Clerk,search,https://api.chicityclerkelms.chicago.gov/,daily,2026-11-01 yes,rezoning history (2010 on); rezoning signals

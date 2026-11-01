@@ -1,0 +1,22 @@
+{
+  "type": "FeatureCollection",
+  "source": "Chicago Municipal Code 13-116-010: fire limits bounded by Halsted Street (west), Division Street (north), Lake Michigan (east) and Roosevelt Road (south). https://codelibrary.amlegal.com/codes/chicago/latest/chicago_il/0-0-0-2503899",
+  "verified_on": "2026-10-30",
+  "note": "Corners at the Halsted/Division and Halsted/Roosevelt centerline intersections (Street Center Lines, pr57-gg9e). The east edge sits in the lake, so the shoreline closes the area. Check which construction types the current Title 14B building code limits inside the fire limits before using this for more than a flag.",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {"id": "1", "name": "Fire limits"},
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-87.648094, 41.903637],
+          [-87.590000, 41.903637],
+          [-87.590000, 41.867154],
+          [-87.646918, 41.867154],
+          [-87.648094, 41.903637]
+        ]]
+      }
+    }
+  ]
+}

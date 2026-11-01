@@ -1,0 +1,34 @@
+{
+  "source": "Marlon, 2026-11-01: Pro $129 a month, founding price $79 a month, 14-day Pro trial (TASKS.md, SaaS setup). Free tier = the free address check in docs/v1-spec.md (Build plan, step 8). docs/plan.md lists $149 a month as an earlier proposal to test.",
+  "verified_on": "2026-11-01",
+  "currency": "usd",
+  "trial_days": 14,
+  "stripe_tax": true,
+  "note": "Prices here are for display. Stripe charges the price ids in STRIPE_PRICE_PRO_MONTHLY and STRIPE_PRICE_FOUNDING_MONTHLY; keep them equal.",
+  "plans": {
+    "free": {
+      "label": "Free",
+      "price_month": 0,
+      "features": ["search", "parcel", "map", "feasibility"],
+      "summary": "Address and PIN search, the parcel page, the map and list, and the feasibility screen with edits kept in this browser."
+    },
+    "pro": {
+      "label": "Pro",
+      "price_month": 129,
+      "founding_price_month": 79,
+      "features": ["search", "parcel", "map", "feasibility", "deals", "saved_edits", "saved_searches", "exports", "invites"],
+      "summary": "Everything in Free, plus deals and the outreach log, feasibility edits saved to the account, saved searches, PDF and CSV exports, and teammates."
+    }
+  },
+  "feature_labels": {
+    "search": "Address and PIN search",
+    "parcel": "Parcel page",
+    "map": "Map and list",
+    "feasibility": "Feasibility screen",
+    "deals": "Deals and outreach log",
+    "saved_edits": "Feasibility edits saved to the account",
+    "saved_searches": "Saved searches",
+    "exports": "PDF and CSV exports",
+    "invites": "Teammates"
+  }
+}

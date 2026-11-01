@@ -1,0 +1,6 @@
+scenario,field,value
+all,land,60000
+A,unit_sqft,1150
+C,preset,standard
+all,toggle.ez,off
+all,answer.has_capital_gains,no

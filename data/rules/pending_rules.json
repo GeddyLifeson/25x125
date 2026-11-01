@@ -23,6 +23,18 @@
         "https://www.dailyherald.com/20260607/real-estate/whats-next-for-pritzkers-stalled-housing-plan/"
       ],
       "verified_on": "2026-10-29"
+    },
+    {
+      "id": "opportunity-zones-2027",
+      "body": "US Treasury",
+      "file": "OZ 2.0 designations (One Big Beautiful Bill Act, 2025)",
+      "status": "Illinois nominated about 240 tracts (state release 2026-08-25); Treasury designates by 2026-12-27; new zones take effect 2027-01-01 for 10 years",
+      "effect": "replaces the 2018 tract list for new investments; load the certified list into overlay kind 'opportunity_zone_2027' when Treasury publishes it",
+      "sources": [
+        "https://gov-pritzker-newsroom.prezly.com/gov-pritzker-launches-illinois-opportunity-zones-20-to-drive-investment-in-communities-statewide",
+        "https://opportunityzones.com/oz2-tracker/"
+      ],
+      "verified_on": "2026-10-30"
     }
   ]
 }
