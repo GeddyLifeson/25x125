@@ -155,6 +155,7 @@ def scenario(
         hold_value = None
     else:
         out["hold"] = _hold(d, x, c)
+        out["hold"]["sale_per_unit"] = round(x.sale_per_unit) if x.sale_per_unit else None
         hold_value = out["hold"]["value"]
     inc = incentives(d, x, c, exit_, hold_value)
     out["incentives"] = inc

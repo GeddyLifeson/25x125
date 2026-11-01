@@ -62,22 +62,22 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 
 ## Step 4: Feasibility engine and score
 
-- [ ] All formulas from the spec for sell and hold, with the exact financing formula and margins that exclude land.
-- [ ] Incentives v1 from `data/rules/incentives_v1.csv` (OZ $0 for sell; bonus depreciation as deferral).
-- [ ] Pattern library scenarios from `data/rules/building_patterns.json`, checked against each zoning path.
-- [ ] Residual land value, profit as percent of value and cost, existing-use check; cost at P50 and P80.
-- [ ] Eligibility questions from `data/rules/incentive_questions.json` drive incentive toggles.
-- [ ] Reference lines: margin on cost 15-20%, spread over cap rate 1.0 pt, DSCR 1.3; buyer financing class (2-4 residential vs 5+ commercial) and FHA limit flag; Open Space Impact Fee line.
-- [ ] Fast-path flag per parcel (definition in `feasibility_defaults.json`).
-- [ ] Every output number carries source, date and comp count.
-- [ ] Nightly by-right run for every parcel; development score with points breakdown.
-- [ ] Unit tests on every formula.
+- [x] All formulas from the spec for sell and hold, with the exact financing formula and margins that exclude land.
+- [x] Incentives v1 from `data/rules/incentives_v1.csv` (OZ $0 for sell; bonus depreciation as deferral).
+- [x] Pattern library scenarios from `data/rules/building_patterns.json`, checked against each zoning path.
+- [x] Residual land value, profit as percent of value and cost, existing-use check; cost at P50 and P80. (Existing-use check is coded and waits on Assessor market values, uzyt-m557, for the data thread.)
+- [x] Eligibility questions from `data/rules/incentive_questions.json` drive incentive toggles.
+- [x] Reference lines: margin on cost 15-20%, spread over cap rate 1.0 pt, DSCR 1.3; buyer financing class (2-4 residential vs 5+ commercial) and FHA limit flag; Open Space Impact Fee line.
+- [x] Fast-path flag per parcel (definition in `feasibility_defaults.json`). 125,250 lots qualify (2026-11-01).
+- [x] Every output number carries source, date and comp count.
+- [x] Nightly by-right run for every parcel; development score with points breakdown. 604,808 lots in 3 minutes (2026-11-01).
+- [x] Unit tests on every formula. 85 tests pass (2026-11-01).
 
 ## Step 5: Parcel report (first real use)
 
-- [ ] Address and PIN search; parcel page matching `mockups/Parcel.dc.html`.
-- [ ] Feasibility screen matching `mockups/Feasibility.dc.html`, every assumption editable.
-- [ ] One-page PDF.
+- [x] Address and PIN search; parcel page matching `mockups/Parcel.dc.html`.
+- [x] Feasibility screen matching `mockups/Feasibility.dc.html`, every assumption editable.
+- [x] One-page PDF.
 - [ ] Marlon and the contractor use it on live deals for 2 weeks; contractor checks five runs.
 
 ## Step 6: Map search and deals

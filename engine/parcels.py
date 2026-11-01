@@ -90,6 +90,15 @@ def parcel(conn, pin: str) -> dict | None:
         "zoning": "City of Chicago zoning districts (dj47-wfun)",
         "signals": "City of Chicago violations, 311, scofflaw, city land, demolition notices",
     }
+    sc = conn.execute(
+        """select score, zoning_upside, profit, acquisition, location, incentives, penalties, details, computed_on
+           from parcel_score where pin10 = %s""",
+        (out["pin10"],),
+    ).fetchone()
+    out["score"] = None if not sc else {
+        "score": float(sc[0]), "zoning_upside": float(sc[1]), "profit": float(sc[2]), "acquisition": float(sc[3]),
+        "location": float(sc[4]), "incentives": float(sc[5]), "penalties": float(sc[6]), "details": sc[7],
+        "computed_on": sc[8].isoformat(), "label": "a sorting aid built from the points shown; it does not rate investment quality"}  # fmt: skip
     return out
 
 
