@@ -55,3 +55,24 @@ def test_estimate_counts_at_most_two_pages_each():
     est = x.estimate([{"pages": "1"}, {"pages": "9"}])
     assert est["pages_sent"] == 3
     assert est["dollars"] < 0.01
+
+
+def test_valid_district_list():
+    for d in [
+        "RS-3",
+        "RT-4",
+        "RT-3.5",
+        "RM-6.5",
+        "B3-2",
+        "C1-1.5",
+        "M2-3",
+        "DX-12",
+        "PD 1234",
+        "PMD 4A",
+        "POS-2",
+        "T",
+    ]:
+        assert x.valid_district(d), d
+    for d in ["RS-4", "B4-2", "DX-9", "RT4", "XYZ", None]:
+        assert not x.valid_district(d), d
+    assert x.clean_district("PMD 4a") == "PMD 4A"

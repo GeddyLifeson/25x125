@@ -52,7 +52,7 @@ BATCH_BYTES = 150_000_000  # API cap is 256 MB per batch; stay well under it
 INDEX_COLUMNS = ["record_number", "matter_id", "title", "pdf_url", "file_name", "pages", "path", "error"]
 OUT_COLUMNS = [
     "record_number", "from_district", "to_district", "changes", "pd_number", "map_no", "readable",
-    "confidence", "note", "model", "pdf_url", "extracted_on", "input_tokens", "output_tokens",
+    "confidence", "codes_valid", "note", "model", "pdf_url", "extracted_on", "input_tokens", "output_tokens",
 ]  # fmt: skip
 
 PROMPT = """This is a scanned Chicago City Council zoning map amendment (a rezoning ordinance).
@@ -303,6 +303,9 @@ def clean_district(d: str | None) -> str | None:
     pd = re.match(r"^(?:.*PLANNED DEVELOPMENT|PD)\s*(?:NO\.?|#)?\s*(\d+)?\s*$", s)
     if pd:
         return f"PD {pd.group(1)}" if pd.group(1) else "PD"
+    pmd = re.match(r"^PMD\s*(?:NO\.?)?\s*(\d+[A-Z]?)?$", s)
+    if pmd:
+        return f"PMD {pmd.group(1)}" if pmd.group(1) else "PMD"
     s = s.replace(" ", "-")
     m = re.match(r"^(RS|RT|RM|DX|DC|DR|DS|POS)-?(\d+(?:\.\d)?)$", s)
     if m:
@@ -311,6 +314,18 @@ def clean_district(d: str | None) -> str | None:
     if m:
         return f"{m.group(1)}-{m.group(2)}"
     return s
+
+
+# Every district code the Chicago Zoning Ordinance (Title 17) uses. A code outside this list is kept but
+# flagged, so it gets checked by hand before it reaches a screen.
+VALID = re.compile(
+    r"^(?:RS-[123]|RT-3\.5|RT-4A?|RM-(?:4\.5|5|5\.5|6|6\.5)|[BC][123]-(?:1|1\.5|2|3|5)|M[123]-[123]"
+    r"|PMD(?: \d+[A-Z]?)?|DC-1[26]|DX-(?:3|5|7|12|16)|DR-(?:3|5|7|10)|DS-[35]|PD(?: \d+)?|POS-[12]|T)$"
+)
+
+
+def valid_district(d: str | None) -> bool:
+    return bool(d and VALID.match(d))
 
 
 def collect() -> int:
@@ -357,6 +372,8 @@ def collect() -> int:
                 "map_no": ans.get("map_no") or "",
                 "readable": ans.get("readable"),
                 "confidence": ans.get("confidence"),
+                "codes_valid": bool(changes)
+                and all(valid_district(c["from"]) and valid_district(c["to"]) for c in changes),
                 "note": ans.get("note") or "",
                 "model": msg.model,
                 "pdf_url": src["pdf_url"],
