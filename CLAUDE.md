@@ -6,6 +6,7 @@ Owner: Marlon (imarlonlee@gmail.com, GitHub GeddyLifeson).
 
 ## Read these first
 
+- **Before any Claude API work, read `docs/claude-api-practices.md`** (the same file is at `/mnt/project-files/claude-api-practices.md` in the project's shared folder). It carries Marlon's practices from his Combining Games project: routing order, Batch for bulk, prompt caching with the 1-hour TTL, the Files API, and structured outputs. Every session follows it.
 - `docs/calibration-2026-10-29.md` records the cost and comp calibration; read it before touching defaults.
 - `docs/v1-spec.md` is the build spec. If code and spec disagree, the spec wins until Marlon changes it.
 - `TASKS.md` is the milestone checklist. Work one milestone at a time and tick items as they finish.
@@ -59,10 +60,11 @@ The markdown copies in `docs/` were exported on 2026-10-28. If Marlon updates a 
 
 ## AI tooling for the build
 
-- Marlon wants Claude API credits and a model router used to speed up building V1 (2026-11-01). No local models.
-- Keys: `ANTHROPIC_API_KEY` and `OPENROUTER_API_KEY` (the router; change the name if Marlon uses a different one). Locally they go in `.env` (placeholders in `.env.example`); in cloud sessions they are environment secrets in project settings. Never commit a key or paste one in chat.
-- Use the cheapest model that does the job: the Batch API and the small model for bulk extraction (scanned ordinances, permit text), larger models only where accuracy needs it.
-- Before any run likely to cost more than about $5, post a rough estimate (calls x tokens x price) and wait for Marlon's go-ahead. Log each run's model, row count and cost in `docs/ai-runs.md`.
+- Marlon wants Claude API credits used to speed up building V1 (2026-11-01). No local models.
+- Follow `docs/claude-api-practices.md`. In short: scripts first, then a Claude API batch on the small model (`claude-haiku-5-5`), then a Claude session. Bigger models only where a sample shows the small one gets it wrong.
+- Every API job: Batch for bulk (50% off), shared instructions first with a 1-hour cache marker when they reach 512 tokens, the Files API for any file sent more than once, a JSON schema in `output_config.format`, and a free `count_tokens` estimate before it runs.
+- Keys: `ANTHROPIC_API_KEY`, and `OPENROUTER_API_KEY` if Marlon sets up a router later (change the name if he uses a different one). Locally they go in `.env` (placeholders in `.env.example`); in cloud sessions they are environment secrets in project settings. Never commit a key or paste one in chat.
+- Warn Marlon before any paid run with a dollar estimate (calls x tokens x price). Runs likely to cost more than about $5 wait for his go-ahead. Log each run's model, row count, tokens (including cache reads and writes) and cost in `docs/ai-runs.md`.
 - AI output is data to check, not a source: store which model produced each value and spot-check a sample against the original before it reaches a screen. Every number still shows its source and date (rule 2).
 - MLS data never goes to any model (see MLS rules).
 
