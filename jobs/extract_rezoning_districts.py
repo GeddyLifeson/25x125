@@ -260,11 +260,9 @@ def source_for(path: Path) -> tuple[str, str | bytes]:
     from pypdf import PdfReader
 
     reader = PdfReader(str(path))
-    text = "\n\n".join(
-        f"[page {i + 1}]\n{(p.extract_text() or '').strip()}" for i, p in enumerate(reader.pages[:TEXT_PAGES])
-    )
-    if sum(len((p.extract_text() or "").strip()) for p in reader.pages[:TEXT_PAGES]) >= MIN_TEXT:
-        return "text", text[:TEXT_CHARS]
+    pages = [(p.extract_text() or "").strip() for p in reader.pages[:TEXT_PAGES]]
+    if sum(len(t) for t in pages) >= MIN_TEXT:
+        return "text", "\n\n".join(f"[page {i + 1}]\n{t}" for i, t in enumerate(pages))[:TEXT_CHARS]
     return "pdf", first_pages(path)
 
 
