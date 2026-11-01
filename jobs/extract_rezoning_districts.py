@@ -46,16 +46,17 @@ PAGES = 2  # Section 1 (old and new district) sits on page 1, sometimes running 
 PRICE_IN, PRICE_OUT = 0.05, 0.25
 TOKENS_PER_PAGE = 1_600  # a letter page sent as PDF: image tokens plus its (empty) text layer
 PROMPT_TOKENS = 450
-OUT_TOKENS = 350  # JSON answer plus low-effort thinking
+OUT_TOKENS = 150  # JSON answer, thinking off
 BATCH_BYTES = 150_000_000  # API cap is 256 MB per batch; stay well under it
 
 INDEX_COLUMNS = ["record_number", "matter_id", "title", "pdf_url", "file_name", "pages", "path", "error"]
 OUT_COLUMNS = [
     "record_number", "from_district", "to_district", "changes", "pd_number", "map_no", "readable",
-    "confidence", "codes_valid", "note", "model", "pdf_url", "extracted_on", "input_tokens", "output_tokens",
+    "confidence", "codes_valid", "app_from_district", "app_to_district", "input_kind", "note", "model", "pdf_url", "extracted_on", "input_tokens", "output_tokens",
 ]  # fmt: skip
 
-PROMPT = """This is a scanned Chicago City Council zoning map amendment (a rezoning ordinance).
+PROMPT = """This is a Chicago City Council zoning map amendment (a rezoning ordinance): a scan, or the OCR text
+of one (OCR text may also hold the Clerk's tracking sheet and the zoning application; use the ordinance).
 Section 1 says the ordinance changes "all the <old> District symbols and indications as shown on Map No. ..."
 "to those of a <new> District". Read it and return:
 - changes: every old -> new district change in the ordinance, in order. Write district codes the way the
@@ -191,37 +192,44 @@ def selected(limit: int | None, ids: set[str] | None) -> list[dict]:
     return rows[:limit] if limit else rows
 
 
-def measure_tokens_per_page(rows: list[dict], n: int = 5) -> float:
-    """Free count_tokens calls on a few real rows: input tokens per page sent, prompt included."""
-    import anthropic
-
-    client = anthropic.Anthropic()
-    sample = rows[:: max(1, len(rows) // n)][:n]
-    tokens = pages = 0
-    for r in sample:
-        p = request_params(first_pages(ROOT / r["path"]))
-        tokens += client.messages.count_tokens(model=p["model"], messages=p["messages"]).input_tokens
-        pages += min(int(r["pages"] or 1), PAGES)
-    return tokens / pages
+def guess_tokens(row: dict, source: tuple[str, str | bytes]) -> int:
+    kind, data = source
+    if kind == "text":
+        return round(len(data) / 3.5) + PROMPT_TOKENS
+    return min(int(row["pages"] or 1), PAGES) * TOKENS_PER_PAGE + PROMPT_TOKENS
 
 
-def estimate(rows: list[dict], per_page: float | None = None) -> dict:
-    """Dollar estimate. per_page comes from measure_tokens_per_page when a key is set, else a fixed guess."""
-    pages = sum(min(int(r["pages"] or 1), PAGES) for r in rows)
-    if per_page:
-        tin = round(pages * per_page)
-    else:
-        tin = pages * TOKENS_PER_PAGE + len(rows) * PROMPT_TOKENS
+def estimate(rows: list[dict], measure: bool = False, sample: int = 5) -> dict:
+    """Dollar estimate from fixed per-page and per-character guesses. With measure=True (needs a key), free
+    count_tokens calls on a few real rows of each kind correct the guesses before scaling up."""
+    sources = [(r, source_for(ROOT / r["path"])) for r in rows]
+    kinds: dict[str, list] = {"text": [], "pdf": []}
+    for r, src in sources:
+        kinds[src[0]].append((r, src))
+    out = {"ordinances": len(rows), "measured": measure}
+    tin = 0
+    if measure:
+        import anthropic
+
+        client = anthropic.Anthropic()
+    for kind, items in kinds.items():
+        guess = sum(guess_tokens(r, src) for r, src in items)
+        factor = 1.0
+        if measure and items:
+            picks = items[:: max(1, len(items) // sample)][:sample]
+            actual = 0
+            for _, src in picks:
+                p = request_params(src)
+                actual += client.messages.count_tokens(
+                    model=p["model"], messages=p["messages"], output_config=p["output_config"]
+                ).input_tokens
+            factor = actual / sum(guess_tokens(r, src) for r, src in picks)
+        out[f"{kind}_rows"] = len(items)
+        out[f"{kind}_tokens_in"] = round(guess * factor)
+        tin += round(guess * factor)
     tout = len(rows) * OUT_TOKENS
-    cost = tin / 1e6 * PRICE_IN + tout / 1e6 * PRICE_OUT
-    return {
-        "ordinances": len(rows),
-        "pages_sent": pages,
-        "tokens_in": tin,
-        "tokens_out": tout,
-        "dollars": cost,
-        "measured": bool(per_page),
-    }
+    out |= {"tokens_in": tin, "tokens_out": tout, "dollars": tin / 1e6 * PRICE_IN + tout / 1e6 * PRICE_OUT}
+    return out
 
 
 def first_pages(path: Path, n: int = PAGES) -> bytes:
@@ -238,27 +246,60 @@ def first_pages(path: Path, n: int = PAGES) -> bytes:
     return buf.getvalue()
 
 
-def request_params(pdf: bytes) -> dict:
+TEXT_PAGES = (
+    6  # bundled files: tracking sheet, ordinance, then the application (Q9 present/proposed district)
+)
+TEXT_CHARS = 15_000
+MIN_TEXT = 300  # below this the file has no usable text layer
+
+
+def source_for(path: Path) -> tuple[str, str | bytes]:
+    """Most 2010-2023 files are bundles (tracking sheet, ordinance, application, 20-90 pages) that carry the
+    Clerk's OCR text layer, so their text goes to the model. 2024 on, the ordinance is its own 1-2 page scan
+    with no text layer, so its first pages go as a PDF the model reads as images."""
+    from pypdf import PdfReader
+
+    reader = PdfReader(str(path))
+    text = "\n\n".join(
+        f"[page {i + 1}]\n{(p.extract_text() or '').strip()}" for i, p in enumerate(reader.pages[:TEXT_PAGES])
+    )
+    if sum(len((p.extract_text() or "").strip()) for p in reader.pages[:TEXT_PAGES]) >= MIN_TEXT:
+        return "text", text[:TEXT_CHARS]
+    return "pdf", first_pages(path)
+
+
+APPLICATION = re.compile(
+    r"Present\s+Zoning\s+District:?\s+([A-Z][A-Z0-9.\- ]{0,12}?)\s+Proposed\s+Zoning\s+District:?\s+"
+    r"([A-Z][A-Z0-9.\- ]{0,40}?)(?:\s{2,}|\n|$)",
+    re.IGNORECASE,
+)
+
+
+def application_districts(text: str) -> tuple[str | None, str | None]:
+    """Free cross-check: the application's question 9 states the present and proposed district."""
+    m = APPLICATION.search(text)
+    return (clean_district(m.group(1)), clean_district(m.group(2))) if m else (None, None)
+
+
+def request_params(source: tuple[str, str | bytes]) -> dict:
+    kind, data = source
+    if kind == "text":
+        doc = {"type": "document", "source": {"type": "text", "media_type": "text/plain", "data": data}}
+    else:
+        doc = {
+            "type": "document",
+            "source": {
+                "type": "base64",
+                "media_type": "application/pdf",
+                "data": base64.standard_b64encode(data).decode(),
+            },
+        }
     return {
         "model": MODEL,
-        "max_tokens": 2048,
+        "max_tokens": 1024,
+        "thinking": {"type": "disabled"},  # Haiku 5.5 accepts this at effort low; saves thinking tokens
         "output_config": {"effort": "low", "format": {"type": "json_schema", "schema": SCHEMA}},
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "document",
-                        "source": {
-                            "type": "base64",
-                            "media_type": "application/pdf",
-                            "data": base64.standard_b64encode(pdf).decode(),
-                        },
-                    },
-                    {"type": "text", "text": PROMPT},
-                ],
-            }
-        ],
+        "messages": [{"role": "user", "content": [doc, {"type": "text", "text": PROMPT}]}],
     }
 
 
@@ -278,8 +319,8 @@ def save_state(state: dict) -> None:
 def submit(rows: list[dict], max_dollars: float) -> list[str]:
     import anthropic
 
-    est = estimate(rows, measure_tokens_per_page(rows))
-    print(f"estimate (count_tokens on 5 rows): {json.dumps(est)}")
+    est = estimate(rows, measure=True)
+    print(f"estimate (count_tokens on sample rows): {json.dumps(est)}")
     if est["dollars"] > max_dollars:
         sys.exit(f"estimate ${est['dollars']:.2f} is over the ${max_dollars:.2f} cap; ask Marlon first")
     state = load_state()
@@ -304,7 +345,7 @@ def submit(rows: list[dict], max_dollars: float) -> list[str]:
         cid = custom_id(r["record_number"])
         if cid in sent:
             continue
-        params = request_params(first_pages(ROOT / r["path"]))
+        params = request_params(source_for(ROOT / r["path"]))
         n = len(params["messages"][0]["content"][0]["source"]["data"]) + 4000
         if size + n > BATCH_BYTES:
             send()
@@ -382,6 +423,8 @@ def collect() -> int:
                 for c in ans.get("changes") or []
             ]
             first, last = (changes[0], changes[-1]) if changes else ({}, {})
+            kind, data = source_for(ROOT / src["path"])
+            app_from, app_to = application_districts(data) if kind == "text" else (None, None)
             rows[src["record_number"]] = {
                 "record_number": src["record_number"],
                 "from_district": first.get("from"),
@@ -393,6 +436,9 @@ def collect() -> int:
                 "confidence": ans.get("confidence"),
                 "codes_valid": bool(changes)
                 and all(valid_district(c["from"]) and valid_district(c["to"]) for c in changes),
+                "app_from_district": app_from or "",
+                "app_to_district": app_to or "",
+                "input_kind": kind,
                 "note": ans.get("note") or "",
                 "model": msg.model,
                 "pdf_url": src["pdf_url"],
@@ -448,8 +494,7 @@ def main(argv: list[str] | None = None) -> None:
         fetch(a.limit, ids)
     elif a.step == "estimate":
         rows = selected(a.limit, ids)
-        per_page = measure_tokens_per_page(rows) if os.environ.get("ANTHROPIC_API_KEY") else None
-        print(json.dumps(estimate(rows, per_page), indent=2))
+        print(json.dumps(estimate(rows, measure=bool(os.environ.get("ANTHROPIC_API_KEY"))), indent=2))
     elif a.step == "submit":
         submit(selected(a.limit, ids), a.max_dollars)
     elif a.step == "collect":

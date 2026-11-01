@@ -44,17 +44,16 @@ def test_first_pages_trims_long_scans(tmp_path):
 
 
 def test_request_uses_small_model_and_json_schema():
-    p = x.request_params(b"%PDF-1.4")
+    p = x.request_params(("pdf", b"%PDF-1.4"))
     assert p["model"] == x.MODEL
     assert p["output_config"]["format"]["schema"]["required"][0] == "changes"
     assert p["messages"][0]["content"][0]["type"] == "document"
     json.dumps(p)
 
 
-def test_estimate_counts_at_most_two_pages_each():
-    est = x.estimate([{"pages": "1"}, {"pages": "9"}])
-    assert est["pages_sent"] == 3
-    assert est["dollars"] < 0.01
+def test_guess_tokens_counts_at_most_two_pages():
+    assert x.guess_tokens({"pages": "9"}, ("pdf", b"")) == 2 * x.TOKENS_PER_PAGE + x.PROMPT_TOKENS
+    assert x.guess_tokens({"pages": "40"}, ("text", "a" * 3500)) == 1000 + x.PROMPT_TOKENS
 
 
 def test_valid_district_list():
@@ -76,3 +75,15 @@ def test_valid_district_list():
     for d in ["RS-4", "B4-2", "DX-9", "RT4", "XYZ", None]:
         assert not x.valid_district(d), d
     assert x.clean_district("PMD 4a") == "PMD 4A"
+
+
+def test_application_cross_check():
+    text = "9.    Present Zoning District             RT-4                Proposed Zoning District         RM-5\n10."
+    assert x.application_districts(text) == ("RT-4", "RM-5")
+    assert x.application_districts("no districts here") == (None, None)
+
+
+def test_text_source_request():
+    p = x.request_params(("text", "SECTION 1 ..."))
+    assert p["messages"][0]["content"][0]["source"]["type"] == "text"
+    assert p["thinking"] == {"type": "disabled"}
