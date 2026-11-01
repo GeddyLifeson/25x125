@@ -1,7 +1,7 @@
 {
   "name": "25x125",
   "productName": "25x125",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "25x125 on one Windows computer: the database, engine and web app run locally, no sign-in.",
   "author": "Marlon Lee",
@@ -23,13 +23,14 @@
     "directories": { "output": "dist" },
     "files": ["src/**/*", "package.json"],
     "extraResources": [{ "from": "build/runtime", "to": "runtime" }],
-    "win": { "target": "nsis", "icon": "src/icon.png" },
+    "win": { "target": "nsis", "icon": "src/icon.png", "legalTrademarks": "25x125", "requestedExecutionLevel": "asInvoker" },
     "nsis": {
       "oneClick": true,
       "perMachine": false,
       "artifactName": "25x125-Setup-${version}.exe",
       "shortcutName": "25x125",
-      "deleteAppDataOnUninstall": false
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": false
     }
   }
 }

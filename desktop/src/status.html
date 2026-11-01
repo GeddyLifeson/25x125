@@ -13,6 +13,8 @@
   #status { font-size: 15px; margin: 0 0 8px; }
   .facts { color: var(--muted); font-size: 13px; }
   button { font: inherit; padding: 6px 14px; border: 1px solid var(--accent); background: var(--accent); color: #fff; border-radius: 4px; cursor: pointer; }
+  button.plain { background: transparent; color: var(--accent); }
+  button:disabled { opacity: 0.5; cursor: default; }
   #log { margin: 8px 20px 20px; height: calc(100vh - 190px); overflow: auto; border: 1px solid var(--line); padding: 8px; font: 12px/1.4 Consolas, monospace; white-space: pre-wrap; }
 </style>
 </head>
@@ -21,7 +23,8 @@
   <h1>25x125 on this computer</h1>
   <p id="status">Starting...</p>
   <p class="facts" id="facts"></p>
-  <button id="open">Open 25x125</button>
+  <button id="open" disabled>Open 25x125</button>
+  <button id="logs" class="plain">Open logs folder</button>
 </header>
 <div id="log" aria-live="polite"></div>
 <script src="status.js"></script>

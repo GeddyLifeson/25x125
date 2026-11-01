@@ -5,7 +5,10 @@ const add = (line) => {
   if (atEnd) logEl.scrollTop = logEl.scrollHeight;
 };
 const when = (iso) => (iso ? new Date(iso).toLocaleString() : "never");
+const openBtn = document.getElementById("open");
 window.x25.init().then((s) => {
+  document.getElementById("status").textContent = s.status;
+  openBtn.disabled = !s.ready;
   s.lines.forEach(add);
   logEl.scrollTop = logEl.scrollHeight;
   document.getElementById("facts").textContent =
@@ -14,5 +17,9 @@ window.x25.init().then((s) => {
     `Data folder: ${s.dataDir}`;
 });
 window.x25.onLog(add);
-window.x25.onStatus((t) => (document.getElementById("status").textContent = t));
-document.getElementById("open").addEventListener("click", () => window.x25.openApp());
+window.x25.onStatus((t) => {
+  document.getElementById("status").textContent = t;
+  window.x25.init().then((s) => (openBtn.disabled = !s.ready));
+});
+openBtn.addEventListener("click", () => window.x25.openApp());
+document.getElementById("logs").addEventListener("click", () => window.x25.openLogs());
