@@ -6,7 +6,8 @@ The nightly scorer uses the same engine functions with inputs loaded in bulk (jo
 import json
 from datetime import date
 
-from engine.comps import RULES_DIR, Target, estimate, index_from_db, params_from_files, pool_from_db
+from engine import older_sales
+from engine.comps import RULES_DIR, Estimate, Target, estimate, index_from_db, params_from_files, pool_from_db
 from engine.feasibility import Inputs, fast_path, pattern_fits, scenario, scenarios_for
 from engine.rents import rent
 from engine.rules import Rules
@@ -54,6 +55,27 @@ def permit_waits(conn) -> dict:
     return {r[0]: {"permits": r[1], "p25": float(r[2]), "median": float(r[3]), "p75": float(r[4]),
                    "computed_on": r[5].isoformat()}
             for r in conn.execute("select review_type, permits, days_p25, days_median, days_p75, computed_on from permit_wait")}  # fmt: skip
+
+
+def sale_estimate(t: Target, pool, params, index, older: list | None):
+    """Comp rings first; when the only comps are citywide, older-building sales converted to new construction
+    (engine/older_sales.py); None when neither has enough sales nearby. Shared with the nightly scorer."""
+    est = estimate(t, pool, params, index)
+    if est is None or est.radius_mi <= 3:
+        return est
+    o = (
+        older_sales.estimate(older, t.lat, t.lon, t.as_of, t.kind or "building", index=index)
+        if older
+        else None
+    )
+    if o is None:
+        return None
+    note = f"Estimated from {o['older_sales']} older-building sales within {o['radius_mi']:g} mi; no new-construction sales within 3 miles"
+    if o["extrapolated"]:
+        note += "; outside the fitted range, so the range is wider"
+    return Estimate(per_unit=o["central"], low=o["low"], high=o["high"], ring=5, radius_mi=o["radius_mi"],
+                    same_group=False, n=o["older_sales"], n_local=0, local_weight=0.0, index_used={"metro": o["older_sales"]},
+                    comps=[], notes=[note])  # fmt: skip
 
 
 def existing_use(conn, pin10: str) -> dict | None:
@@ -127,6 +149,11 @@ def feasibility(
     d = load_defaults()
     patterns = load_patterns()
     pool, index, params = pool_from_db(conn), index_from_db(conn), params_from_files()
+    older = (
+        older_sales.sales_from_db(conn)
+        if conn.execute("select to_regclass('older_sale')").fetchone()[0]
+        else None
+    )
     today = date.today()
     picks = scenarios_for(z, patterns)
     esc = escalation(conn, d)
@@ -143,11 +170,9 @@ def feasibility(
             o.get("unit_sqft") or pick["unit_sqft"] or (1300 if units == 2 else 1200 if units == 3 else 1000)
         )
         sell_as = o.get("sell_as", "building")
-        est = estimate(Target(ctx["lat"], ctx["lon"], min(units, 6), today, unit_sqft,
-                              "condo" if sell_as == "condo" else None), pool, params, index)  # fmt: skip
-        citywide = est is not None and est.radius_mi > 3
-        if citywide:  # no local new-construction sales: show no number rather than a citywide one
-            est = None
+        est = sale_estimate(Target(ctx["lat"], ctx["lon"], min(units, 6), today, unit_sqft,
+                                   "condo" if sell_as == "condo" else None), pool, params, index, older)  # fmt: skip
+        citywide = est is None
         r = rent(conn, bedrooms_for(unit_sqft), ctx["tract"], ctx["zip"], d, today)
         x = inputs_for(ctx, z, rules, pick, units, unit_sqft, est, r, esc, o)
         x.existing_use_note = eu["note"] if eu and "existing_use_value" not in o else None
@@ -162,10 +187,11 @@ def feasibility(
                       "floor_area_sqft": path.floor_area_sqft, "max_height_ft": path.max_height_ft,
                       "parking_spaces": path.parking_spaces, "notes": path.notes, "citations": path.citations}  # fmt: skip
         sc["pattern"] = pick["pattern"]
-        sc["sale_source"] = {"missing": "no new-construction sales within 3 miles: enter a sale price per unit"} if citywide else None if not est else {
+        sc["sale_source"] = {"missing": "no new-construction sales within 3 miles and too few older-building sales within 1.5 mi: enter a sale price per unit"} if citywide else None if not est else {
             "comps": est.n, "radius_mi": est.radius_mi, "same_size_group": est.same_group, "notes": est.notes,
             "sell_as": sell_as, "time_index": est.index_used,
-            "source": "Cook County Assessor sales of buildings built 2014 or later; FHFA metro index"}  # fmt: skip
+            "source": "Cook County Assessor sales of older 2-6 unit buildings, converted with a fitted curve (docs/research/older-sale-fallback-2026-11-01.md); FHFA metro index"
+                      if est.ring == 5 else "Cook County Assessor sales of buildings built 2014 or later; FHFA metro index"}  # fmt: skip
         sc["rent_source"] = r
         out["scenarios"].append(sc)
     hold = conn.execute("select environmental_hold from parcel_site where pin = %s", (site.pin,)).fetchone()

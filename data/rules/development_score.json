@@ -16,8 +16,9 @@
       "requires": {
         "land_price": true,
         "max_comp_ring": 3,
-        "rule": "no profit points when the lot has no land price or its sale comps came from citywide (ring 4); the screen still shows the math",
-        "why": "2026-11-01 full run: 8,368 of 19,792 lots with profit points had land priced at $0, and citywide comps put South Chicago 3-flats at $468,000 a unit"
+        "rule": "no profit points when the lot has no land price or its sale value rests on citywide comps; lots priced from older-building sales (ring 5, wider range) do count",
+        "why": "2026-11-01 full run: 8,368 of 19,792 lots with profit points had land priced at $0, and citywide comps put South Chicago 3-flats at $468,000 a unit",
+        "older_sales": true
       }
     },
     "acquisition_signals": {

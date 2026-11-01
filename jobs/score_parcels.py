@@ -19,9 +19,17 @@ import time
 from datetime import date
 
 from core.db import connect
-from engine.comps import RULES_DIR, Target, estimate, index_from_db, params_from_files, pool_from_db
+from engine import older_sales
+from engine.comps import RULES_DIR, Target, index_from_db, params_from_files, pool_from_db
 from engine.feasibility import fast_path, scenario, scenarios_for
-from engine.parcel_feasibility import escalation, inputs_for, land_value, load_defaults, load_patterns
+from engine.parcel_feasibility import (
+    escalation,
+    inputs_for,
+    land_value,
+    load_defaults,
+    load_patterns,
+    sale_estimate,
+)
 from engine.rules import Rules
 from engine.sites import FIELDS, _site
 from engine.zoning import evaluate
@@ -106,7 +114,7 @@ def score_lot(row, w: dict, rules: Rules, ctx: dict, sale_for, sur_match: list[s
             det["sale_ring"] = est.ring
             if req["land_price"] and x.land == 0:
                 det["profit"] = "no land sales nearby: land priced at $0, so no profit points"
-            elif est.ring > req["max_comp_ring"]:
+            elif est.ring > req["max_comp_ring"] and not (est.ring == 5 and req.get("older_sales", False)):
                 det["profit"] = "sale comps came from across the city, so no profit points"
             else:
                 profit_pts = linear(p25 / total, 0.0, 0.25, p["profit"]["max"])
@@ -161,6 +169,7 @@ def run(url: str | None = None, limit: int | None = None) -> dict:
         d, patterns = load_defaults(), load_patterns()
         pool, index, params = pool_from_db(conn), index_from_db(conn), params_from_files()
         esc = escalation(conn, d)
+        older = older_sales.sales_from_db(conn)
         cost_index = {r[0]: {"index": float(r[1]), "thin": r[2]} for r in conn.execute(
             "select community_area_num, index, thin from cost_index").fetchall()}  # fmt: skip
         sur = rules.special.get("demolition-surcharge-606-pilsen")
@@ -171,9 +180,8 @@ def run(url: str | None = None, limit: int | None = None) -> dict:
         def sale_for(lat, lon, units, unit_sqft):
             key = (round(lat / CELL), round(lon / CELL), units, round(unit_sqft, -1))
             if key not in sales:
-                sales[key] = estimate(
-                    Target(key[0] * CELL, key[1] * CELL, units, today, unit_sqft), pool, params, index
-                )
+                t = Target(key[0] * CELL, key[1] * CELL, units, today, unit_sqft)
+                sales[key] = sale_estimate(t, pool, params, index, older)
             return sales[key]
 
         rows = conn.execute(SQL.format(limit=f"limit {int(limit)}" if limit else "")).fetchall()
