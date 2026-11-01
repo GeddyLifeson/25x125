@@ -220,4 +220,4 @@ def test_nightly_imports_without_the_ai_extra():
     import sys
 
     code = "import sys, jobs.nightly; sys.exit(1 if 'anthropic' in sys.modules else 0)"
-    assert subprocess.run([sys.executable, "-c", code]).returncode == 0
+    assert subprocess.run([sys.executable, "-c", code], check=False).returncode == 0
