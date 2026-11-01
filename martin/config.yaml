@@ -1,0 +1,27 @@
+# Martin tile server: serves the map's vector tiles from the PostGIS functions in
+# db/migrations/0022_map_tiles.sql. Started by docker compose (service "tiles").
+# Tiles: http://localhost:3100/lots/{z}/{x}/{y}, /land_value/{z}/{x}/{y}, /lots_for_sale/{z}/{x}/{y}
+listen_addresses: "0.0.0.0:3000"
+cache_size_mb: 256
+postgres:
+  connection_string: ${DATABASE_URL}
+  auto_publish: false
+  functions:
+    lots:
+      schema: public
+      function: lot_tiles
+      minzoom: 10
+      maxzoom: 18
+      bounds: [-87.95, 41.64, -87.52, 42.03]
+    land_value:
+      schema: public
+      function: land_value_tiles
+      minzoom: 9
+      maxzoom: 16
+      bounds: [-87.95, 41.64, -87.52, 42.03]
+    lots_for_sale:
+      schema: public
+      function: lot_for_sale_tiles
+      minzoom: 9
+      maxzoom: 18
+      bounds: [-87.95, 41.64, -87.52, 42.03]

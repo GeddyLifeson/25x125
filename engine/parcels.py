@@ -112,9 +112,12 @@ LOT_COLUMNS = ["pin10", "pin", "address", "zip", "community_area", "zone_class",
 
 def lots(conn, *, community_area: int | None = None, zone_prefix: str | None = None, min_score: float = 0,
          min_units: int = 0, signal: str | None = None, for_sale: bool = False, vacant: bool = False, fast_path: bool = False,
-         sort: str = "score", limit: int = 100, offset: int = 0) -> list[dict]:  # fmt: skip
+         sort: str = "score", limit: int = 100, offset: int = 0, pin10: str | None = None) -> list[dict]:  # fmt: skip
     """The list screen: scored lots with filters, from parcel_score (jobs/score_parcels.py)."""
     where, args = ["s.score >= %s"], [min_score]
+    if pin10:
+        where.append("s.pin10 = %s")
+        args.append(pin10)
     if community_area:
         where.append("p.community_area_num = %s")
         args.append(community_area)

@@ -82,9 +82,9 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 
 ## Step 6: Map search and deals
 
-- [ ] Parcel vector tiles; map and list matching `mockups/Main.dc.html`; filters and sorts; under 2 seconds.
-- [ ] Fast-path filter, land value map layer, and city lots for sale (ChiBlockBuilder) layer.
-- [ ] Deals screen matching `mockups/Deals.dc.html`: pipeline counts, deal table, outreach log, CSV export.
+- [x] Parcel vector tiles; map and list matching `mockups/Main.dc.html`; filters and sorts; under 2 seconds.
+- [x] Fast-path filter, land value map layer, and city lots for sale (ChiBlockBuilder) layer.
+- [x] Deals screen matching `mockups/Deals.dc.html`: pipeline counts, deal table, outreach log, CSV export.
 - [ ] Email sign-in.
 
 ## SaaS setup (weeks 8-17, alongside steps 4-6)
