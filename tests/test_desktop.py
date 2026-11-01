@@ -59,7 +59,10 @@ def test_local_session_owns_default_org_on_pro(db, monkeypatch):
     # The claim the web app then signs works on Pro routes: deals, exports and the admin feedback list.
     claim = {CLAIM_HEADER: make_claim(s["user"]["id"], "default", ttl=290)}
     assert client.get("/deals", headers=claim).status_code == 200
-    assert client.post("/exports", headers=claim, json={"kind": "pdf", "target": "16121020310000"}).status_code == 200
+    assert (
+        client.post("/exports", headers=claim, json={"kind": "pdf", "target": "16121020310000"}).status_code
+        == 200
+    )
     assert client.get("/feedback", headers=claim).status_code == 200
 
 
