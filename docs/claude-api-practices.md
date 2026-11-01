@@ -3,8 +3,7 @@
 Every session working on 25x125 reads this before calling the Claude API or planning bulk model work.
 
 Source: section 1 of Marlon's master CLAUDE.md, copied word for word on 2026-11-01.
-- Stable link (works once DiaithirRPG PR #199 is merged): https://github.com/GeddyLifeson/DiaithirRPG/blob/engine/docs/MASTER_CLAUDE.md
-- Until then: https://github.com/GeddyLifeson/DiaithirRPG/blob/claude/project-thread-wixpzc/docs/MASTER_CLAUDE.md (commit 069323b)
+- Master: https://github.com/GeddyLifeson/DiaithirRPG/blob/engine/docs/MASTER_CLAUDE.md (section 1 checked identical on 2026-11-01, engine at 96644dd)
 
 If the master changes, copy its section 1 again. Do not edit the copied section here; put 25x125 differences in the last section.
 
