@@ -87,3 +87,9 @@ def test_text_source_request():
     p = x.request_params(("text", "SECTION 1 ..."))
     assert p["messages"][0]["content"][0]["source"]["type"] == "text"
     assert p["thinking"] == {"type": "disabled"}
+
+
+def test_clean_district_fixes_common_ocr_errors():
+    assert x.clean_district("BL-1") == "B1-1"
+    assert x.clean_district("ML-2") == "M1-2"
+    assert x.clean_district("RT3.S") == "RT-3.5"

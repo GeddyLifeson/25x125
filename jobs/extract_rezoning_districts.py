@@ -367,6 +367,8 @@ def clean_district(d: str | None) -> str | None:
     if pmd:
         return f"PMD {pmd.group(1)}" if pmd.group(1) else "PMD"
     s = s.replace(" ", "-")
+    s = re.sub(r"^([BCM])[LI](?=-?\d)", r"\g<1>1", s)  # OCR reads B1-1 as BL-1
+    s = re.sub(r"^(RT|RM)-?(\d)\.S$", r"\1-\2.5", s)  # OCR reads RT-3.5 as RT3.S
     m = re.match(r"^(RS|RT|RM|DX|DC|DR|DS|POS)-?(\d+(?:\.\d)?)$", s)
     if m:
         return f"{m.group(1)}-{m.group(2)}"
