@@ -52,3 +52,15 @@ Works the same on Windows, Mac and Linux. Install Git, Docker Desktop, Python 3.
 Version 1 uses free public data from the Chicago Data Portal, the Cook County data catalog, the Census Bureau and HUD. MLS data from MRED comes later under a separate license.
 
 Results are estimates. They are not zoning, legal, tax or appraisal advice.
+
+## Web app (parcel report)
+
+The web app in `web/` reads everything through the engine; it never calls the data portals.
+
+1. Start the engine: `python -m uvicorn engine.app:app --port 8000`
+2. In another terminal: `cd web`, `npm install`, `npm run dev`, then open http://localhost:3000
+3. To point the app at an engine on another port, set `ENGINE_URL` first (PowerShell: `$env:ENGINE_URL="http://localhost:8010"`; Mac and Linux: `export ENGINE_URL=http://localhost:8010`).
+
+Screens: address or PIN search (`/`), the parcel page (`/parcels/<pin>`) and the feasibility screen (`/parcels/<pin>/feasibility`). On the feasibility screen every assumption can be edited and re-run; edits are kept in the browser per parcel. Exports: a one-page PDF (`/parcels/<pin>/report.pdf`), the lines as CSV (`/parcels/<pin>/feasibility.csv`), and the assumptions as a `scenario,field,value` CSV that can be imported again (example: `web/scripts/sample-overrides.csv`).
+
+Checks: `npm run typecheck`, `npm run build`, and with both servers running, `node scripts/smoke.cjs http://localhost:3000` (needs the `playwright` package and Chromium; screenshots go to `web/screenshots/`).
