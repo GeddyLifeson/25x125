@@ -8,6 +8,7 @@ from fastapi import Body, FastAPI, HTTPException
 from core.db import connect
 from engine.comps import RULES_DIR, Target, estimate, index_from_db, params_from_files, pool_from_db
 from engine.parcel_feasibility import feasibility
+from engine.parcels import parcel, search
 from engine.rents import rent
 from engine.rules import Rules
 from engine.sites import site_by_pin
@@ -126,6 +127,28 @@ def parcel_feasibility(
         raise HTTPException(400, "exit must be sell or hold")
     with connect() as conn:
         out = feasibility(conn, pin, exit, overrides or {}, target)
+    if out is None:
+        raise HTTPException(404, f"PIN {pin} is not in the parcel table")
+    return out
+
+
+@app.get("/search")
+def search_parcels(q: str, limit: int = 10) -> list[dict]:
+    """Find parcels by street address (prefix, then similarity) or by 10- or 14-digit PIN."""
+    if len(q.strip()) < 3:
+        raise HTTPException(400, "type at least 3 characters")
+    with connect() as conn:
+        return search(conn, q, min(limit, 25))
+
+
+@app.get("/parcels/{pin}")
+def parcel_facts(pin: str) -> dict:
+    """The parcel page's facts: lot, zoning, overlays, what stands on the lot, signals and recent sales."""
+    pin = pin.replace("-", "")
+    if not pin.isdigit() or len(pin) not in (10, 14):
+        raise HTTPException(400, "PIN must be 10 or 14 digits")
+    with connect() as conn:
+        out = parcel(conn, pin)
     if out is None:
         raise HTTPException(404, f"PIN {pin} is not in the parcel table")
     return out
