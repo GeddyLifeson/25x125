@@ -8,7 +8,7 @@ row keeps the model, the PDF it read and the date, and docs/ai-runs.md logs each
 Steps (each one picks up where the last stopped, so a run can be resumed):
   python -m jobs.extract_rezoning_districts fetch     # matter list + ordinance PDFs into data/raw (free)
   python -m jobs.extract_rezoning_districts estimate  # page counts and a dollar estimate (free)
-  python -m jobs.extract_rezoning_districts submit    # send the batches (paid, needs ANTHROPIC_API_KEY)
+  python -m jobs.extract_rezoning_districts submit    # send the batches (paid, needs CLAUDE_API_KEY_25X125)
   python -m jobs.extract_rezoning_districts collect   # results into data/reference/rezoning_districts.csv
   python -m jobs.extract_rezoning_districts apply     # copy the CSV into the rezoning table
 Paid steps need: python -m pip install -e ".[ai]"
@@ -192,6 +192,24 @@ def selected(limit: int | None, ids: set[str] | None) -> list[dict]:
     return rows[:limit] if limit else rows
 
 
+# Claude Code cloud settings warn that ANTHROPIC_API_KEY "won't be used to authenticate requests" and keep it
+# from sessions, so the project key is saved as CLAUDE_API_KEY_25X125. ANTHROPIC_API_KEY still works locally.
+KEY_NAMES = ("CLAUDE_API_KEY_25X125", "ANTHROPIC_API_KEY")
+
+
+def api_key() -> str | None:
+    return next((os.environ[k] for k in KEY_NAMES if os.environ.get(k)), None)
+
+
+def make_client():
+    import anthropic
+
+    key = api_key()
+    if not key:
+        sys.exit(f"no API key: set {' or '.join(KEY_NAMES)}")
+    return anthropic.Anthropic(api_key=key)
+
+
 def guess_tokens(row: dict, source: tuple[str, str | bytes]) -> int:
     kind, data = source
     if kind == "text":
@@ -209,9 +227,7 @@ def estimate(rows: list[dict], measure: bool = False, sample: int = 5) -> dict:
     out = {"ordinances": len(rows), "measured": measure}
     tin = 0
     if measure:
-        import anthropic
-
-        client = anthropic.Anthropic()
+        client = make_client()
     for kind, items in kinds.items():
         guess = sum(guess_tokens(r, src) for r, src in items)
         factor = 1.0
@@ -315,15 +331,13 @@ def save_state(state: dict) -> None:
 
 
 def submit(rows: list[dict], max_dollars: float) -> list[str]:
-    import anthropic
-
     est = estimate(rows, measure=True)
     print(f"estimate (count_tokens on sample rows): {json.dumps(est)}")
     if est["dollars"] > max_dollars:
         sys.exit(f"estimate ${est['dollars']:.2f} is over the ${max_dollars:.2f} cap; ask Marlon first")
     state = load_state()
     sent = {cid for b in state["batches"] for cid in b["ids"]}
-    client = anthropic.Anthropic()
+    client = make_client()
     chunk, size, new = [], 0, []
 
     def send():
@@ -389,9 +403,7 @@ def valid_district(d: str | None) -> bool:
 
 
 def collect() -> int:
-    import anthropic
-
-    client = anthropic.Anthropic()
+    client = make_client()
     state = load_state()
     index = {custom_id(k): v for k, v in read_index().items()}
     rows = {}
@@ -494,7 +506,7 @@ def main(argv: list[str] | None = None) -> None:
         fetch(a.limit, ids)
     elif a.step == "estimate":
         rows = selected(a.limit, ids)
-        print(json.dumps(estimate(rows, measure=bool(os.environ.get("ANTHROPIC_API_KEY"))), indent=2))
+        print(json.dumps(estimate(rows, measure=bool(api_key())), indent=2))
     elif a.step == "submit":
         submit(selected(a.limit, ids), a.max_dollars)
     elif a.step == "collect":
