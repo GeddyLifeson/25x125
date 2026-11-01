@@ -75,9 +75,11 @@ jobs:
           $p = Start-Process -FilePath $setup.FullName -ArgumentList "/S" -PassThru
           $null = $p.Handle
           $p.WaitForExit(600000) | Out-Null
-          $exe = Join-Path $env:LOCALAPPDATA "Programs\25x125\25x125.exe"
-          if (-not (Test-Path $exe)) { Write-Error "not installed at $exe"; exit 1 }
-          "Installed at $exe"
+          $exe = Get-ChildItem (Join-Path $env:LOCALAPPDATA "Programs") -Recurse -Filter "25x125.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $exe) { Write-Output "25x125.exe not found under $env:LOCALAPPDATA\Programs"; exit 1 }
+          "Installed at $($exe.FullName)"
+          if (-not (Test-Path (Join-Path $exe.DirectoryName "resources\runtime\pgsql\bin\postgres.exe"))) { Write-Output "runtime missing"; exit 1 }
+          Get-Process -Name "25x125" -ErrorAction SilentlyContinue | Stop-Process -Force
       - uses: actions/upload-artifact@v4
         with:
           name: 25x125-windows-installer
