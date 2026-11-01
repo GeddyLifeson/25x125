@@ -673,7 +673,7 @@ Sources: [Cityscape](https://www.chicagocityscape.com/vs/siteselection), [Zoneom
 
 | Plan | Price | Includes |
 | --- | --- | --- |
-| Broker | $129/month; founding members $79/month; 14-day free trial | Site finder, feasibility, deal list, PDF exports |
+| Pro | $129/month; founding members $79/month; 14-day free trial | Site finder, feasibility, deal list, PDF exports |
 | Team | $399/month | Up to 5 users, shared deals, phase 2 modules as they ship |
 | Project modules | Per active project per month | Entitlement, budget, draw, construction tracking |
 | Network listing | Monthly subscription for boutique companies | Profile, project listings, investor introductions; flat fee only |
