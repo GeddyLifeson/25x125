@@ -1,7 +1,7 @@
 // The signed-in user, read from the session cookie through the engine (server side only).
 import { cookies, headers } from "next/headers";
 import { cache } from "react";
-import { CLAIM_HEADER, ENGINE_URL, isProduction, signClaim } from "./claim";
+import { CLAIM_HEADER, ENGINE_URL, isLocal, isProduction, signClaim } from "./claim";
 
 export const SESSION_COOKIE = "x25_session";
 export const SESSION_DAYS = 30;
@@ -24,6 +24,8 @@ export type Session = {
   user: { id: string; email: string; name: string | null };
   /** Product admin (ADMIN_EMAILS on the engine): sees /admin/feedback. */
   is_admin?: boolean;
+  /** Single-user desktop mode: no sign-in or sign-out. */
+  local?: boolean;
   org: OrgView;
   orgs: { id: string; name: string; role: string }[];
   expires_at: string;
@@ -52,7 +54,22 @@ async function readToken(): Promise<string | null> {
   }
 }
 
+async function localSession(): Promise<Session | null> {
+  try {
+    const res = await fetch(`${ENGINE_URL}/auth/local-session`, {
+      method: "POST",
+      cache: "no-store",
+      headers: { "content-type": "application/json", ...(await serviceHeaders()) },
+      body: "{}",
+    });
+    return res.ok ? ((await res.json()) as Session) : null;
+  } catch {
+    return null;
+  }
+}
+
 export const getSession = cache(async (): Promise<Session | null> => {
+  if (isLocal()) return localSession();
   const token = await readToken();
   if (!token) return null;
   try {

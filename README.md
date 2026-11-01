@@ -26,6 +26,11 @@ Planning and calibration are done (2026-10-29). Step 0 (setup) is in place: data
 | `scripts/research/` | Scripts that produced the reference data |
 | `mockups/` | Search, parcel, feasibility and deals screen mockups |
 | `martin/` | Tile server config for the map's vector tiles |
+| `desktop/` | Windows desktop program (Electron) and its installer build |
+
+## Desktop program (Windows, one person)
+
+`desktop/` packages the whole app as one Windows program built with Electron: the database (Postgres with PostGIS), the engine, the loaders and the screens run on your own computer, with no sign-in, hosting or payment. Download the installer from the repository's Releases page. Install steps, data loads and how it's built: [desktop/README.md](desktop/README.md).
 
 ## Getting started
 

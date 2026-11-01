@@ -12,7 +12,6 @@ Each run replaces both series. Run: python -m jobs.load_cost_escalation
 
 import csv
 import io
-import tempfile
 import urllib.request
 from collections.abc import Callable, Iterator
 from datetime import date, datetime
@@ -33,7 +32,7 @@ SOURCES = {
 }
 
 
-def census_rows(path: str) -> Iterator[tuple]:
+def census_rows(path) -> Iterator[tuple]:
     """Sheet 'Vertical': month, status flag, Laspeyres (fixed) index, Fisher deflator."""
     import openpyxl
 
@@ -60,10 +59,8 @@ def run(opener: Callable = urllib.request.urlopen, url: str | None = None) -> di
                     urllib.request.Request(src, headers={"User-Agent": USER_AGENT}), timeout=120
                 ) as resp:
                     if series == "census_uc":
-                        with tempfile.NamedTemporaryFile(suffix=".xlsx") as tmp:
-                            tmp.write(resp.read())
-                            tmp.flush()
-                            rows = list(census_rows(tmp.name))
+                        # In memory: Windows cannot reopen an open temporary file by name.
+                        rows = list(census_rows(io.BytesIO(resp.read())))
                     else:
                         rows = list(fred_rows(io.TextIOWrapper(resp, encoding="utf-8")))
                 if not rows:

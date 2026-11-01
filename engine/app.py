@@ -260,3 +260,28 @@ def parcel_facts(pin: str) -> dict:
     if out is None:
         raise HTTPException(404, f"PIN {pin} is not in the parcel table")
     return out
+
+
+# Map tiles straight from the PostGIS functions in db/migrations/0022_map_tiles.sql, for setups without the
+# Martin tile server (the desktop program). Zoom ranges match martin/config.yaml. Empty tiles answer 204.
+TILE_FUNCTIONS = {
+    "lots": ("lot_tiles", 10, 18),
+    "land_value": ("land_value_tiles", 9, 16),
+    "lots_for_sale": ("lot_for_sale_tiles", 9, 18),
+}
+
+
+@app.get("/tiles/{layer}/{z}/{x}/{y}")
+def tile(layer: str, z: int, x: int, y: int) -> Response:
+    if layer not in TILE_FUNCTIONS:
+        raise HTTPException(404, "unknown tile layer")
+    fn, minzoom, maxzoom = TILE_FUNCTIONS[layer]
+    if not (0 <= x < 2**z and 0 <= y < 2**z):
+        raise HTTPException(400, "tile out of range")
+    if not minzoom <= z <= maxzoom:
+        return Response(status_code=204)
+    with connect() as conn:
+        body = conn.execute(f"select {fn}(%s, %s, %s)", (z, x, y)).fetchone()[0]
+    if not body:
+        return Response(status_code=204)
+    return Response(bytes(body), media_type="application/x-protobuf")
