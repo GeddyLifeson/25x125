@@ -18,7 +18,7 @@ You don't install Docker, Python, Node or Postgres. They are inside the program.
 You need Windows 10 or 11 (64-bit), about 1.5 GB free for the program and 4 GB for the data, and an internet connection for the data loads.
 
 1. Open https://github.com/GeddyLifeson/25x125/releases in your browser.
-2. Under the newest release whose name starts with "25x125 desktop", click `25x125-Setup-<version>.exe` to download it (about 250 MB).
+2. Under the newest release whose name starts with "25x125 desktop", click `25x125-Setup-<version>.exe` to download it (about 310 MB).
 3. Double-click the downloaded file.
 4. Windows may show a blue box: "Windows protected your PC". The program isn't signed with a paid code-signing certificate, so Windows doesn't recognise it yet. Click **More info**, then **Run anyway**.
 5. The installer runs by itself in a few seconds. It doesn't ask for an administrator password; it installs for your Windows user only, in `C:\Users\<you>\AppData\Local\Programs\25x125`. It adds 25x125 to the Start menu and the desktop.
