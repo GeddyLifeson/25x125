@@ -30,6 +30,7 @@ from jobs import (
     load_parcels,
     load_permits,
     load_rents,
+    load_rezonings,
     load_sales,
     load_signals,
     load_streets,
@@ -53,6 +54,7 @@ def steps(year: int, skip_yearly: bool) -> list[tuple[str, Callable]]:
         ("cost escalation", lambda: load_cost_escalation.run()),
         ("lots for sale", lambda: load_lots_for_sale.run()),
         ("foreclosure auctions", lambda: load_foreclosure_auctions.run()),
+        ("rezonings", lambda: load_rezonings.run()),
     ]
     yearly = [
         ("parcels", lambda: load_parcels.run(year)),

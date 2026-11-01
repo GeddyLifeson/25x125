@@ -161,6 +161,14 @@ from (
   where pin10 is not null and kind = 'foreclosure_auction' order by pin10, signal_date desc nulls last
 ) x where ps.pin10 = x.pin10;
 
+update parcel_site ps set last_rezoning_date = x.signal_date, last_rezoning_status = x.status
+from (
+  select distinct on (pin10) pin10, signal_date, status from parcel_signal
+  where pin10 is not null and kind = 'rezoning' order by pin10, signal_date desc nulls last
+) x where ps.pin10 = x.pin10;
+update rezoning r set pin10 = g.pin10 from parcel_signal g
+where g.kind = 'rezoning' and g.source_id = r.record_number;
+
 update parcel_site ps set public_sale_source = x.source, public_sale_price = x.price
 from (
   select distinct on (pin10) pin10, source, coalesce(asking_price, minimum_bid, city_land_value) as price
