@@ -55,12 +55,12 @@ The scorer sets the nightly size: 1.6 GB peak, so the job Machine gets 2 GB. The
 | Fly nightly job | 2 GB Machine, billed only while it runs (estimate: 30-60 minutes a day; locally the parcel-site build took 13 minutes and the score 4) | about $0.50-1 |
 | Fly extras | stopped-Machine disk, image storage, outbound data | about $1-5 |
 | **Fly total** | | **about $12-17** |
-| Resend | Free: 3,000 emails a month, 100 a day | $0 |
+| Email | Gmail SMTP with an app password: free, up to 500 a day, no domain needed | $0 |
 | Sentry | Free Developer plan | $0 |
 | UptimeRobot | Free: 50 monitors, 5-minute checks | $0 |
 | Stripe | No monthly fee; 2.9% + 30¢ per card charge (a $129 Pro charge costs $4.04) | per charge |
-| Domain | Any registrar | about $10-15 a year |
-| **Total before Stripe fees** | | **about $42-47 a month, plus the domain** |
+| Public page | GitHub Pages, `https://geddylifeson.github.io/25x125/` (free for a public repo) | $0 |
+| **Total before Stripe fees** | | **about $42-47 a month** |
 
 Upgrade later if needed: Supabase point-in-time restore is an add-on; Fly's dedicated IPv4 is $2 a month (the free shared IPv4 is enough for one site).
 
@@ -74,10 +74,14 @@ Do these once. Nothing here needs a terminal except steps 7-9.
    - The direct host is IPv6 only. Fly has IPv6, so the engine, tile server, migrations and nightly job connect directly. If a deploy log shows `Network is unreachable`, switch `DATABASE_URL` to **Connect > Session pooler** (also port 5432, IPv4 and IPv6, user `postgres.<project ref>`). Never use the transaction pooler (port 6543).
    - Optional: Project Settings > Data API, turn it off. The app never uses it, and migration `0090_hosted_lockdown.sql` already takes the `anon` and `authenticated` roles' access away from every table.
 2. **Fly.io.** Sign up at fly.io and add a card. Install flyctl. On Windows, in PowerShell: `iwr https://fly.io/install.ps1 -useb | iex`. Then run `fly auth login`.
-3. **Resend.** Sign up at resend.com. Add and verify your sending domain under Domains (it gives DNS records to add at your registrar). Create an API key with sending access. Then `EMAIL_SERVER=smtps://resend:<api key>@smtp.resend.com:465` and `EMAIL_FROM=25x125 <sign-in@yourdomain.com>`.
+3. **Email (Gmail, for now).** No domain yet, so sign-in links go out from your Gmail address.
+   - Turn on 2-Step Verification at myaccount.google.com/security if it is off.
+   - Make an app password at myaccount.google.com/apppasswords, named 25x125. Copy the 16 letters without the spaces.
+   - Set `EMAIL_SERVER=smtps://<name>%40gmail.com:<app password>@smtp.gmail.com:465` (write the `@` in your address as `%40`) and `EMAIL_FROM=25x125 <<name>@gmail.com>`.
+   - Limits: 500 emails a day, and mail shows your Gmail address as the sender. That covers the contractor trial and the first customers. The dry run checks the format.
 4. **Sentry.** Sign up at sentry.io, create one project, copy its DSN into `SENTRY_DSN`. The engine, the nightly job and the web app all use it.
 5. **Stripe** (can wait; the trial works without it). Use test-mode keys first. Copy the secret key into `STRIPE_SECRET_KEY`. Create the two prices (Pro $129 a month, founding $79 a month) and copy their ids into `STRIPE_PRICE_PRO_MONTHLY` and `STRIPE_PRICE_FOUNDING_MONTHLY`. Add a webhook endpoint at `<APP_URL>/api/billing/webhook` for `checkout.session.completed` and `customer.subscription.*` events, and copy its signing secret into `STRIPE_WEBHOOK_SECRET`.
-6. **Secrets file.** Copy `.env.production.example` to `.env.production` (git ignores it) and fill it in. Make `ENGINE_SHARED_SECRET` with `python -c "import secrets; print(secrets.token_urlsafe(48))"`. Leave `APP_URL=https://x25x125-web.fly.dev` until a domain is attached.
+6. **Secrets file.** Copy `.env.production.example` to `.env.production` (git ignores it) and fill it in. Make `ENGINE_SHARED_SECRET` with `python -c "import secrets; print(secrets.token_urlsafe(48))"`. Keep `APP_URL=https://x25x125-web.fly.dev`; that is the app's address until a domain is bought.
 7. **Dry run.** `python -m scripts.deploy --dry-run` prints every command and checks the secrets file. It changes nothing.
 8. **Deploy and load.** `python -m scripts.deploy --first-load`. In order, it:
    1. checks that flyctl is installed and signed in;
@@ -89,11 +93,18 @@ Do these once. Nothing here needs a terminal except steps 7-9.
    7. starts the one-off full load, yearly steps included, on a 2 GB Machine that deletes itself when it exits;
    8. creates the `nightly` Machine (daily schedule, 2 GB, stops after each run), or moves it to the new image on later deploys.
 9. **Check.** Open `https://x25x125-web.fly.dev/api/health`. Follow the full load with `fly logs --app x25x125-engine`. Until it finishes, screens show the stale-data note and the map is empty.
-10. **Domain.** `fly certs add app.yourdomain.com --app x25x125-web`, add the DNS records it prints, then set `APP_URL=https://app.yourdomain.com` in `.env.production` and run `python -m scripts.deploy --only web`. Update the Stripe webhook URL to match.
+10. **Public page.** In the GitHub repo: Settings > Pages > Source: **GitHub Actions**. The next push to main publishes `site/` to `https://geddylifeson.github.io/25x125/` (`.github/workflows/pages.yml`). It describes the tool and links to the app.
 11. **Uptime.** In UptimeRobot add a Keyword monitor on `<APP_URL>/api/health`, every 5 minutes, alert when the keyword `"status":"ok"` **does not exist**. That one monitor catches a down site, a down engine or database (503) and stale data (`"status":"stale"`).
 12. **Deploys from GitHub** (optional). Run `fly tokens create org` (an organization token, because it deploys three apps) and save it as the repository secret `FLY_API_TOKEN` (Settings > Secrets and variables > Actions). After that, every push to main that passes CI deploys the code (`.github/workflows/deploy.yml`, which runs `python -m scripts.deploy --ci`). Without the secret the workflow skips and passes. Secrets and the first load still come from your machine.
 
 Later deploys: `python -m scripts.deploy` (all parts) or `--only engine,web` (some parts). The engine always migrates first.
+
+### Later: a domain
+
+Not needed now. When one is bought (about $10-15 a year):
+1. `fly certs add app.<domain> --app x25x125-web`, add the DNS records it prints, set `APP_URL=https://app.<domain>` in `.env.production`, and run `python -m scripts.deploy --only web`. Update the Stripe webhook URL to match.
+2. Email moves to Resend (free, 3,000 a month): verify the domain at resend.com > Domains, create an API key, and set `EMAIL_SERVER=smtps://resend:<api key>@smtp.resend.com:465` and `EMAIL_FROM=25x125 <sign-in@<domain>>`. Then `python -m scripts.deploy --only engine`.
+3. Optional: point the domain's root at GitHub Pages (Settings > Pages > Custom domain).
 
 ### Database role on Supabase
 

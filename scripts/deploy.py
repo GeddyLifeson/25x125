@@ -16,8 +16,9 @@ import subprocess
 import sys
 import time
 from datetime import UTC, datetime
+from email.utils import parseaddr
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 REGION = "iad"  # Ashburn, Virginia: next to Supabase us-east-1
@@ -152,6 +153,28 @@ def check_env(env: dict[str, str]) -> list[str]:
         and "@smtp.resend.com" not in env["EMAIL_SERVER"]
     ):
         problems.append("EMAIL_SERVER for Resend looks like smtps://resend:<api key>@smtp.resend.com:465")
+    problems += gmail_problems(env.get("EMAIL_SERVER", ""), env.get("EMAIL_FROM", ""))
+    return problems
+
+
+def gmail_problems(server: str, sender: str) -> list[str]:
+    """Checks for Gmail SMTP with an app password (the interim sender until a domain exists)."""
+    u = urlparse(server)
+    if u.hostname != "smtp.gmail.com":
+        return []
+    problems = []
+    user = unquote(u.username or "")
+    password = unquote(u.password or "")
+    if " " in password or "%20" in (u.password or ""):
+        problems.append("EMAIL_SERVER: type the Gmail app password without its spaces (16 letters)")
+    elif len(password) != 16:
+        problems.append(
+            "EMAIL_SERVER: a Gmail app password is 16 letters; use one from myaccount.google.com/apppasswords"
+        )
+    if "@" not in user:
+        problems.append("EMAIL_SERVER: the Gmail user is the full address, written with %40 for @")
+    if user and parseaddr(sender)[1].lower() != user.lower():
+        problems.append("EMAIL_FROM must use the same Gmail address as EMAIL_SERVER, or Gmail rewrites it")
     return problems
 
 

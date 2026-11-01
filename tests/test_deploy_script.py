@@ -32,3 +32,17 @@ def test_dry_run_changes_nothing_and_prints_every_step(capsys, monkeypatch):
                  "--schedule daily", "-- python -m jobs.nightly --skip-yearly", "--rm", "Nothing was changed"):  # fmt: skip
         assert part in out, part
     assert "replace-with" not in out  # secret values never printed
+
+
+def test_gmail_checks():
+    from scripts.deploy import gmail_problems
+
+    good = "smtps://marlon%40gmail.com:abcdefghijklmnop@smtp.gmail.com:465"
+    assert gmail_problems(good, "25x125 <marlon@gmail.com>") == []
+    assert gmail_problems("smtps://resend:re_x@smtp.resend.com:465", "a@b.c") == []
+    spaced = "smtps://marlon%40gmail.com:abcd%20efgh%20ijkl%20mnop@smtp.gmail.com:465"
+    assert any("without its spaces" in p for p in gmail_problems(spaced, "marlon@gmail.com"))
+    assert any("same Gmail address" in p for p in gmail_problems(good, "25x125 <other@gmail.com>"))
+    assert any(
+        "%40" in p for p in gmail_problems("smtps://marlon:abcdefghijklmnop@smtp.gmail.com:465", "x@y.z")
+    )

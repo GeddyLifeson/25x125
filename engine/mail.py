@@ -1,7 +1,7 @@
 """Outgoing email: sign-in links and invites.
 
 With EMAIL_SERVER set (smtp://user:password@host:587 for STARTTLS, smtps://...:465 for TLS), mail goes out
-through that server; any SMTP provider works (Resend, Postmark, Amazon SES, a Google Workspace relay).
+through that server; any SMTP provider works (Gmail with an app password for now; Resend once a domain exists).
 Without it the engine is in dev mode: the message is printed to the engine console and written to
 .dev-mail/<address>.txt in the repo root, and nothing is sent.
 """
