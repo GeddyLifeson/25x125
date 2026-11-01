@@ -163,10 +163,17 @@ function run(name, cmd, args, opts = {}) {
       out.write(`failed to start: ${e}\n`);
       resolve(-1);
     });
-    child.on("close", (code) => {
+    // Resolve on exit. On Windows "pg_ctl start" leaves the server holding the inherited output pipes, so
+    // "close" would never come; wait a moment for the last output, then go on.
+    let done = false;
+    const finish = (code) => {
+      if (done) return;
+      done = true;
       out.end();
       resolve(code ?? -1);
-    });
+    };
+    child.on("close", finish);
+    child.on("exit", (code) => setTimeout(() => finish(code), 1500));
   });
 }
 
@@ -493,6 +500,15 @@ async function selfTest() {
 }
 
 async function start() {
+  if (SELF_TEST) {
+    // CI watchdog: never hang the build; report where start-up got to and stop.
+    setTimeout(() => {
+      log("Self-test watchdog: 12 minutes passed; stopping.");
+      const outArg = process.argv.find((a) => a.startsWith("--self-test-out="));
+      if (outArg) fs.writeFileSync(outArg.slice(16), JSON.stringify({ ok: false, error: "watchdog", lines: statusLines.slice(-40) }, null, 2));
+      shutdown(1);
+    }, 12 * 60 * 1000).unref();
+  }
   userData = app.getPath("userData");
   logsDir = path.join(userData, "logs");
   pgData = path.join(userData, "pgdata");

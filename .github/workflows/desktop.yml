@@ -59,10 +59,12 @@ jobs:
           $p = Start-Process -FilePath "dist\win-unpacked\25x125.exe" -PassThru `
             -ArgumentList "--self-test", "--self-test-load", "--self-test-out=$out", "--data-dir=$data"
           $null = $p.Handle
-          if (-not $p.WaitForExit(900000)) { $p.Kill(); Write-Error "self-test timed out" }
+          $finished = $p.WaitForExit(900000)
+          if (-not $finished) { Write-Output "self-test timed out"; Get-Process | Where-Object { $_.Name -in "25x125", "postgres", "python", "pg_ctl" } | Stop-Process -Force -ErrorAction SilentlyContinue }
           if (Test-Path $out) { Get-Content $out } else { Write-Output "no self-test report" }
-          Get-ChildItem (Join-Path $data "logs") -File | ForEach-Object { Write-Output "---- $($_.Name)"; Get-Content $_.FullName -Tail 80 }
-          if ($p.ExitCode -ne 0) { Write-Error "self-test failed (exit $($p.ExitCode))"; exit 1 }
+          $logs = Join-Path $data "logs"
+          if (Test-Path $logs) { Get-ChildItem $logs -File | ForEach-Object { Write-Output "---- $($_.Name)"; Get-Content $_.FullName -Tail 80 } }
+          if (-not $finished -or $p.ExitCode -ne 0) { Write-Output "self-test failed"; exit 1 }
           $r = Get-Content $out | ConvertFrom-Json
           if (-not $r.ok) { exit 1 }
       - name: Install silently and check the files
