@@ -223,10 +223,11 @@ async function accountChecks(browser) {
 
 async function mapChecks(browser) {
   const page = await newPage(browser, { width: 1440, height: 900 });
-  const tiles = { lots: 0, land_value: 0, lots_for_sale: 0, bad: 0 };
+  const tiles = { lots: 0, land_value: 0, lots_for_sale: 0, bad: 0, last: 0 };
   page.on("response", (r) => {
     const m = r.url().match(/\/tiles\/(\w+)\//);
     if (!m) return;
+    tiles.last = Date.now();
     if (r.status() === 200 || r.status() === 204) tiles[m[1]]++;
     else tiles.bad++;
   });
@@ -316,12 +317,14 @@ async function mapChecks(browser) {
   check(opened, "clicking a lot on the map opens its panel");
 
   // Layers: fast path, land value, lots for sale.
+  // Start the clock before the clicks: the map can finish drawing all three layers before the last click returns.
+  // Then wait for the map to settle after the last tile came in.
+  t = Date.now();
   await page.click("[data-testid=layer-fast]");
   await page.click("[data-testid=layer-land]");
   await page.click("[data-testid=layer-sale]");
-  t = Date.now();
   await page.waitForTimeout(300);
-  await mapIdleAfter(page, t);
+  await mapIdleAfter(page, Math.max(t, tiles.last));
   check(tiles.land_value > 0 && tiles.lots_for_sale > 0 && tiles.bad === 0,
     `layers load: land value ${tiles.land_value} tiles, lots for sale ${tiles.lots_for_sale} tiles`);
   check((await page.locator("text=City (ChiBlockBuilder)").count()) > 0 && (await page.locator("text=Paler where fewer than 5 sales").count()) > 0,
@@ -329,9 +332,11 @@ async function mapChecks(browser) {
   await page.screenshot({ path: path.join(OUT, "map-layers.png") });
 
   // Zoom out to the area to see land values and lots for sale together.
+  t = Date.now();
   await page.selectOption("[data-testid=area]", "");
   await page.selectOption("[data-testid=area]", "23");
-  await mapIdleAfter(page, Date.now());
+  await page.waitForTimeout(300);
+  await mapIdleAfter(page, Math.max(t, tiles.last));
   await page.screenshot({ path: path.join(OUT, "map-layers-area.png") });
   await page.close();
 }

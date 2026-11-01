@@ -230,6 +230,8 @@ export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial:
     let cancelled = false;
     (async () => {
       const maplibregl = await import("maplibre-gl");
+      // MapLibre 6 ships ES modules only; the bundler emits the worker file and this points the map at it.
+      maplibregl.setWorkerUrl(new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString());
       lib.current = maplibregl;
       let style: StyleSpecification = {
         version: 8,
@@ -257,6 +259,8 @@ export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial:
         minZoom: 9,
         maxZoom: 19,
         attributionControl: { compact: false },
+        // MapLibre 6 changed this default to 4; undefined keeps the version 5 tile overscaling and click hits.
+        zoomLevelsToOverscale: undefined,
       });
       mapRef.current = map;
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");

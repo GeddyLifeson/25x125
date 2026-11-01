@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 const SESSION_COOKIE = "x25_session";
 const PROTECTED = [/^\/deals(\/|$)/, /^\/account(\/|$)/];
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
   if (pathname.startsWith("/api/") && !["GET", "HEAD", "OPTIONS"].includes(req.method) && pathname !== "/api/billing/webhook") {
     const origin = req.headers.get("origin");
