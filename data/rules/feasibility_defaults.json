@@ -145,8 +145,14 @@
     "property_tax": {
       "line": "explicit tax line; value = NOI before tax / (cap rate + effective tax rate)",
       "effective_tax_rate": "from the Assessor and Clerk tax rate for the tax code, 1.52-2.0% typical",
-      "source": "CCAO cap rate policy 2023; Civic Federation; decision 31"
-    }
+      "source": "CCAO cap rate policy 2023; Civic Federation; decision 31",
+      "effective_tax_rate_default": 0.018,
+      "rate_note": "midpoint of 1.52-2.0% of market value (Civic Federation, research notes); replace with the parcel's tax-code rate x 10% assessment x the state equalizer when loaded"
+    },
+    "opex_ratio_before_tax": 0.3,
+    "opex_note": "share of effective gross income for insurance, water, repairs, management and reserves, before property tax. Assumption: the Assessor's 2024 worksheets use about 0.45 for Chicago low-rise apartments (84 of 2-6 units), but whether that includes tax is not confirmed; 2-6 flats with tenant-paid heat run lower. Replace with the contractor's or lender's figure.",
+    "formula": "EGI = rent x 12 x units x vacancy factor; NOI before tax = EGI x (1 - opex ratio); value = NOI before tax / (cap rate + effective tax rate); property tax = value x tax rate; NOI = NOI before tax - property tax",
+    "replaces": "operating_factor 0.65 (after costs and taxes), kept for reference"
   },
   "rents": {
     "base": "Census ACS 2020-2024 median gross rent by bedrooms (B25031), tract, then ZIP area, then the tract's overall median (B25064 for the all-units figure); keyless summary files, python -m jobs.load_rents",
