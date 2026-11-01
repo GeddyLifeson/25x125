@@ -669,11 +669,11 @@ Price the first release between Chicago Cityscape and the national design tools,
 
 Sources: [Cityscape](https://www.chicagocityscape.com/vs/siteselection), [Zoneomics](https://www.zoneomics.com/pricing/zoning-search), [PropStream](https://www.propstream.com/news/how-much-does-propstream-cost), [DealMachine](https://resimpli.com/blog/dealmachine-pricing/), [TestFit](https://pricingsaas.com/companies/testfit)
 
-**Proposed pricing** (to test, not final)
+**Pricing (Pro price set 2026-11-01; others to test)**
 
 | Plan | Price | Includes |
 | --- | --- | --- |
-| Broker | $149/month or $1,490/year | Site finder, feasibility, deal list, PDF exports |
+| Broker | $129/month; founding members $79/month; 14-day free trial | Site finder, feasibility, deal list, PDF exports |
 | Team | $399/month | Up to 5 users, shared deals, phase 2 modules as they ship |
 | Project modules | Per active project per month | Entitlement, budget, draw, construction tracking |
 | Network listing | Monthly subscription for boutique companies | Profile, project listings, investor introductions; flat fee only |
