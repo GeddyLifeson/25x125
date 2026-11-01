@@ -9,7 +9,10 @@ import sys
 import traceback
 from collections.abc import Callable
 
+import psycopg
+
 from core import errors
+from core.settings import settings
 from jobs import (
     build_comps,
     build_cost_index,
@@ -88,11 +91,40 @@ def steps(year: int, skip_yearly: bool) -> list[tuple[str, Callable]]:
     return ([] if skip_yearly else yearly) + nightly + build
 
 
+# One run at a time: the scheduled nightly Machine and a manual or first full load must not overlap
+# (docs/deploy.md). A Postgres session lock, released when the connection closes.
+LOCK_KEY = 25125
+
+
+def _lock() -> tuple[bool, psycopg.Connection | None]:
+    """(go ahead, connection holding the lock). No database: go ahead without a lock; the steps report it."""
+    try:
+        conn = psycopg.connect(settings.database_url, autocommit=True, connect_timeout=10)
+    except psycopg.OperationalError:
+        return True, None
+    if conn.execute("select pg_try_advisory_lock(%s)", (LOCK_KEY,)).fetchone()[0]:
+        return True, conn
+    conn.close()
+    return False, None
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--year", type=int, default=2026)
     ap.add_argument("--skip-yearly", action="store_true", help="skip the tax-year reloads")
     a = ap.parse_args(argv)
+    go, lock = _lock()
+    if not go:
+        print("another nightly run is in progress; this one stops without loading anything", flush=True)
+        return 0
+    try:
+        return _run(a)
+    finally:
+        if lock is not None:
+            lock.close()
+
+
+def _run(a: argparse.Namespace) -> int:
     failures = 0
     for name, step in steps(a.year, a.skip_yearly):
         try:

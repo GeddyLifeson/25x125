@@ -1,0 +1,46 @@
+# Engine (FastAPI). Private only: no public IP. The web app reaches it at http://x25x125-engine.internal:8080.
+# Deploy: python -m scripts.deploy (runs: fly deploy . --config deploy/fly.engine.toml
+#         --dockerfile deploy/engine.Dockerfile --remote-only)
+# Secrets (fly secrets set, done by the deploy script from .env.production; values never in this file):
+#   DATABASE_URL, ENGINE_SHARED_SECRET, EMAIL_SERVER, EMAIL_FROM, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
+#   STRIPE_PRICE_PRO_MONTHLY, STRIPE_PRICE_FOUNDING_MONTHLY, SENTRY_DSN, SOCRATA_APP_TOKEN, CENSUS_API_KEY
+app = "x25x125-engine"
+primary_region = "iad"
+kill_signal = "SIGTERM"
+kill_timeout = 30
+
+[build]
+  dockerfile = "engine.Dockerfile"
+
+[deploy]
+  # Migrations run once per deploy, in a temporary Machine on Fly's network, before the new version starts.
+  # A failed migration stops the deploy and the old version keeps running.
+  release_command = "python -m db.migrate"
+  strategy = "rolling"
+
+[env]
+  APP_ENV = "production"
+  HOST = "::"
+  PORT = "8080"
+  # Two workers: one long feasibility run does not hold up the rest. Measured about 95 MB each.
+  WEB_CONCURRENCY = "2"
+
+# No [http_service]: the engine is not on the public internet. Fly still runs the check below on the
+# Machine and holds a rolling deploy until it passes.
+[[services]]
+  internal_port = 8080
+  protocol = "tcp"
+  auto_stop_machines = "off"
+  auto_start_machines = false
+  min_machines_running = 1
+
+  [[services.http_checks]]
+    interval = "30s"
+    timeout = "10s"
+    grace_period = "20s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

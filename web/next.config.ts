@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["@react-pdf/renderer"],
   turbopack: { root: repoRoot },
   outputFileTracingRoot: repoRoot,
+  // The production image (deploy/web.Dockerfile) sets NEXT_OUTPUT=standalone: a self-contained server in
+  // .next/standalone. Left unset, `npm run build` and `npm run start` work as before.
+  ...(process.env.NEXT_OUTPUT === "standalone" ? { output: "standalone" as const } : {}),
 };
 
 export default nextConfig;

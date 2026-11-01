@@ -1,0 +1,35 @@
+# Map tile server (Martin). Private only; the web app passes tiles through at /tiles/...
+# Deploy: python -m scripts.deploy (runs: fly deploy . --config deploy/fly.tiles.toml
+#         --dockerfile deploy/tiles.Dockerfile --remote-only)
+# Secrets: DATABASE_URL
+app = "x25x125-tiles"
+primary_region = "iad"
+
+[build]
+  dockerfile = "tiles.Dockerfile"
+
+[deploy]
+  strategy = "rolling"
+
+[env]
+  MARTIN_LISTEN = "[::]:3000"
+  RUST_LOG = "warn"
+
+[[services]]
+  internal_port = 3000
+  protocol = "tcp"
+  auto_stop_machines = "off"
+  auto_start_machines = false
+  min_machines_running = 1
+
+  [[services.http_checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "15s"
+    method = "GET"
+    path = "/health"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  # martin/config.yaml keeps a 256 MB tile cache; 512 MB leaves room for the server and connection pool.
+  memory = "512mb"
