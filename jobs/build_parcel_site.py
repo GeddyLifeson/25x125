@@ -155,6 +155,18 @@ from (
   group by pin10
 ) x where ps.pin10 = x.pin10;
 
+update parcel_site ps set foreclosure_auction_date = x.signal_date, foreclosure_auction_status = x.status
+from (
+  select distinct on (pin10) pin10, signal_date, status from parcel_signal
+  where pin10 is not null and kind = 'foreclosure_auction' order by pin10, signal_date desc nulls last
+) x where ps.pin10 = x.pin10;
+
+update parcel_site ps set public_sale_source = x.source, public_sale_price = x.price
+from (
+  select distinct on (pin10) pin10, source, coalesce(asking_price, minimum_bid, city_land_value) as price
+  from lot_for_sale where for_sale and pin10 is not null order by pin10, source
+) x where ps.pin10 = x.pin10;
+
 -- Depth channels keyed by lot or PIN: Assessor proximity, city footprints, tax-exempt owners.
 update parcel_site ps set foreclosures_half_mile_5y = x.foreclosures_half_mile_5y,
   nearest_new_construction_ft = x.nearest_new_construction_ft

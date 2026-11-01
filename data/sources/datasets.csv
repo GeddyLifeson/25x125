@@ -10,7 +10,7 @@ Building permits,Chicago,ydr8-5enu,https://data.cityofchicago.org/resource/,dail
 Building violations,Chicago,22u3-xenr,https://data.cityofchicago.org/resource/,daily,2026-10-29 yes,signals
 311 service requests,Chicago,v6vf-nfxy,https://data.cityofchicago.org/resource/,daily,2026-10-29 yes,vacant building/lot signals
 Scofflaw list,Chicago,rz4d-qp2m,https://data.cityofchicago.org/resource/,monthly,2026-10-29 yes,signals
-City-owned land,Chicago,aksk-kvfp,https://data.cityofchicago.org/resource/,weekly,2026-10-29 yes,signals
+City-owned land,Chicago,aksk-kvfp,https://data.cityofchicago.org/resource/,weekly,2026-10-29 yes,signals; lots for sale layer
 Asbestos and demolition notices,Chicago,qhb4-qx8k,https://data.cityofchicago.org/resource/,daily,2026-10-29 yes,signals
 TIF districts,Chicago,eejr-xtfb,https://data.cityofchicago.org/resource/,as changed,2026-10-29 yes,incentives
 Enterprise Zones,Chicago GIS,operational/MapServer/73,https://gisapps.chicago.gov/arcgis/rest/services/ExternalApps/,as changed,2026-10-30 yes (6 zones; portal 64xf-pyvh has empty geometry),incentives
@@ -43,3 +43,8 @@ Environmental permit holds and LUST NFR,Chicago,6gqn-e2ij,https://data.cityofchi
 Administrative hearing cases (Buildings),Chicago,6br9-quuz,https://data.cityofchicago.org/resource/,daily,2026-10-30 yes,signals: fines imposed and dispositions since 2021
 Vacant and abandoned building violations,Chicago,kc9i-wq85,https://data.cityofchicago.org/resource/,as changed,2026-10-30 yes,signals: fines and amount due
 Foreclosed rental property registry,Chicago,yhcw-iu53,https://data.cityofchicago.org/resource/,daily,2026-10-30 yes,signals: lender-owned rentals
+Census price index of new single-family houses under construction,Census,price_uc_cust.xlsx,https://www.census.gov/construction/nrs/xls/,monthly,2026-11-01 yes,cost escalation (decision 23)
+PPI net inputs to residential construction (goods),FRED,WPUIP2311001,https://fred.stlouisfed.org/graph/fredgraph.csv?id=,monthly,2026-11-01 yes,cost escalation signal
+Cook County Land Bank property feed,Cook County Land Bank,getPublishedProperties,https://public-cclba.epropertyplus.com/landmgmtpub/remote/public/property/,daily,2026-11-01 yes,lots for sale layer
+Foreclosure auctions (Judicial Sales Corporation),TJSC,UpcomingSales/CompletedSales/CancelledSales,https://www.tjsc.com/Sales/,daily,2026-11-01 yes,foreclosure_auction signals (history kept between runs)
+Foreclosure auctions (Cook County Sheriff),Sheriff,previoussale,https://foreclosure.ccsheriff.org/,daily,2026-11-01 yes,foreclosure_auction signals

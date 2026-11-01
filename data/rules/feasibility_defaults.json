@@ -29,12 +29,18 @@
     },
     "status": "set from published evidence 2026-10-29 (docs/construction-costs-2026-10-29.md); replace with real job costs when available",
     "escalation": {
-      "source": "https://fred.stlouisfed.org/series/WPUIP2311001",
-      "verified_on": "2026-10-29",
-      "series": "WPUIP2311001",
+      "source": "https://www.census.gov/construction/nrs/xls/price_uc_cust.xlsx",
+      "verified_on": "2026-11-01",
+      "series": "census_uc",
+      "series_name": "Census constant-quality price index of new single-family houses under construction (Laspeyres, 2005 = 100)",
       "base_month": "2026-09",
-      "base_value": 355.225,
-      "rule": "preset x index now / base value, monthly; show base month and change"
+      "base_value": 200.7,
+      "signal_series": "ppi_resi_inputs",
+      "signal_source": "https://fred.stlouisfed.org/series/WPUIP2311001",
+      "signal_base_value": 355.225,
+      "table": "cost_escalation_index (latest per series and 12-month change in view cost_escalation)",
+      "rule": "preset x (latest census_uc / base_value), then x (1 + 12-month change) ^ (build months / 2 / 12) to reach the build midpoint; show base month, latest month and both changes",
+      "why": "decision 23: the Census index prices whole houses (labor and margin included); PPI goods covers materials only and runs hotter (+9.7% vs +1.6% in the 12 months to September 2026), so it is shown as a signal, not applied"
     }
   },
   "neighborhood_adjustment": {
