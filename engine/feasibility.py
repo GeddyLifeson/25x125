@@ -7,7 +7,7 @@ changes in docs/research/decisions-2026-10-30.md. Every number carries its basis
 
 import math
 import random
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from functools import lru_cache
 
 import numpy as np
@@ -25,6 +25,7 @@ class Inputs:
     sale_low_mult: float | None = None  # 80% range as multipliers of central
     sale_high_mult: float | None = None
     sale_comps: int | None = None
+    sale_entered: bool = False  # the user typed the sale price: no size adjustment
     rent_per_unit: float | None = None  # monthly
     rent_low_mult: float | None = None
     rent_high_mult: float | None = None
@@ -135,8 +136,16 @@ def scenario(
     gross = x.gross_sqft
     if gross is None:
         gross = x.units * size * d["circulation_factor"]
-    if lot_far_cap:
-        gross = min(gross, lot_far_cap)
+    size_note = None
+    if lot_far_cap and lot_far_cap < gross:
+        e = d["sell"].get("small_unit_sale_elasticity", {}).get("value", 0.0)
+        if x.sale_per_unit and not x.sale_entered and e:
+            f = (lot_far_cap / gross) ** e
+            size_note = {"factor": round(f, 4), "pattern_sqft": round(gross), "capped_sqft": round(lot_far_cap),
+                         "label": f"lot x FAR caps the building at {lot_far_cap:,.0f} sq ft of {gross:,.0f}; "
+                                  f"sale per unit x {f:.2f} for smaller units (elasticity {e})"}  # fmt: skip
+            x = replace(x, sale_per_unit=x.sale_per_unit * f)
+        gross = lot_far_cap
     # Enterprise Zone savings come off hard cost before financing (decision 39) when on.
     c0 = _cost(d, x, gross, fee, 0.0)
     inc0 = incentives(d, x, c0, exit_, None)
@@ -150,6 +159,7 @@ def scenario(
                          "low_margin": round(c.low - c.total), "high_margin": round(c.high - c.total),
                          "label": "high case is about P90 (AACE ranges); land carries no margin"}  # fmt: skip
     out["cost_per_unit"] = round(c.total / x.units)
+    out["sale_size_adjustment"] = size_note
 
     if exit_ == "sell":
         out["sell"] = _sell(d, x, c)

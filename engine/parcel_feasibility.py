@@ -222,6 +222,7 @@ def inputs_for(
         sale_low_mult=(est.low / est.per_unit) if est and est.low else None,
         sale_high_mult=(est.high / est.per_unit) if est and est.high else None,
         sale_comps=est.n if est else None,
+        sale_entered="sale_per_unit" in o,
         rent_per_unit=float(o["rent_per_unit"]) if "rent_per_unit" in o else (r["per_month"] if r else None),
         rent_low_mult=r["low"] / r["per_month"] if r else None,
         rent_high_mult=r["high"] / r["per_month"] if r else None,

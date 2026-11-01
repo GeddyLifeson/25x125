@@ -9,7 +9,7 @@ D = json.loads(
 
 
 def test_preset_and_adjustment_do_not_count_the_area_twice():
-    assert preset_for(0.78) == "production" and round(adjustment_for("production", 0.78), 2) == 0.89
+    assert preset_for(0.78) == "production" and adjustment_for("production", 0.78) == 1.0  # floored
     assert preset_for(1.94) == "high" and adjustment_for("high", 1.94) == 1.0
     assert adjustment_for("production", 1.29) == 1 + 0.5 * 0.29
 

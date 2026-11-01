@@ -41,6 +41,14 @@
       "table": "cost_escalation_index (latest per series and 12-month change in view cost_escalation)",
       "rule": "preset x (latest census_uc / base_value), then x (1 + 12-month change) ^ (build months / 2 / 12) to reach the build midpoint; show base month, latest month and both changes",
       "why": "decision 23: the Census index prices whole houses (labor and margin included); PPI goods covers materials only and runs hotter (+9.7% vs +1.6% in the 12 months to September 2026), so it is shown as a signal, not applied"
+    },
+    "production_adjustment": {
+      "slope": 0.5,
+      "floor": 1.0,
+      "cap_index": 1.3,
+      "rule": "production preset x (1 + slope x (min(index, cap_index) - 1)), never below floor",
+      "why": "2026-11-01: the production preset was set from West Chatham Missing Middle 3-flats, already a low-index South Side build, so adjusting below 1.0 counted the low area twice (South Chicago 3-flat at $167,000 a unit vs the $303,000 Missing Middle check). Declared permit values also run low where owners build for themselves.",
+      "verified_on": "2026-11-01"
     }
   },
   "neighborhood_adjustment": {
@@ -125,7 +133,13 @@
       },
       "display": "financing class per scenario; flag whole-building price above the FHA limit"
     },
-    "target_note": "20% on cost; 15% is the low end of published benchmarks (RICS, PPG para 019). Show 15%, 20% and 25% reference lines and the margin on net sale. Decision 26, docs/research/decisions-2026-10-30.md"
+    "target_note": "20% on cost; 15% is the low end of published benchmarks (RICS, PPG para 019). Show 15%, 20% and 25% reference lines and the margin on net sale. Decision 26, docs/research/decisions-2026-10-30.md",
+    "small_unit_sale_elasticity": {
+      "value": 0.5,
+      "rule": "when lot x FAR caps the building below the pattern's area, sale per unit x (capped area / pattern area) ^ 0.5",
+      "source": "condo size elasticity measured by python -m jobs.check_comps (sale_comps.method.size_elasticity)",
+      "verified_on": "2026-11-01"
+    }
   },
   "hold": {
     "vacancy_factor": 0.95,

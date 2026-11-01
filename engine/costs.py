@@ -54,11 +54,13 @@ def preset_for(index: float | None) -> str:
     return "standard" if index < 1.8 else "high"
 
 
-def adjustment_for(preset: str, index: float | None) -> float:
-    """Production preset only: 1 + 0.5 x (min(index, 1.3) - 1); the other presets already reflect the area."""
+def adjustment_for(preset: str, index: float | None, rule: dict | None = None) -> float:
+    """Production preset only: 1 + slope x (min(index, cap) - 1), floored (build_spec_presets.production_adjustment);
+    the other presets already reflect the area."""
     if preset != "production" or index is None:
         return 1.0
-    return 1 + 0.5 * (min(index, 1.3) - 1)
+    r = rule or {"slope": 0.5, "floor": 1.0, "cap_index": 1.3}
+    return max(r["floor"], 1 + r["slope"] * (min(index, r["cap_index"]) - 1))
 
 
 def cost(
@@ -79,7 +81,7 @@ def cost(
     area = gfa(d, units, lot_sqft, far)
     preset = preset or preset_for(index)
     base = d["build_spec_presets"][preset]["2-3" if units <= 3 else "4-6"] * escalation
-    adj = adjustment_for(preset, index)
+    adj = adjustment_for(preset, index, d["build_spec_presets"].get("production_adjustment"))
     hard = area * base * adj
     sprinklers = area * d["sprinklers_per_sqft_at_4_plus_units"] if units >= 4 else 0.0
     contingency = d["hard_cost_contingency"] * hard
