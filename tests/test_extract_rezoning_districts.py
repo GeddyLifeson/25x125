@@ -103,3 +103,20 @@ def test_api_key_prefers_project_name(monkeypatch):
     assert x.api_key() == "a"
     monkeypatch.delenv("ANTHROPIC_API_KEY")
     assert x.api_key() is None
+
+
+def test_clean_district_drops_trailing_district_name():
+    assert x.clean_district("C1-2 Neighborhood Commercial District") == "C1-2"
+    assert x.clean_district("RT-4-RESIDENTIAL-TWO-FLAT,-TOWNHOUSE-AND-MULTI-UNIT") == "RT-4"
+    assert x.clean_district("RM-4.5, as amended") == "RM-4.5"
+    assert x.clean_district("B3-3-TOD") == "B3-3"
+
+
+def test_section1_to_district_reads_ocr_text():
+    assert (
+        x.section1_to_district("... to those of a Cl-1, Neighborhood Commercial District. SECTION 2")
+        == "C1-1"
+    )
+    assert x.section1_to_district("to those of a RT4 Residential Two-Flat") == "RT-4"
+    assert x.section1_to_district("to those of a Bl-3, Neighborhood Shopping") == "B1-3"
+    assert x.section1_to_district("no section here") is None

@@ -52,7 +52,7 @@ BATCH_BYTES = 150_000_000  # API cap is 256 MB per batch; stay well under it
 INDEX_COLUMNS = ["record_number", "matter_id", "title", "pdf_url", "file_name", "pages", "path", "error"]
 OUT_COLUMNS = [
     "record_number", "from_district", "to_district", "changes", "pd_number", "map_no", "readable",
-    "confidence", "codes_valid", "app_from_district", "app_to_district", "input_kind", "note", "model", "pdf_url", "extracted_on", "input_tokens", "output_tokens",
+    "confidence", "codes_valid", "app_from_district", "app_to_district", "text_to_district", "needs_check", "input_kind", "note", "model", "pdf_url", "extracted_on", "input_tokens", "output_tokens",
 ]  # fmt: skip
 
 PROMPT = """This is a Chicago City Council zoning map amendment (a rezoning ordinance): a scan, or the OCR text
@@ -289,6 +289,23 @@ APPLICATION = re.compile(
 )
 
 
+SECTION1_TO = re.compile(
+    r"to\s+those\s+of\s+an?\s+([A-Z]{1,3}[0-9lI]?[\- ]?[0-9lIS]{1,2}(?:\.[0-9S])?)[,\s]", re.IGNORECASE
+)
+
+
+def section1_to_district(text: str) -> str | None:
+    """Free cross-check on OCR text: the first "to those of a <district>" in Section 1. Two-step and
+    multi-parcel ordinances name more than one, so a mismatch is a flag for a hand check, not a verdict."""
+    m = SECTION1_TO.search(" ".join(text.split()))
+    if not m:
+        return None
+    raw = m.group(1).upper()
+    raw = raw[:1] + re.sub(r"(?<=[\d\-])[LI]|[LI](?=[\-\d])", "1", raw[1:])
+    d = clean_district(raw)
+    return d if valid_district(d) else None
+
+
 def application_districts(text: str) -> tuple[str | None, str | None]:
     """Free cross-check: the application's question 9 states the present and proposed district."""
     m = APPLICATION.search(text)
@@ -379,6 +396,9 @@ def clean_district(d: str | None) -> str | None:
     if pmd:
         return f"PMD {pmd.group(1)}" if pmd.group(1) else "PMD"
     s = s.replace(" ", "-")
+    lead = re.match(r"^([A-Z]{1,3}\d?-\d+(?:\.\d)?)[-,(]", s)  # "C1-2-NEIGHBORHOOD-COMMERCIAL-DISTRICT"
+    if lead and VALID.match(lead.group(1)):
+        return lead.group(1)
     s = re.sub(r"^([BCM])[LI](?=-?\d)", r"\g<1>1", s)  # OCR reads B1-1 as BL-1
     s = re.sub(r"^(RT|RM)-?(\d)\.S$", r"\1-\2.5", s)  # OCR reads RT-3.5 as RT3.S
     m = re.match(r"^(RS|RT|RM|DX|DC|DR|DS|POS)-?(\d+(?:\.\d)?)$", s)
@@ -437,6 +457,22 @@ def collect() -> int:
             first, last = (changes[0], changes[-1]) if changes else ({}, {})
             kind, data = source_for(ROOT / src["path"])
             app_from, app_to = application_districts(data) if kind == "text" else (None, None)
+            text_to = section1_to_district(data) if kind == "text" else None
+            to_codes = {c["to"] for c in changes}
+            codes_valid = bool(changes) and all(
+                valid_district(c["from"]) and valid_district(c["to"]) for c in changes
+            )
+            needs_check = (
+                not codes_valid
+                or ans.get("confidence") == "low"
+                or not ans.get("readable")
+                or bool(app_to and valid_district(app_to) and app_to not in to_codes)
+                or bool(
+                    text_to
+                    and text_to not in to_codes
+                    and not any((t or "").startswith("PD") for t in to_codes)
+                )
+            )
             rows[src["record_number"]] = {
                 "record_number": src["record_number"],
                 "from_district": first.get("from"),
@@ -446,10 +482,11 @@ def collect() -> int:
                 "map_no": ans.get("map_no") or "",
                 "readable": ans.get("readable"),
                 "confidence": ans.get("confidence"),
-                "codes_valid": bool(changes)
-                and all(valid_district(c["from"]) and valid_district(c["to"]) for c in changes),
+                "codes_valid": codes_valid,
                 "app_from_district": app_from or "",
                 "app_to_district": app_to or "",
+                "text_to_district": text_to or "",
+                "needs_check": needs_check,
                 "input_kind": kind,
                 "note": ans.get("note") or "",
                 "model": msg.model,
