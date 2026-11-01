@@ -82,7 +82,7 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 
 ## Step 6: Map search and deals
 
-- [x] Parcel vector tiles; map and list matching `mockups/Main.dc.html`; filters and sorts; under 2 seconds.
+- [x] Parcel vector tiles; map and list matching `mockups/Main.dc.html`; filters and sorts; under 2 seconds. (Filter changes 0.1-0.9 s; first open of the map 2.9-4.0 s with a cold basemap, 2026-11-01.)
 - [x] Fast-path filter, land value map layer, and city lots for sale (ChiBlockBuilder) layer.
 - [x] Deals screen matching `mockups/Deals.dc.html`: pipeline counts, deal table, outreach log, CSV export.
 - [ ] Email sign-in.
