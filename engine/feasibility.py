@@ -8,6 +8,9 @@ changes in docs/research/decisions-2026-10-30.md. Every number carries its basis
 import math
 import random
 from dataclasses import dataclass, field
+from functools import lru_cache
+
+import numpy as np
 
 from engine.costs import Cost, cost, unit_size
 from engine.zoning import Path, Result
@@ -278,27 +281,28 @@ def _annual_constant(rate: float, years: int) -> float:
     return 12 * r / (1 - (1 + r) ** -n)
 
 
+@lru_cache(maxsize=4)
+def _draws(seed: int, n: int, rho: float) -> tuple:
+    """Correlated standard normal pairs from random.Random(seed), cached so the nightly scorer reuses them."""
+    rng = random.Random(seed)
+    z = np.array([(rng.gauss(0, 1), rng.gauss(0, 1)) for _ in range(n)])
+    return z[:, 0], rho * z[:, 0] + math.sqrt(1 - rho * rho) * z[:, 1]
+
+
 def simulate(d, x: Inputs, c: Cost, net_central: float, lo_m: float, hi_m: float) -> dict:
     """Seeded Monte Carlo of profit: sale and cost multipliers lognormal (fit to their P10/P90), correlated."""
     rm = d["range_method"]
-    rho = x.toggles.get("sale_cost_correlation", rm["sale_cost_correlation"])
+    rho = float(x.toggles.get("sale_cost_correlation", rm["sale_cost_correlation"]))
     m = d["margins_by_stage"][x.stage]
     smu, ssig = _lognormal_sigma(lo_m, hi_m)
     cmu, csig = _lognormal_sigma(1 + m["low"], 1 + m["high"])
-    rng = random.Random(x.seed)
-    ex_land = c.total - c.land
-    profits = []
-    for _ in range(x.draws):
-        z1, z2 = rng.gauss(0, 1), rng.gauss(0, 1)
-        zc = rho * z1 + math.sqrt(1 - rho * rho) * z2
-        sale = net_central * math.exp(smu + ssig * z1)
-        cost_ = c.land + ex_land * math.exp(cmu + csig * zc)
-        profits.append(sale - cost_)
-    profits.sort()
-    q = lambda p: round(profits[min(int(p * len(profits)), len(profits) - 1)])
+    z1, zc = _draws(x.seed, x.draws, rho)
+    profits = np.sort(net_central * np.exp(smu + ssig * z1) - (c.land + (c.total - c.land) * np.exp(cmu + csig * zc)))
+    n = len(profits)
+    q = lambda p: round(float(profits[min(int(p * n), n - 1)]))
     return {
-        "p10": q(0.10), "p50": q(0.50), "p90": q(0.90),
-        "loss_share": round(sum(p < 0 for p in profits) / len(profits), 3),
+        "p10": q(0.10), "p25": q(0.25), "p50": q(0.50), "p90": q(0.90),
+        "loss_share": round(float((profits < 0).mean()), 3),
         "draws": x.draws, "seed": x.seed, "sale_cost_correlation": rho,
         "label": "profit range from 10,000 seeded draws of sale and cost; the same inputs give the same answer",
     }  # fmt: skip
