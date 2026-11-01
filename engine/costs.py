@@ -74,10 +74,11 @@ def cost(
     thin_index: bool = False,
     other_fees: float = 0.0,
     hard_cost_savings: float = 0.0,
+    escalation: float = 1.0,
 ) -> Cost:
     area = gfa(d, units, lot_sqft, far)
     preset = preset or preset_for(index)
-    base = d["build_spec_presets"][preset]["2-3" if units <= 3 else "4-6"]
+    base = d["build_spec_presets"][preset]["2-3" if units <= 3 else "4-6"] * escalation
     adj = adjustment_for(preset, index)
     hard = area * base * adj
     sprinklers = area * d["sprinklers_per_sqft_at_4_plus_units"] if units >= 4 else 0.0

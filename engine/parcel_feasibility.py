@@ -50,6 +50,22 @@ def parcel_context(conn, pin: str) -> dict | None:
     return ctx
 
 
+def escalation(conn, d: dict) -> dict:
+    """Preset escalation (build_spec_presets.escalation): latest Census index over the base, then half the build
+    period at the 12-month change. 1.0 when the index has not been loaded."""
+    e = d["build_spec_presets"]["escalation"]
+    row = conn.execute(
+        "select latest_month, latest_value, change_12m from cost_escalation where series = %s", (e["series"],)
+    ).fetchone()
+    if not row or not row[1]:
+        return {"factor": 1.0, "basis": "escalation index not loaded; presets as published"}
+    months = d["financing"]["months_build"]
+    change = float(row[2] or 0)
+    f = float(row[1]) / e["base_value"] * (1 + change) ** (months / 2 / 12)
+    return {"factor": round(f, 4), "latest_month": str(row[0]), "change_12m": change,
+            "basis": f"Census under-construction index {row[0]} vs {e['base_month']}, then {change:+.1%} a year to mid-build"}  # fmt: skip
+
+
 def land_value(conn, nbhd: str | None, ca_num: int | None, min_sales: int = 5) -> dict | None:
     """Land price per buildable sq ft: Assessor neighborhood, else community area (CLAUDE.md rule 4)."""
     for kind, gid in (("nbhd", nbhd), ("community_area", str(ca_num) if ca_num else None)):
@@ -85,9 +101,10 @@ def feasibility(
     pool, index, params = pool_from_db(conn), index_from_db(conn), params_from_files()
     today = date.today()
     picks = scenarios_for(z, patterns)
+    esc = escalation(conn, d)
     out = {"pin": ctx["pin"], "address_area": ctx["ca_name"], "zone_class": z.zone_class, "lot_sqft": z.lot_sqft,
            "frontage_ft": z.frontage_ft, "exit": exit_, "zoning_flags": [f.__dict__ for f in z.flags],
-           "inputs": {"cost_index": ctx["cost_index"], "land_value": ctx["land_values"]}, "scenarios": [],
+           "inputs": {"cost_index": ctx["cost_index"], "land_value": ctx["land_values"], "escalation": esc}, "scenarios": [],
            "label": "Estimates, not tax, legal, zoning or appraisal advice."}  # fmt: skip
     for i, pick in enumerate(picks):
         path = pick["path"]
@@ -134,6 +151,7 @@ def feasibility(
             stage=o.get("stage", "feasibility"), commercial_sqft=float(pick.get("commercial_sqft") or 0),
             in_enterprise_zone=bool(ctx["enterprise_zone"]), in_opportunity_zone=bool(ctx["opportunity_zone"]),
             in_tif=bool(ctx["tif"]), toggles=o.get("toggles", {}), answers=o.get("answers", {}),
+            escalation=float(o.get("escalation", esc["factor"])),
         )  # fmt: skip
         letter = "ABC"[i]
         sc = scenario(d, x, exit_, f"{letter} · {_label(pick, path)}", path.approval, today.year)

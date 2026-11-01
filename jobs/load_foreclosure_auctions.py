@@ -97,7 +97,7 @@ def money(v: str) -> float | None:
 
 def day(v: str) -> str | None:
     try:
-        return datetime.strptime(v.strip(), "%m/%d/%Y").date().isoformat()  # noqa: DTZ007
+        return datetime.strptime(v.strip(), "%m/%d/%Y").date().isoformat()
     except ValueError:
         return None
 

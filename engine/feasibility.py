@@ -43,6 +43,7 @@ class Inputs:
     toggles: dict = field(default_factory=dict)  # incentive id -> on/off
     answers: dict = field(default_factory=dict)  # eligibility answers
     existing_use_value: float | None = None
+    escalation: float = 1.0  # preset x this (Census under-construction index to the build midpoint)
     seed: int = 25125
     draws: int = 10_000
 
@@ -163,7 +164,7 @@ def scenario(
 def _cost(d, x: Inputs, gross: float, fee: float, savings: float) -> Cost:
     return cost(
         d, x.units, x.land, x.cost_index, gross, 1.0, x.preset, x.rezoning, x.stage, x.cost_index_thin,
-        other_fees=fee, hard_cost_savings=savings,
+        other_fees=fee, hard_cost_savings=savings, escalation=x.escalation,
     )  # fmt: skip
 
 
