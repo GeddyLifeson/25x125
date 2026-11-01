@@ -247,3 +247,25 @@ table.deals select, table.deals input { height: 30px; border: 1px solid #c9cfd5;
 button.linkish { border: 0; background: none; padding: 0; font: inherit; color: var(--blue); cursor: pointer; text-decoration: underline; }
 /* maplibre-gl.css sets .maplibregl-map to position: relative; keep the canvas filling the map box. */
 .mapbox > .mapcanvas.maplibregl-map { position: absolute; inset: 0; }
+
+/* Feedback (/feedback, /admin/feedback) */
+.fb { display: flex; flex-direction: column; gap: 20px; }
+.fbsnap { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px 16px; margin: 0; }
+.fbsnap div { display: flex; flex-direction: column; gap: 2px; }
+.fbsnap dt { font-size: 12px; color: var(--muted); }
+.fbsnap dd { margin: 0; font-family: var(--mono); font-size: 16px; }
+.fbcmp input { height: 36px; width: 100%; max-width: 180px; padding: 0 10px; border: 1px solid #c9cfd5; border-radius: 6px; font: inherit; font-size: 14px; }
+.fbq { display: flex; flex-direction: column; gap: 14px; }
+.fbq fieldset { border: 0; padding: 0; margin: 0; }
+.fbq legend { font-weight: 600; margin-bottom: 6px; padding: 0; }
+.fbq > label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
+.fbq textarea { font: inherit; font-weight: 400; font-size: 14px; padding: 8px 10px; border: 1px solid #c9cfd5; border-radius: 6px; resize: vertical; }
+.fbq .fbshort input { height: 36px; max-width: 320px; padding: 0 10px; border: 1px solid #c9cfd5; border-radius: 6px; font: inherit; font-weight: 400; font-size: 14px; }
+.fbchoices { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+.fbchoices label { display: flex; gap: 6px; align-items: center; font-size: 14px; cursor: pointer; }
+.fbchoices input { width: 18px; height: 18px; }
+.fbstats { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.fbstats > div { border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+.fbstats .k { font-size: 12px; color: var(--muted); }
+.fbstats .v { font-family: var(--mono); font-size: 18px; }
+.fbtext { white-space: pre-wrap; max-width: 360px; }

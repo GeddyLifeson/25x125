@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Source } from "../../../../components/Source";
+import { feedbackHref, snapshotOf } from "../../../../lib/feedback";
 import { num, pct, usd, usdK, usdRange } from "../../../../lib/format";
 import { NUMBER_FIELDS, TEXT_CHOICES, mergeOverrides, overridesToCsv, parseOverridesCsv } from "../../../../lib/overrides";
 import { ESTIMATE_LABEL, scenarioSources } from "../../../../lib/report";
@@ -364,6 +365,9 @@ export function FeasibilityScreen(props: Props) {
       ? { k1: "Profit", v1: usdK(s.sell?.profit), k2: "Return on cost", v2: pct(s.sell?.return_on_cost) }
       : { k1: "Net operating income", v1: usdK(s.hold?.noi), k2: "Yield on cost", v2: pct(s.hold?.yield_on_cost, 2) };
 
+  // "Check these numbers": the feedback form, with this scenario's figures on screen carried over.
+  const checkHref = (s: Scenario, i: number) => feedbackHref(pin, i, snapshotOf(data, s, data.exit, editCount, props.address));
+
   const fields: (NumField | TextField)[] = [
     "units",
     "unit_sqft",
@@ -462,7 +466,12 @@ export function FeasibilityScreen(props: Props) {
       <div className="cols">
         <div className="main">
           <section className="card">
-            <h2>Cost · {sel.name}</h2>
+            <div className="row" style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "baseline" }}>
+              <h2>Cost · {sel.name}</h2>
+              <Link className="btn small" href={checkHref(sel, Math.min(pick, scenarios.length - 1))} data-testid="check-numbers">
+                Check these numbers
+              </Link>
+            </div>
             <p className="sub">
               {num(sel.gross_sqft)} gross sq ft · hard cost ${sel.cost.base_per_sqft} per sq ft ({sel.cost.preset} spec) x {sel.cost.adjustment} area
               adjustment · margins for the {sel.cost.stage} stage
@@ -556,6 +565,16 @@ export function FeasibilityScreen(props: Props) {
                       ))}
                     </tr>
                   ))}
+                  <tr>
+                    <td>Your check</td>
+                    {scenarios.map((s, i) => (
+                      <td key={i} className="num" style={i === pick ? { background: "#E6F1FA" } : undefined}>
+                        <Link className="btn small" href={checkHref(s, i)} data-testid={`check-numbers-${"ABC"[i]}`}>
+                          Check these numbers
+                        </Link>
+                      </td>
+                    ))}
+                  </tr>
                 </tbody>
               </table>
             </div>

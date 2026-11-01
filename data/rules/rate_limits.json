@@ -7,6 +7,7 @@
     "export": {"burst": 20, "per_hour": 120},
     "sign_in_email": {"burst": 5, "per_hour": 10},
     "sign_in_ip": {"burst": 20, "per_hour": 60},
-    "invite": {"burst": 20, "per_hour": 40}
+    "invite": {"burst": 20, "per_hour": 40},
+    "feedback": {"burst": 10, "per_hour": 30}
   }
 }

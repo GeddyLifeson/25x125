@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export type NavAccount = { email: string; plan: string } | null;
+export type NavAccount = { email: string; plan: string; isAdmin?: boolean } | null;
 
 export function Nav({ account }: { account?: NavAccount }) {
   const path = usePathname() ?? "/";
@@ -39,6 +39,14 @@ export function Nav({ account }: { account?: NavAccount }) {
         <Link href="/deals" className={path === "/deals" ? "on" : undefined}>
           Deals
         </Link>
+        <Link href={path === "/feedback" ? "/feedback" : `/feedback?from=${encodeURIComponent(path)}`} className={path === "/feedback" ? "on" : undefined} data-testid="nav-feedback">
+          Feedback
+        </Link>
+        {account?.isAdmin && (
+          <Link href="/admin/feedback" className={path.startsWith("/admin") ? "on" : undefined} data-testid="nav-admin">
+            Feedback received
+          </Link>
+        )}
       </nav>
       <div className="note">
         Every number is an estimate and can be edited ·{" "}

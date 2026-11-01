@@ -150,3 +150,11 @@ export function getAuditLog(limit = 50): Promise<AuditRow[]> {
 export function getSavedSearches(): Promise<import("./types").SavedSearch[]> {
   return call(`/saved-searches`);
 }
+
+export function getFeedback(limit = 500): Promise<import("./feedback").FeedbackRow[]> {
+  return call(`/feedback?limit=${limit}`);
+}
+
+export function getFeedbackSummary(): Promise<import("./feedback").FeedbackSummary> {
+  return call(`/feedback/summary`);
+}
