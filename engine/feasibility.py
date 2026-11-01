@@ -46,6 +46,7 @@ class Inputs:
     toggles: dict = field(default_factory=dict)  # incentive id -> on/off
     answers: dict = field(default_factory=dict)  # eligibility answers
     existing_use_value: float | None = None
+    existing_use_note: str | None = None
     escalation: float = 1.0  # preset x this (Census under-construction index to the build midpoint)
     seed: int = 25125
     draws: int = 10_000
@@ -242,8 +243,9 @@ def _sell(d, x: Inputs, c: Cost) -> dict:
         res["existing_use_check"] = {
             "existing_use_value": round(x.existing_use_value),
             "gap": round(res["max_land_price"] - x.existing_use_value),
-            "label": "max land price minus the Assessor's market value; the owner may want more than either",
+            "note": x.existing_use_note,
             "source": "Cook County Assessor assessed value / level of assessment",
+            "label": "max land price minus the Assessor's market value; the owner may want more than either",
         }
     return res
 

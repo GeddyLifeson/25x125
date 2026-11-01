@@ -61,9 +61,17 @@ def existing_use(conn, pin10: str) -> dict | None:
     if not conn.execute("select to_regclass('lot_market_value')").fetchone()[0]:
         return None
     row = conn.execute(
-        "select market_value, tax_year from lot_market_value where pin10 = %s", (pin10,)
+        "select market_value, tax_year, stages, pins_without_value from lot_market_value where pin10 = %s",
+        (pin10,),
     ).fetchone()
-    return {"market_value": float(row[0]), "tax_year": row[1]} if row and row[0] else None
+    if not row or not row[0]:
+        return None
+    ratio = json.loads((RULES_DIR / "assessment_levels.json").read_text()).get("sales_ratio_check", {})
+    c2 = ratio.get("by_major_class", {}).get("2", {})
+    note = (f"Assessor values ran at {c2['median']:.0%} of 2024-25 sale prices for class 2 buildings (median of"
+            f" {c2['n']:,} sales, measured {ratio.get('measured_on')}); owners often ask more") if c2 else None  # fmt: skip
+    return {"market_value": float(row[0]), "tax_year": row[1], "stages": row[2], "pins_without_value": row[3],
+            "note": note, "source": "Cook County Assessor assessed values / level of assessment (lot_market_value)"}  # fmt: skip
 
 
 def load_questions() -> list[dict]:
@@ -142,6 +150,7 @@ def feasibility(
             est = None
         r = rent(conn, bedrooms_for(unit_sqft), ctx["tract"], ctx["zip"], d, today)
         x = inputs_for(ctx, z, rules, pick, units, unit_sqft, est, r, esc, o)
+        x.existing_use_note = eu["note"] if eu and "existing_use_value" not in o else None
         x.existing_use_value = (
             float(o["existing_use_value"])
             if "existing_use_value" in o
