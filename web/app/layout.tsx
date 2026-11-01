@@ -13,7 +13,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const s = await getSession();
   const days = s ? trialDaysLeft(s.org) : null;
   const account = s
-    ? { email: s.user.email, plan: days !== null ? `Pro trial, ${days} days left` : s.org.plan_label, isAdmin: Boolean(s.is_admin) }
+    ? { email: s.user.email, plan: days !== null ? `Pro trial, ${days} days left` : s.org.plan_label, isAdmin: Boolean(s.is_admin), local: Boolean(s.local) }
     : null;
   return (
     <html lang="en">

@@ -18,6 +18,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from core.db import connect
+from core.settings import settings
 from engine import billing, mail
 from engine.auth import (
     Caller,
@@ -26,6 +27,7 @@ from engine.auth import (
     check_rate,
     effective_plan,
     features,
+    is_local,
     is_production,
     load_member,
     member,
@@ -222,6 +224,49 @@ def session(body: Annotated[dict, Body()], c: Annotated[Caller, Depends(signed)]
         "org": org,
         "orgs": [{"id": r[0], "name": r[1], "role": r[2]} for r in orgs],
         "expires_at": row[4].isoformat(),
+    }
+
+
+LOCAL_ORG = "default"
+
+
+@router.post("/auth/local-session")
+def local_session(c: Annotated[Caller, Depends(signed)]) -> dict:
+    """Single-user desktop mode only (LOCAL_MODE=1): the local user, created on first call as the owner of the
+    'default' organization on Pro at no charge. Same shape as /auth/session. 404 when local mode is off."""
+    if not is_local():
+        raise HTTPException(404, "Not found")
+    email = clean_email(settings.local_user_email)
+    with connect() as conn:
+        user_id = conn.execute(
+            """insert into account_user (email, trial_used) values (%s, true)
+               on conflict (email) do update set email = excluded.email returning id""",
+            (email,),
+        ).fetchone()[0]
+        conn.execute(
+            """insert into org (id, name, plan, plan_status, plan_updated_at)
+               values (%s, 'This computer', 'pro', 'comp', now())
+               on conflict (id) do update set plan = 'pro', plan_status = 'comp'
+               where org.plan is distinct from 'pro' or org.plan_status is distinct from 'comp'""",
+            (LOCAL_ORG,),
+        )
+        conn.execute(
+            "update membership set role = 'member' where org_id = %s and role = 'owner' and user_id <> %s",
+            (LOCAL_ORG, user_id),
+        )
+        conn.execute(
+            """insert into membership (org_id, user_id, role) values (%s, %s, 'owner')
+               on conflict (org_id, user_id) do update set role = 'owner'""",
+            (LOCAL_ORG, user_id),
+        )
+        org = _org_view(conn, LOCAL_ORG, user_id)
+    return {
+        "user": {"id": user_id, "email": email, "name": "This computer"},
+        "is_admin": True,
+        "local": True,
+        "org": org,
+        "orgs": [{"id": LOCAL_ORG, "name": org["name"], "role": "owner"}],
+        "expires_at": (datetime.now(UTC) + timedelta(days=SESSION_DAYS)).isoformat(),
     }
 
 

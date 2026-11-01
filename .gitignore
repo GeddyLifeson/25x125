@@ -17,3 +17,5 @@ web/screenshots/
 .dev-mail/
 .env.production
 .env.*.local
+desktop/build/
+desktop/dist/

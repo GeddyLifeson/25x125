@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     sentry_dsn: str = ""
     # Product admins (comma-separated emails): they read the feedback entries at /admin/feedback.
     admin_emails: str = ""
+    # Single-user desktop mode (desktop/, the Windows program). Sign-in and the Pro checks are off: every
+    # request from the web app acts as one local user who owns the 'default' organization on Pro at no
+    # charge. Only for a database and engine that listen on this computer alone. Production refuses it.
+    local_mode: bool = False
+    local_user_email: str = "me@25x125.local"
 
 
 settings = Settings()
