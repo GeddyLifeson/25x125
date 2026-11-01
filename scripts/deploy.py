@@ -38,6 +38,7 @@ APPS = {
             "STRIPE_PRICE_PRO_MONTHLY",
             "STRIPE_PRICE_FOUNDING_MONTHLY",
             "SENTRY_DSN",
+            "ADMIN_EMAILS",
             "SOCRATA_APP_TOKEN",
             "CENSUS_API_KEY",
         ],

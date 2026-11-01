@@ -3,7 +3,7 @@
 #         --dockerfile deploy/engine.Dockerfile --remote-only)
 # Secrets (fly secrets set, done by the deploy script from .env.production; values never in this file):
 #   DATABASE_URL, ENGINE_SHARED_SECRET, EMAIL_SERVER, EMAIL_FROM, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
-#   STRIPE_PRICE_PRO_MONTHLY, STRIPE_PRICE_FOUNDING_MONTHLY, SENTRY_DSN, SOCRATA_APP_TOKEN, CENSUS_API_KEY
+#   STRIPE_PRICE_PRO_MONTHLY, STRIPE_PRICE_FOUNDING_MONTHLY, SENTRY_DSN, ADMIN_EMAILS, SOCRATA_APP_TOKEN, CENSUS_API_KEY
 app = "x25x125-engine"
 primary_region = "iad"
 kill_signal = "SIGTERM"
