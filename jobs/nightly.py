@@ -20,6 +20,7 @@ from jobs import (
     build_lot_use,
     build_older_sales,
     build_parcel_site,
+    extract_rezoning_districts,
     load_addresses,
     load_assessed_values,
     load_boundaries,
@@ -62,6 +63,8 @@ def steps(year: int, skip_yearly: bool) -> list[tuple[str, Callable]]:
         ("lots for sale", lambda: load_lots_for_sale.run()),
         ("foreclosure auctions", lambda: load_foreclosure_auctions.run()),
         ("rezonings", lambda: load_rezonings.run()),
+        # reload wipes the districts read from the ordinance scans; copy them back from the repo CSVs (free)
+        ("rezoning districts", lambda: extract_rezoning_districts.apply()),
     ]
     yearly = [
         ("parcels", lambda: load_parcels.run(year)),

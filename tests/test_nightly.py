@@ -32,6 +32,7 @@ def test_skip_yearly_leaves_only_nightly_steps():
         "lots for sale",
         "foreclosure auctions",
         "rezonings",
+        "rezoning districts",
         "parcel sites",
         "lot use and block faces",
         "comps",
