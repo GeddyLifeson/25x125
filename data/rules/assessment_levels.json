@@ -1,0 +1,101 @@
+{
+  "purpose": "Turn Cook County assessed values into the Assessor's market value: market value = assessed value / level of assessment.",
+  "verified_on": "2026-11-01",
+  "sources": [
+    "https://www.lincolninst.edu/sites/default/files/gwipp/upload/sources/Illinois/2018/il_cook_county_assessor_def_of_classes_apr_2018.pdf",
+    "https://civicfed.org/civic-federation/publications/civic-federation-supports-cook-county-classification-ordinance-reducti",
+    "https://www.cookcountyassessoril.gov/classifications-real-property"
+  ],
+  "levels_by_major_class": {
+    "1": {
+      "level": 0.1,
+      "label": "vacant",
+      "source": "Assessor class definitions (2018): Major Class 1 Vacant, 10%"
+    },
+    "2": {
+      "level": 0.1,
+      "label": "residential, 1-6 units",
+      "source": "Assessor class definitions (2018): Major Class 2 Residential, 10%"
+    },
+    "3": {
+      "level": 0.1,
+      "label": "multifamily, 7+ units",
+      "source": "Classification ordinance: 10% for residential, vacant and apartment property (Civic Federation, 2008)"
+    },
+    "4": {
+      "level": 0.2,
+      "label": "not for profit",
+      "source": "Assessor class definitions (2018): Major Class 4 Not For Profit, 20%"
+    },
+    "5": {
+      "level": 0.25,
+      "label": "commercial or industrial",
+      "source": "Assessor class definitions (2018): Major Class 5A Commercial and 5B Industrial, 25%"
+    },
+    "6": {
+      "level": 0.1,
+      "label": "industrial incentive",
+      "source": "Assessor class definitions (2018): 6B, 10% for the first 10 years",
+      "incentive": true
+    },
+    "7": {
+      "level": 0.1,
+      "label": "commercial incentive",
+      "source": "Assessor class definitions (2018): 7B, 10% for the first 10 years, then 15% and 20%",
+      "incentive": true
+    },
+    "8": {
+      "level": 0.1,
+      "label": "commercial or industrial incentive",
+      "source": "Assessor class definitions (2018): 8, 10% for the first 10 years",
+      "incentive": true
+    },
+    "9": {
+      "level": 0.1,
+      "label": "multifamily incentive",
+      "source": "Assessor class definitions (2018): 9, 10 years at 10%",
+      "incentive": true
+    }
+  },
+  "no_market_value": [
+    "EX",
+    "RR",
+    "0"
+  ],
+  "notes": [
+    "Incentive classes step up after year 10, so a value from the 10% level can overstate market value for an older incentive; the screen says so.",
+    "Mixed-use class 3-18 buildings are split by the Assessor (residential part at 10%, commercial part at 25%); the class on the row decides the level here.",
+    "Stage order, best first: board (Board of Review final), certified (Assessor after appeals), mailed (first notice)."
+  ],
+  "sales_ratio_check": {
+    "measured_on": "2026-11-01",
+    "method": "2025 Board of Review market value / sale price, single-parcel warranty and trustee sales 2024-01-01 to 2025-12-31, Assessor sale filters applied",
+    "by_major_class": {
+      "1": {
+        "n": 462,
+        "median": 0.984,
+        "p25": 0.51,
+        "p75": 1.654
+      },
+      "2": {
+        "n": 46296,
+        "median": 0.856,
+        "p25": 0.724,
+        "p75": 0.986
+      },
+      "3": {
+        "n": 403,
+        "median": 0.783,
+        "p25": 0.606,
+        "p75": 1.0
+      },
+      "5": {
+        "n": 652,
+        "median": 0.886,
+        "p25": 0.575,
+        "p75": 1.111
+      }
+    },
+    "reading": "Assessor values run below recent sale prices (class 2: 14% below at the median). Show the Assessor value as the Assessor's figure, not as a price."
+  }
+}

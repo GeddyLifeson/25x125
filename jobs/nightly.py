@@ -16,6 +16,7 @@ from jobs import (
     build_lot_use,
     build_parcel_site,
     load_addresses,
+    load_assessed_values,
     load_boundaries,
     load_building_chars,
     load_city_layers,
@@ -70,6 +71,7 @@ def steps(year: int, skip_yearly: bool) -> list[tuple[str, Callable]]:
         ("parcel proximity", lambda: load_parcel_extras.run_source("proximity")),
         ("tax-exempt parcels", lambda: load_parcel_extras.run_source("exempt")),
         ("building footprints", lambda: load_parcel_extras.run_source("footprints")),
+        ("assessed values", lambda: load_assessed_values.run()),
     ]
     build = [
         ("parcel sites", lambda: build_parcel_site.run()),
