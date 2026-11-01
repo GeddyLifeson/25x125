@@ -1,7 +1,9 @@
-// Smoke check of the search, parcel, feasibility, map and deals screens in Chromium.
+// Smoke check of sign-in, search, parcel, feasibility, map, deals and account screens in Chromium.
 // Run with the engine and the web app up: node scripts/smoke.cjs [base url], default http://localhost:3010
 // Needs the playwright package and a Chromium it can launch, and the tile server (docker compose up -d);
-// screenshots go to web/screenshots/. Deals the run creates are deleted at the end.
+// screenshots go to web/screenshots/. Sign-in uses the engine's dev mode (EMAIL_SERVER unset): the link is
+// read from .dev-mail/ in the repo root (DEV_MAIL_DIR to change), so no email is sent. The run deletes the
+// deals it creates, then deletes its own account (smoke-test@example.com) through the data deletion route.
 const path = require("path");
 const fs = require("fs");
 const { chromium } = require("playwright");
@@ -9,6 +11,9 @@ const { chromium } = require("playwright");
 const BASE = process.argv[2] || process.env.WEB_URL || "http://localhost:3010";
 const OUT = path.join(__dirname, "..", "screenshots");
 const PIN = "16121020310000"; // 624 N Troy St, Humboldt Park, vacant RT-4 lot
+const EMAIL = process.env.SMOKE_EMAIL || "smoke-test@example.com";
+const DEV_MAIL = process.env.DEV_MAIL_DIR || path.join(__dirname, "..", "..", ".dev-mail");
+let storageState; // the signed-in browser's cookies, shared by every page after sign-in
 
 let failures = 0;
 const dealIds = [];
@@ -24,7 +29,9 @@ async function settled(page) {
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
   const browser = await chromium.launch();
-  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  await signedOutChecks(browser);
+  await signIn(browser);
+  const page = await newPage(browser, { width: 1280, height: 900 });
 
   await page.goto(`${BASE}/`);
   await page.fill("input[name=q]", "1500 N");
@@ -100,8 +107,18 @@ async function settled(page) {
   check(saved.exit === "hold" && saved.overrides.all && saved.overrides.all.land === 60000 && saved.result && saved.result.run_on,
     `deal keeps the edits (land ${saved.overrides.all && saved.overrides.all.land}), exit ${saved.exit} and a dated run (${saved.result && saved.result.run_on})`);
 
+  // Save the edits to the account; a fresh visit loads them from the account.
+  await page.click("[data-testid=save-edits]");
+  await page.waitForSelector("text=to your account.");
+  const again = await newPage(browser, { width: 1280, height: 900 });
+  await again.goto(`${BASE}/parcels/${PIN}/feasibility`);
+  await again.waitForSelector("text=Loaded the edits saved to your account");
+  check(true, "feasibility edits saved to the account come back on a new visit");
+  await again.request.delete(`${BASE}/api/overrides/${PIN}`);
+  await again.close();
+
   // Phone width.
-  const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const phone = await newPage(browser, { width: 390, height: 844 });
   await phone.goto(`${BASE}/parcels/${PIN}/feasibility`);
   await phone.waitForSelector(".sc");
   const overflow = await phone.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
@@ -111,12 +128,18 @@ async function settled(page) {
   try {
     await mapChecks(browser);
     await dealChecks(browser);
+    await accountChecks(browser);
   } catch (e) {
-    check(false, `map or deals check stopped: ${e.message.split("\n")[0]}`);
+    check(false, `map, deals or account check stopped: ${e.message.split("\n")[0]}`);
   }
 
-  // Remove the deals this run made, so the smoke test leaves the database as it found it.
+  // Remove the deals this run made, then the account itself (data deletion on request).
   for (const id of dealIds) await page.request.delete(`${BASE}/api/deals/${id}`);
+  const del = await page.request.delete(`${BASE}/api/account?confirm=${encodeURIComponent(EMAIL)}`);
+  const gone = del.ok() ? await del.json() : {};
+  check(del.ok() && gone.orgs_deleted === 1, `account deleted on request (${gone.orgs_deleted} organization, ${JSON.stringify(gone.rows_deleted)})`);
+  const after = await page.request.get(`${BASE}/api/deals`);
+  check(after.status() === 401, `after deletion the session no longer reads deals (${after.status()})`);
   await browser.close();
   console.log(failures ? `${failures} check(s) failed` : "all checks passed");
   process.exit(failures ? 1 : 0);
@@ -129,8 +152,77 @@ async function mapIdleAfter(page, t) {
   await page.waitForFunction((t) => Number(document.body.dataset.mapIdle || 0) > t, t, { timeout: 15000 });
 }
 
+async function newPage(browser, viewport) {
+  const ctx = await browser.newContext({ viewport, storageState });
+  const page = await ctx.newPage();
+  page.on("close", () => ctx.close().catch(() => {}));
+  return page;
+}
+
+async function signedOutChecks(browser) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  await page.goto(`${BASE}/deals`);
+  check(page.url().includes("/signin?next=%2Fdeals"), "signed out, /deals goes to the sign-in page");
+  await page.goto(`${BASE}/parcels/${PIN}`);
+  await page.waitForSelector("text=What zoning allows");
+  check(true, "signed out, the parcel page works");
+  await page.click("button:has-text('Save to deals')");
+  await page.waitForSelector("[data-testid=signin-to-save]");
+  check(true, "signed out, saving a deal asks to sign in");
+  await page.goto(`${BASE}/parcels/${PIN}/feasibility`);
+  await page.waitForSelector(".sc");
+  check((await page.locator(".sc").count()) === 3, "signed out, feasibility runs");
+  const pdf = await page.request.get(`${BASE}/parcels/${PIN}/report.pdf`, { maxRedirects: 0 });
+  check(pdf.status() === 303 && (pdf.headers().location || "").includes("/signin"), `signed out, the PDF link goes to sign-in (${pdf.status()})`);
+  const api = await page.request.get(`${BASE}/api/deals`);
+  check(api.status() === 401, `signed out, the deals API answers 401 (${api.status()})`);
+  const health = await page.request.get(`${process.env.ENGINE_URL || "http://localhost:8000"}/health`).then((r) => r.json()).catch(() => null);
+  if (health && health.status === "stale") {
+    check((await page.locator("[data-testid=stale-note]").count()) === 1, `stale-data note shown (${health.stale.length} nightly sources over 36 hours)`);
+  }
+  await page.close();
+}
+
+async function signIn(browser) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const file = path.join(DEV_MAIL, `${EMAIL}.txt`);
+  fs.rmSync(file, { force: true });
+  await page.goto(`${BASE}/signin?next=/account`);
+  check((await page.locator("[data-testid=dev-mode]").count()) === 1, "sign-in page says it is in dev mode");
+  await page.fill("input[name=email]", EMAIL);
+  await page.click("button[type=submit]");
+  await page.waitForSelector("[data-testid=link-sent]");
+  await page.screenshot({ path: path.join(OUT, "signin.png") });
+  const deadline = Date.now() + 5000;
+  while (!fs.existsSync(file) && Date.now() < deadline) await page.waitForTimeout(100);
+  const link = (fs.readFileSync(file, "utf8").match(/https?:\/\/\S+\/api\/auth\/callback\?token=\S+/) || [])[0];
+  check(Boolean(link), "sign-in link written to .dev-mail (dev mode, nothing sent)");
+  await page.goto(link);
+  await page.waitForURL("**/account");
+  const plan = await page.locator("[data-testid=plan-line]").textContent();
+  check(/Pro trial: 1[34] days left|Pro \(no charge\)|^Pro/.test(plan), `signed in; plan: ${plan}`);
+  check((await page.locator("[data-testid=nav-account]").textContent()).includes(EMAIL), "nav shows the signed-in email");
+  const reuse = await page.request.get(link, { maxRedirects: 0 });
+  check(reuse.status() === 303 && (reuse.headers().location || "").includes("error="), "the sign-in link works only once");
+  storageState = await page.context().storageState();
+  await page.close();
+}
+
+async function accountChecks(browser) {
+  const page = await newPage(browser, { width: 1280, height: 900 });
+  await page.goto(`${BASE}/account`);
+  await page.waitForSelector("[data-testid=audit]");
+  const audit = await page.locator("[data-testid=audit]").textContent();
+  for (const a of ["deal.create", "export.pdf", "override.save", "search.save", "auth.sign_in"]) {
+    check(audit.includes(a), `audit log has ${a}`);
+  }
+  check((await page.locator("[data-testid=saved-searches] li").count()) >= 1, "saved search listed on the account page");
+  await page.screenshot({ path: path.join(OUT, "account.png"), fullPage: true });
+  await page.close();
+}
+
 async function mapChecks(browser) {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const page = await newPage(browser, { width: 1440, height: 900 });
   const tiles = { lots: 0, land_value: 0, lots_for_sale: 0, bad: 0 };
   page.on("response", (r) => {
     const m = r.url().match(/\/tiles\/(\w+)\//);
@@ -188,6 +280,12 @@ async function mapChecks(browser) {
   check(csvRows[0].startsWith("pin10,pin,address") && csvRows.length > 1 && csvHref.includes("min_score=50"),
     `list CSV has the filtered rows (${csvRows.length - 1} rows)`);
 
+  // Save the filters as a named search.
+  page.once("dialog", (d) => d.accept("Smoke search, Humboldt Park 50+"));
+  await page.click("[data-testid=save-search]");
+  await page.waitForSelector("[data-testid=search-saved]");
+  check(true, "search saved by name");
+
   // Pick a lot from the list: side panel with the points breakdown and links.
   await page.click("[data-testid=results] li button.rrow");
   await page.waitForSelector("[data-testid=panel]");
@@ -239,7 +337,7 @@ async function mapChecks(browser) {
 }
 
 async function dealChecks(browser) {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const page = await newPage(browser, { width: 1280, height: 900 });
   await page.goto(`${BASE}/deals?d=${dealIds[0]}`);
   await page.waitForSelector("[data-testid=deal-table]");
   const allCount = Number(await page.locator("[data-testid=stage-all] .v").textContent());
@@ -285,7 +383,7 @@ async function dealChecks(browser) {
   await page.close();
 
   // Phone width: map and deals.
-  const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const phone = await newPage(browser, { width: 390, height: 844 });
   for (const [url, sel, shot] of [["/map?community_area=23", "[data-testid=results] li", "map-phone.png"], ["/deals", "[data-testid=deal-table]", "deals-phone.png"]]) {
     await phone.goto(`${BASE}${url}`);
     await phone.waitForSelector(sel);

@@ -14,3 +14,4 @@ web/next-env.d.ts
 .pytest_cache/
 .ruff_cache/
 web/screenshots/
+.dev-mail/

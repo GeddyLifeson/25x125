@@ -1,0 +1,12 @@
+{
+  "source": "25x125 setting, 2026-11-01: limits a person working by hand never reaches; they stop scripted scraping of search and exports.",
+  "verified_on": "2026-11-01",
+  "note": "Token bucket per signed-in user, or per IP address when signed out. burst = bucket size; per_hour = refill rate.",
+  "buckets": {
+    "search": {"burst": 60, "per_hour": 1800},
+    "export": {"burst": 20, "per_hour": 120},
+    "sign_in_email": {"burst": 5, "per_hour": 10},
+    "sign_in_ip": {"burst": 20, "per_hour": 60},
+    "invite": {"burst": 20, "per_hour": 40}
+  }
+}

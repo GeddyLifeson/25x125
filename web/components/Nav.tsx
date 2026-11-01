@@ -2,7 +2,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export function Nav() {
+export type NavAccount = { email: string; plan: string } | null;
+
+export function Nav({ account }: { account?: NavAccount }) {
   const path = usePathname() ?? "/";
   const m = path.match(/^\/parcels\/(\d+)/);
   const pin = m?.[1];
@@ -38,7 +40,18 @@ export function Nav() {
           Deals
         </Link>
       </nav>
-      <div className="note">Every number is an estimate and can be edited</div>
+      <div className="note">
+        Every number is an estimate and can be edited ·{" "}
+        {account ? (
+          <Link href="/account" style={{ color: "#fff" }} data-testid="nav-account">
+            {account.email} ({account.plan})
+          </Link>
+        ) : (
+          <Link href={`/signin?next=${encodeURIComponent(path)}`} style={{ color: "#fff" }} data-testid="nav-signin">
+            Sign in
+          </Link>
+        )}
+      </div>
     </header>
   );
 }

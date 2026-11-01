@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import questionsFile from "../../../../../data/rules/incentive_questions.json";
-import { getDeal, getParcel, getZoning, postFeasibility, settle } from "../../../../lib/engine";
+import { getDeal, getParcel, getSavedEdits, getZoning, postFeasibility, settle } from "../../../../lib/engine";
+import { getSession } from "../../../../lib/session";
 import { titleCase } from "../../../../lib/format";
 import { FeasibilityScreen, type Question } from "./FeasibilityScreen";
 
@@ -17,10 +18,13 @@ export default async function FeasibilityPage({ params, searchParams }: Props) {
   const deal = dealR?.ok && dealR.value.pin10 === pin.replace(/\D/g, "").slice(0, 10) ? dealR.value : null;
   const exit = (deal?.exit ?? sp.exit) === "hold" ? "hold" : "sell";
   const target = deal ? deal.target : (sp.target ?? null);
-  const [parcelR, zoningR, feasR] = await Promise.all([
+  const session = await getSession();
+  const canSaveEdits = session ? session.org.features.includes("saved_edits") : null;
+  const [parcelR, zoningR, feasR, editsR] = await Promise.all([
     settle(getParcel(pin)),
     settle(getZoning(pin)),
     settle(postFeasibility(pin, exit, target, deal?.overrides ?? {})),
+    canSaveEdits && !deal ? settle(getSavedEdits(pin)) : Promise.resolve(null),
   ]);
   if (!parcelR.ok && (parcelR.status === 404 || parcelR.status === 400)) notFound();
   if (!parcelR.ok || !feasR.ok) {
@@ -51,6 +55,8 @@ export default async function FeasibilityPage({ params, searchParams }: Props) {
       questions={(questionsFile as { questions: Question[] }).questions}
       questionsAsOf={(questionsFile as { as_of: string }).as_of}
       deal={deal ? { id: deal.id, scenario: deal.scenario, overrides: deal.overrides ?? {} } : null}
+      accountEdits={editsR?.ok ? editsR.value : null}
+      canSaveEdits={canSaveEdits}
     />
   );
 }

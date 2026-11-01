@@ -5,11 +5,14 @@ from datetime import date
 from typing import Annotated
 
 import psycopg
-from fastapi import Body, FastAPI, HTTPException, Query
-from fastapi.responses import Response
+from fastapi import Body, Depends, FastAPI, HTTPException, Query, Request
+from fastapi.responses import JSONResponse, Response
 
+from core import errors
 from core.db import connect
-from engine import areas, deals
+from engine import accounts, areas, billing, deals
+from engine.accounts import export_gate
+from engine.auth import Caller, caller, check_rate
 from engine.comps import RULES_DIR, Target, estimate, index_from_db, miles, params_from_files, pool_from_db
 from engine.parcel_feasibility import feasibility
 from engine.parcels import LOT_COLUMNS, lots, parcel, search
@@ -21,16 +24,53 @@ from engine.zoning import evaluate
 app = FastAPI(title="25x125 engine", version="0.1.0")
 app.include_router(deals.router)
 app.include_router(areas.router)
+app.include_router(accounts.router)
+app.include_router(billing.router)
+
+
+@app.exception_handler(Exception)
+async def unhandled(request: Request, exc: Exception) -> JSONResponse:
+    """Send unexpected errors to the error tracker (no-op without SENTRY_DSN) and answer 500."""
+    errors.report(exc, {"path": request.url.path, "method": request.method})
+    return JSONResponse({"detail": "The engine hit an error. It has been logged."}, status_code=500)
+
+
+FRESHNESS = json.loads((RULES_DIR / "freshness.json").read_text())
+
+
+def freshness(conn, now=None) -> dict:
+    """Latest finished pull per source; nightly sources older than 36 hours (data/rules/freshness.json) are
+    stale, other sources after 400 days."""
+    rows = conn.execute(
+        """select host, dataset_id, max(finished_at), now() from source_pull
+           where status = 'ok' and finished_at is not null group by host, dataset_id order by host, dataset_id"""
+    ).fetchall()
+    nightly = set(FRESHNESS["nightly_datasets"])
+    out, stale = [], []
+    for host, ds, at, db_now in rows:
+        hours = ((now or db_now) - at).total_seconds() / 3600
+        is_nightly = ds in nightly
+        limit = FRESHNESS["stale_after_hours"] if is_nightly else FRESHNESS["yearly_stale_after_days"] * 24
+        item = {"host": host, "dataset_id": ds, "label": FRESHNESS["labels"].get(ds, ds), "nightly": is_nightly,
+                "finished_at": at.isoformat(), "hours_old": round(hours, 1), "stale": hours > limit}  # fmt: skip
+        out.append(item)
+        if item["stale"]:
+            stale.append(item)
+    return {"stale_after_hours": FRESHNESS["stale_after_hours"], "sources": out, "stale": stale}
 
 
 @app.get("/health")
-def health() -> dict:
-    """Engine is up; reports whether the database and PostGIS answer."""
+def health(response: Response) -> dict:
+    """Engine is up; reports whether the database and PostGIS answer, and how fresh each source is.
+
+    status: ok, stale (a nightly source is over 36 hours old) or degraded (503: no database)."""
     try:
         with connect() as conn:
             postgis = conn.execute("select postgis_version()").fetchone()[0]
-        return {"status": "ok", "database": "ok", "postgis": postgis}
+            fresh = freshness(conn)
+        return {"status": "stale" if fresh["stale"] else "ok", "database": "ok", "postgis": postgis, **fresh}
     except (psycopg.Error, OSError) as e:  # report, don't crash, so the host can see what's wrong
+        response.status_code = 503
         return {"status": "degraded", "database": f"error: {type(e).__name__}"}
 
 
@@ -148,8 +188,9 @@ def parcel_feasibility(
 
 
 @app.get("/search")
-def search_parcels(q: str, limit: int = 10) -> list[dict]:
-    """Find parcels by street address (prefix, then similarity) or by 10- or 14-digit PIN."""
+def search_parcels(c: Annotated[Caller, Depends(caller)], q: str, limit: int = 10) -> list[dict]:
+    """Find parcels by street address (prefix, then similarity) or by 10- or 14-digit PIN. Rate limited."""
+    check_rate("search", c.key)
     if len(q.strip()) < 3:
         raise HTTPException(400, "type at least 3 characters")
     with connect() as conn:
@@ -158,6 +199,7 @@ def search_parcels(q: str, limit: int = 10) -> list[dict]:
 
 @app.get("/lots")
 def list_lots(
+    c: Annotated[Caller, Depends(caller)],
     community_area: int | None = None,
     zone: str | None = None,
     min_score: float = 0,
@@ -171,7 +213,12 @@ def list_lots(
     offset: int = 0,
     format: Annotated[str, Query(pattern="^(json|csv)$")] = "json",
 ):
-    """Scored lots for the list and map, with filters. format=csv returns the same rows as a CSV file."""
+    """Scored lots for the list and map, with filters. format=csv returns the same rows as a CSV file
+    (signed-in Pro members only; logged). Rate limited."""
+    if format == "csv":
+        export_gate(accounts.member_or_401(c), "export.lots_csv", f"community area {community_area}")
+    else:
+        check_rate("search", c.key)
     with connect() as conn:
         rows = lots(conn, community_area=community_area, zone_prefix=zone, min_score=min_score, min_units=min_units,
                     signal=signal, for_sale=for_sale, vacant=vacant, fast_path=fast_path, sort=sort,

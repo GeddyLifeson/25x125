@@ -23,6 +23,10 @@ type Props = {
   questionsAsOf: string;
   /** Set when the screen was opened from a saved deal: its edits and scenario. */
   deal?: { id: number; scenario: number | null; overrides: Overrides } | null;
+  /** Edits saved to the organization for this parcel, when signed in on a plan that keeps them. */
+  accountEdits?: { overrides: Overrides; updated_at: string; updated_by: string | null } | null;
+  /** null when signed out; otherwise whether the plan saves edits to the account. */
+  canSaveEdits?: boolean | null;
 };
 
 type NumField = (typeof NUMBER_FIELDS)[number];
@@ -131,6 +135,7 @@ export function FeasibilityScreen(props: Props) {
   const [overrides, setOverrides] = useState<Overrides>(props.deal?.overrides ?? {});
   const [pick, setPick] = useState(props.deal?.scenario ?? 0);
   const [savedDeal, setSavedDeal] = useState<{ id: number; updated: boolean } | null>(null);
+  const [savedEdits, setSavedEdits] = useState<string | null>(null);
   const [scope, setScope] = useState<"this" | "all">("this");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -182,6 +187,13 @@ export function FeasibilityScreen(props: Props) {
       setNotice(`Loaded the edits saved with deal ${props.deal.id}.`);
       return;
     }
+    const acct = props.accountEdits;
+    if (acct && Object.keys(acct.overrides).length > 0) {
+      setOverrides(acct.overrides);
+      setNotice(`Loaded the edits saved to your account on ${acct.updated_at.slice(0, 10)}${acct.updated_by ? ` by ${acct.updated_by}` : ""}.`);
+      void run(acct.overrides, props.initialExit, props.initialTarget);
+      return;
+    }
     try {
       const raw = localStorage.getItem(storageKey(pin));
       const saved = raw ? (JSON.parse(raw) as Overrides) : null;
@@ -193,7 +205,7 @@ export function FeasibilityScreen(props: Props) {
     } catch {
       // ignore bad saved state
     }
-  }, [pin, props.initialExit, props.initialTarget, props.deal, run]);
+  }, [pin, props.initialExit, props.initialTarget, props.deal, props.accountEdits, run]);
 
   const scenarios = data.scenarios;
   const sel = scenarios[Math.min(pick, scenarios.length - 1)];
@@ -278,6 +290,23 @@ export function FeasibilityScreen(props: Props) {
       setSavedDeal({ id: d.id, updated: update });
     } catch (e) {
       setError(`Could not save the deal: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  };
+
+  // Keep the edits on screen with the organization, so they follow the user to another computer and teammates.
+  const saveEdits = async () => {
+    setError(null);
+    try {
+      const res = await fetch(`/api/overrides/${pin}`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ exit, target, overrides }),
+      });
+      const d = (await res.json()) as { updated_at?: string; detail?: string };
+      if (!res.ok) throw new Error(d.detail ?? res.statusText);
+      setSavedEdits(`Saved ${editCount} edit${editCount === 1 ? "" : "s"} to your account.`);
+    } catch (e) {
+      setError(`Could not save the edits: ${e instanceof Error ? e.message : String(e)}`);
     }
   };
 
@@ -782,7 +811,23 @@ export function FeasibilityScreen(props: Props) {
               <button className={`btn small${props.deal ? "" : " primary"}`} type="button" onClick={() => void saveDeal(false)} data-testid="save-deal">
                 {props.deal ? "Save as a new deal" : "Save scenario to deal"}
               </button>
+              {props.canSaveEdits && (
+                <button className="btn small" type="button" onClick={() => void saveEdits()} data-testid="save-edits">
+                  Save edits to account
+                </button>
+              )}
             </div>
+            {props.canSaveEdits === null && (
+              <p className="small muted" style={{ marginTop: 8 }}>
+                <Link href={`/signin?next=${encodeURIComponent(`/parcels/${pin}/feasibility`)}`}>Sign in</Link> to save deals, keep edits
+                with your account and export the PDF and CSV. Without an account, edits stay in this browser.
+              </p>
+            )}
+            {savedEdits && (
+              <p className="small" role="status" style={{ marginTop: 8 }}>
+                {savedEdits}
+              </p>
+            )}
             {savedDeal && (
               <p className="small" role="status" style={{ marginTop: 8 }}>
                 {savedDeal.updated ? "Updated" : "Saved as"} deal {savedDeal.id}. <Link href={`/deals?d=${savedDeal.id}`}>Open deals</Link>

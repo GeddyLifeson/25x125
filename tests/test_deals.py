@@ -30,7 +30,7 @@ def _clear(db_url):
 
 
 @pytest.fixture
-def client(db_url, monkeypatch):
+def client(db_url, monkeypatch, make_member):
     migrate(db_url)
     _clear(db_url)
     with psycopg.connect(db_url) as conn:
@@ -73,7 +73,7 @@ def client(db_url, monkeypatch):
         )
     monkeypatch.setattr(deals_module, "connect", lambda: psycopg.connect(db_url))
     monkeypatch.setattr(areas_module, "connect", lambda: psycopg.connect(db_url))
-    yield TestClient(app_module.app)
+    yield TestClient(app_module.app, headers=make_member("owner@test.example", "test-org-a"))
     _clear(db_url)
 
 

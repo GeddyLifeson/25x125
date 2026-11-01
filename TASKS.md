@@ -85,16 +85,16 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 - [x] Parcel vector tiles; map and list matching `mockups/Main.dc.html`; filters and sorts; under 2 seconds. (Filter changes 0.1-0.9 s; first open of the map 2.9-4.0 s with a cold basemap, 2026-11-01.)
 - [x] Fast-path filter, land value map layer, and city lots for sale (ChiBlockBuilder) layer.
 - [x] Deals screen matching `mockups/Deals.dc.html`: pipeline counts, deal table, outreach log, CSV export.
-- [ ] Email sign-in.
+- [x] Email sign-in. Done 2026-11-01: email link, 30-minute one-use links and 30-day sessions in Postgres (migration 0023), dev mode writes links to the console and `.dev-mail/`; deals and saving need sign-in, search, parcel, map and feasibility work signed out. Smoke run: 68 checks pass.
 
 ## SaaS setup (weeks 8-17, alongside steps 4-6)
 
-- [ ] Organizations from day one: org id on deals, saved searches and overrides; Postgres row-level security; owner and member roles.
-- [ ] Stripe Checkout, customer portal, plan webhook, 14-day Pro trial, Stripe Tax.
+- [x] Organizations from day one: org id on deals, saved searches and overrides; Postgres row-level security; owner and member roles. Done 2026-11-01 (migration 0024): invites by email, existing deals moved to the `default` organization, signed HMAC claim from the web app to the engine; `tests/test_accounts.py` shows one organization cannot read, change or insert another's rows.
+- [x] Stripe Checkout, customer portal, plan webhook, 14-day Pro trial, Stripe Tax. Code done 2026-11-01 (migration 0025, `engine/billing.py`, `data/rules/plans.json`: Pro $129, founding $79), webhook tested with a fixture event and a locally computed signature. Waits on Marlon's Stripe account and test-mode keys to run against Stripe.
 - [ ] Chicago cloud tax (lease transaction tax, 15% since 2026-01-01) on invoices; accountant confirms registration.
 - [ ] Hosting: managed Postgres with PostGIS and point-in-time restore, engine and jobs host, front-end host, PMTiles on object storage and CDN; staging and production.
-- [ ] Error tracking, uptime checks, nightly-job alerts (failed pull or count drop over 10%), stale-data note on screen, tested restore.
-- [ ] Security: secrets out of the repo, rate limits on search and PDF, audit log of overrides and exports, dependency scanning in CI, data deletion on request.
+- [ ] Error tracking, uptime checks, nightly-job alerts (failed pull or count drop over 10%), stale-data note on screen, tested restore. Done 2026-11-01: error-tracking hook (`SENTRY_DSN`, engine, nightly job and web; no-op when empty), `/health` with freshness per source (503 when the database is down, for an uptime check), stale-data note on every screen. Open: uptime service, count-drop alerts, tested restore (need the hosting accounts).
+- [x] Security: secrets out of the repo, rate limits on search and PDF, audit log of overrides and exports, dependency scanning in CI, data deletion on request. Done 2026-11-01 (migration 0026): Postgres token buckets, `audit_log` under row-level security, `dependency-scan` CI job (pip-audit; npm audit reports maplibre-gl 5.x critical and next 15.x/postcss high, which need a major upgrade), delete on `/account` or `python -m jobs.delete_account`.
 - [ ] Data licensing review: attribution for portals and basemap, Zillow internal only, no MLS.
 - [ ] Onboarding: free address check, guided first parcel, sample deal, help pages, 2-minute video, support inbox.
 

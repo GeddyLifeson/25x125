@@ -1,6 +1,6 @@
 // One-page PDF of the feasibility result, for a partner or lender. Pure JavaScript (no browser needed to deploy).
 import { Document, Page, StyleSheet, Text, View, renderToBuffer } from "@react-pdf/renderer";
-import { EngineError, getParcel, postFeasibility } from "../../../../lib/engine";
+import { EngineError, checkExport, getParcel, postFeasibility, wallRedirect } from "../../../../lib/engine";
 import { formatPin, pct, titleCase, usd, usdRange } from "../../../../lib/format";
 import { overridesFromParam, overridesToCsv } from "../../../../lib/overrides";
 import { ESTIMATE_LABEL, scenarioSources } from "../../../../lib/report";
@@ -220,6 +220,14 @@ export async function GET(req: Request, { params }: { params: Promise<{ pin: str
   const target = url.searchParams.get("target");
   const pick = Math.max(0, Math.min(2, Number(url.searchParams.get("s") ?? 0) || 0));
   const overrides = overridesFromParam(url.searchParams.get("o"));
+  try {
+    // Plan check, rate limit and audit row before anything is built.
+    await checkExport("pdf", `PIN ${pin}`);
+  } catch (e) {
+    const status = e instanceof EngineError ? e.status : 500;
+    const back = `/parcels/${pin}/feasibility${url.search}`;
+    return wallRedirect(req, status, back) ?? new Response(e instanceof Error ? e.message : String(e), { status });
+  }
   try {
     const [f, p] = await Promise.all([postFeasibility(pin, exit, target, overrides), getParcel(pin)]);
     const today = new Date().toISOString().slice(0, 10);

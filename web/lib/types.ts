@@ -398,3 +398,21 @@ export type Deal = {
   events?: DealEvent[];
   outreach_note?: string;
 };
+
+/** Feasibility edits saved to the organization for one parcel (engine GET /overrides/{pin}). */
+export type SavedEdits = {
+  pin: string;
+  exit: "sell" | "hold" | null;
+  target: string | null;
+  overrides: Overrides;
+  updated_at: string;
+  updated_by: string | null;
+};
+
+export type SavedSearch = { id: number; name: string; params: string; created_at: string };
+
+export type Freshness = {
+  status: "ok" | "stale" | "degraded";
+  stale_after_hours?: number;
+  stale?: { dataset_id: string; label: string; finished_at: string; hours_old: number }[];
+};

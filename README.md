@@ -64,7 +64,7 @@ The web app in `web/` reads everything through the engine; it never calls the da
 
 Screens: the map and list (`/map`), address or PIN search (`/`), deals (`/deals`), the parcel page (`/parcels/<pin>`) and the feasibility screen (`/parcels/<pin>/feasibility`). On the feasibility screen every assumption can be edited and re-run; edits are kept in the browser per parcel. Exports: a one-page PDF (`/parcels/<pin>/report.pdf`), the lines as CSV (`/parcels/<pin>/feasibility.csv`), and the assumptions as a `scenario,field,value` CSV that can be imported again (example: `web/scripts/sample-overrides.csv`).
 
-Checks: `npm run typecheck`, `npm run build`, and with the engine, the tile server and the web app running, `node scripts/smoke.cjs http://localhost:3000` (needs the `playwright` package and Chromium; screenshots go to `web/screenshots/`, which git ignores). The smoke run deletes the deals it creates.
+Checks: `npm run typecheck`, `npm run build`, and with the engine, the tile server and the web app running, `node scripts/smoke.cjs http://localhost:3000` (needs the `playwright` package and Chromium; screenshots go to `web/screenshots/`, which git ignores). Set `ENGINE_URL` for the smoke run too. It signs in as `smoke-test@example.com` through dev mode (keep `EMAIL_SERVER` empty), and at the end deletes its deals and its own account.
 
 ## Map, list and deals
 
@@ -74,4 +74,27 @@ Checks: `npm run typecheck`, `npm run build`, and with the engine, the tile serv
 - Tiles come from Martin (`docker compose` service `tiles`, http://localhost:3100/catalog), which runs the PostGIS functions in `db/migrations/0022_map_tiles.sql`. The web app passes them through at `/tiles/...`; set `TILES_URL` if Martin runs elsewhere. The basemap is OpenFreeMap's Positron style (no key; attribution shows on the map). Set `NEXT_PUBLIC_BASEMAP_STYLE` to another style URL, or to `none` for a plain background, before `npm run build`.
 - **Deals** (`/deals`): pipeline counts by stage (lead, contacted, feasibility, under contract, passed), the deal table, and the owner outreach log with the TCPA and CAN-SPAM note. Save a deal from the map panel, the parcel page or the feasibility screen; from feasibility the deal keeps the edits on screen, and the engine re-runs the scenario and stores its numbers with the date. "Feasibility" on a deal reopens it with those edits. CSV out: deals and the outreach log; CSV in: deals (a `pin` column, plus any of stage, next_step, next_step_on, notes, address, overrides; a row with an existing `id` updates that deal).
 - Engine endpoints: `GET/POST /deals`, `GET/PATCH/DELETE /deals/{id}`, `POST /deals/{id}/rerun`, `GET/POST /deals/{id}/events`, `DELETE /deals/{id}/events/{event_id}`, `GET /deals/pipeline`, `GET /deals/events`, `POST /deals/import` (CSV body), `GET /lots/{pin10}`, `GET /community-areas`, `GET /community-areas/{num}/snapshot`.
-- Sign-in and organizations come later; `deal.org_id` is stored but not enforced yet.
+- Deals belong to an organization and need sign-in and a plan with deals (Pro or the trial); see below.
+
+## Accounts, plans and operations
+
+**Sign-in.** Email link only, no passwords (`/signin`). The engine stores users, organizations, memberships, invites, one-use sign-in links (30 minutes) and 30-day sessions in Postgres (`db/migrations/0023_account.sql`); tokens are kept as SHA-256 hashes. The web app holds the session in an http-only cookie (`x25_session`).
+
+- Dev mode: with `EMAIL_SERVER` empty on the engine, no email is sent. The link prints in the engine console and is saved in `.dev-mail/<email>.txt` in the repo folder, and the sign-in page says so. With `APP_ENV=production` the engine refuses to run without `EMAIL_SERVER`.
+- To send real email set `EMAIL_SERVER` (any SMTP provider, e.g. `smtp://resend:<api key>@smtp.resend.com:587`) and `EMAIL_FROM` on the engine, and `APP_URL` on the web app.
+- Signed out, these work: address search, the parcel page, the map and list, and the feasibility screen (edits stay in the browser). Deals, edits saved to the account, saved searches, PDF and CSV exports, and teammates need sign-in and Pro.
+
+**Organizations.** The first sign-in creates an organization with the user as owner and a 14-day Pro trial (one trial per person). The owner invites teammates by email on `/account`; they join when they sign in with that address. One owner per organization. Deals, the outreach log, saved searches (`saved_search`) and saved feasibility edits (`saved_override`) carry `org_id`, and Postgres row-level security limits every query to the caller's organization (`0024_org_rls.sql`). Deals saved before sign-in existed are in the `default` organization (Pro at no charge).
+
+**How the engine knows who is calling.** The web app signs a short claim (user, organization, client IP, 60-second expiry) with HMAC-SHA256 and `ENGINE_SHARED_SECRET`, in the `X-25x125-Claim` header. Organization routes refuse calls without a valid claim, check the membership in the database, then switch to the restricted `x25_app` role and set `app.org_id` for that transaction. Set the same `ENGINE_SHARED_SECRET` on both; empty uses a dev-only value, which production refuses.
+
+**Plans and Stripe.** Prices and features are data: `data/rules/plans.json` (Free; Pro $129 a month; founding price $79 a month, set per organization with `org.founding`). Engine routes: `GET /billing/plans`, `POST /billing/checkout` (Stripe Checkout with Stripe Tax on; time left on the trial carries over), `POST /billing/portal`, `POST /billing/webhook` (signature checked with `STRIPE_WEBHOOK_SECRET`; sets the organization's plan and status; each event handled once). The web app forwards Stripe's webhook from `/api/billing/webhook`. Without `STRIPE_SECRET_KEY` the buttons are off and the trial still works. Local webhook test: `stripe listen --forward-to localhost:3000/api/billing/webhook` (Stripe CLI, test mode).
+
+**Operations.**
+
+- Rate limits: token buckets in Postgres (`rate_bucket`) per signed-in user, or per IP when signed out, for search and the list, exports, sign-in emails and invites. Limits in `data/rules/rate_limits.json`; over the limit the engine answers 429 with `Retry-After`.
+- Audit log (`audit_log`): sign-ins, deal changes, saved edits, saved searches, invites, member changes and every export, with who, organization, what and when. The owner sees the last 50 on `/account`; `GET /account/audit` returns more.
+- `GET /health`: database, PostGIS, and the latest finished pull per source; nightly sources over 36 hours old (`data/rules/freshness.json`) set `status` to `stale`, and every screen shows a note naming them. 503 when the database is down.
+- Error tracking: set `SENTRY_DSN` on the engine and the web app. Engine errors, nightly-job failures and web server errors go to Sentry; empty means they are only logged.
+- Data deletion on request: "Delete my account" on `/account`, or `python -m jobs.delete_account person@example.com` (add `--confirm` to delete). Organizations the person owns go with all their data; the Stripe subscription is canceled when billing is set up; other members keep their sign-in. `deletion_log` records each deletion without the email address.
+- CI runs `pip-audit` and `npm audit` (job `dependency-scan`).

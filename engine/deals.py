@@ -1,7 +1,9 @@
 """Deals: saved parcels, their stage, the feasibility edits saved with them, and the owner outreach log.
 
 Endpoints are mounted on the engine app (engine/app.py). Every list exports as CSV; deals import from CSV.
-Sign-in and organizations come later: org_id is stored but not yet enforced.
+Every route needs a signed-in member on a plan with deals (engine/auth.py). Queries run under row-level
+security for the caller's organization, so a deal of another organization reads as not found. Changes and
+exports go to the audit log.
 """
 
 import csv
@@ -10,11 +12,13 @@ import json
 from datetime import date, datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Body, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from core.db import connect
+from engine.accounts import export_gate
+from engine.auth import Caller, audit, needs, scoped
 from engine.parcel_feasibility import feasibility
 
 router = APIRouter()
@@ -54,7 +58,6 @@ class DealIn(BaseModel):
     scenario: int | None = Field(None, ge=0, le=2)
     overrides: dict = Field(default_factory=dict)
     notes: str | None = None
-    org_id: str | None = None
 
 
 class DealPatch(BaseModel):
@@ -181,10 +184,17 @@ def _csv_response(rows: list[list], header: list[str], name: str) -> Response:
                     headers={"Content-Disposition": f"attachment; filename={name}"})  # fmt: skip
 
 
+DealsCaller = Annotated[Caller, Depends(needs("deals"))]
+
+
 @router.get("/deals")
-def list_deals(stage: str | None = None, format: Annotated[str, Query(pattern="^(json|csv)$")] = "json"):
+def list_deals(
+    c: DealsCaller, stage: str | None = None, format: Annotated[str, Query(pattern="^(json|csv)$")] = "json"
+):
     """Saved deals, newest change first. format=csv returns one row per deal (import it back with POST /deals/import)."""
-    with connect() as conn:
+    if format == "csv":
+        export_gate(c, "export.deals_csv")
+    with scoped(connect(), c) as conn:
         deals = _list(conn, stage)
     if format == "json":
         return deals
@@ -199,9 +209,9 @@ def list_deals(stage: str | None = None, format: Annotated[str, Query(pattern="^
 
 
 @router.get("/deals/pipeline")
-def pipeline() -> dict:
+def pipeline(c: DealsCaller) -> dict:
     """Deal counts by stage, for the pipeline tiles."""
-    with connect() as conn:
+    with scoped(connect(), c) as conn:
         got = dict(conn.execute("select stage, count(*) from deal group by stage").fetchall())
     counts = {k: got.get(k, 0) for k in STAGES}
     return {
@@ -211,9 +221,11 @@ def pipeline() -> dict:
 
 
 @router.get("/deals/events")
-def all_events(format: Annotated[str, Query(pattern="^(json|csv)$")] = "json"):
+def all_events(c: DealsCaller, format: Annotated[str, Query(pattern="^(json|csv)$")] = "json"):
     """Every outreach log entry across deals, oldest first. format=csv for a file."""
-    with connect() as conn:
+    if format == "csv":
+        export_gate(c, "export.outreach_csv")
+    with scoped(connect(), c) as conn:
         rows = conn.execute(
             """select e.id, e.deal_id, d.address, e.kind, e.event_on, e.note, e.created_at
                from deal_event e join deal d on d.id = e.deal_id order by e.event_on, e.id"""
@@ -226,7 +238,7 @@ def all_events(format: Annotated[str, Query(pattern="^(json|csv)$")] = "json"):
 
 
 @router.post("/deals/import")
-def import_deals(text: Annotated[str, Body(media_type="text/csv")]) -> dict:
+def import_deals(c: DealsCaller, text: Annotated[str, Body(media_type="text/csv")]) -> dict:
     """Create or update deals from a CSV file (the same columns the export writes).
 
     `pin` is required. A row with an `id` that exists updates that deal's stage, next step, date and notes;
@@ -236,7 +248,7 @@ def import_deals(text: Annotated[str, Body(media_type="text/csv")]) -> dict:
     if not reader.fieldnames or "pin" not in [f.strip().lower() for f in reader.fieldnames]:
         raise HTTPException(400, "the CSV needs a header row with a pin column")
     created, updated, errors = 0, 0, []
-    with connect() as conn:
+    with scoped(connect(), c) as conn:
         for n, raw in enumerate(reader, start=2):
             row = {(k or "").strip().lower(): (v or "").strip() for k, v in raw.items()}
             try:
@@ -271,18 +283,19 @@ def import_deals(text: Annotated[str, Body(media_type="text/csv")]) -> dict:
                 created += 1
             except (ValueError, KeyError, HTTPException) as e:
                 errors.append(f"line {n}: {e.detail if isinstance(e, HTTPException) else e}")
+        audit(conn, c, "deal.import", None, created=created, updated=updated, errors=len(errors))
     return {"created": created, "updated": updated, "errors": errors}
 
 
 @router.post("/deals", status_code=201)
-def create_deal(body: DealIn) -> dict:
+def create_deal(body: DealIn, c: DealsCaller) -> dict:
     """Save a parcel as a deal. With `exit` set, the engine runs feasibility with `overrides` and stores the
     chosen scenario's numbers and the run date."""
     pin = _clean_pin(body.pin)
     stage = _stage(body.stage)
     if body.exit not in (None, "sell", "hold"):
         raise HTTPException(400, "exit must be sell or hold")
-    with connect() as conn:
+    with scoped(connect(), c) as conn:
         found = _parcel_for(conn, pin)
         if found is None:
             raise HTTPException(404, f"PIN {pin} is not in the parcel table")
@@ -295,17 +308,19 @@ def create_deal(body: DealIn) -> dict:
             """insert into deal (org_id, pin, pin10, address, stage, next_step, next_step_on, exit, target, scenario,
                                  scenario_name, overrides, result, notes)
                values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) returning id""",
-            (body.org_id, found[0], found[1], found[2], stage, body.next_step, body.next_step_on, body.exit, body.target,
+            (c.org_id, found[0], found[1], found[2], stage, body.next_step, body.next_step_on, body.exit, body.target,
              result["scenario"] if result else body.scenario, name, json.dumps(body.overrides),
              json.dumps(result) if result else None, body.notes),
         ).fetchone()[0]  # fmt: skip
+        audit(conn, c, "deal.create", f"deal {deal_id}", pin=found[0], stage=stage, exit=body.exit,
+              overrides=body.overrides)  # fmt: skip
         return _get(conn, deal_id)
 
 
 @router.get("/deals/{deal_id}")
-def get_deal(deal_id: int) -> dict:
+def get_deal(deal_id: int, c: DealsCaller) -> dict:
     """One deal with its outreach log."""
-    with connect() as conn:
+    with scoped(connect(), c) as conn:
         d = _get(conn, deal_id)
         d["events"] = _events(conn, deal_id)
     d["outreach_note"] = OUTREACH_NOTE
@@ -313,7 +328,7 @@ def get_deal(deal_id: int) -> dict:
 
 
 @router.patch("/deals/{deal_id}")
-def update_deal(deal_id: int, body: DealPatch) -> dict:
+def update_deal(deal_id: int, body: DealPatch, c: DealsCaller) -> dict:
     """Change a deal's stage, next step, its date, notes or address. Fields left out stay as they are.
 
     Changing exit, target, scenario or overrides runs feasibility again and stores the new numbers.
@@ -324,9 +339,10 @@ def update_deal(deal_id: int, body: DealPatch) -> dict:
     if changes.get("exit") not in (None, "sell", "hold"):
         raise HTTPException(400, "exit must be sell or hold")
     rerun = any(k in changes for k in ("exit", "target", "scenario", "overrides"))
+    logged = dict(changes)
     if "overrides" in changes:
         changes["overrides"] = json.dumps(changes["overrides"] or {})
-    with connect() as conn:
+    with scoped(connect(), c) as conn:
         _get(conn, deal_id)
         if changes:
             sets = ", ".join(f"{k} = %s" for k in changes)
@@ -335,6 +351,9 @@ def update_deal(deal_id: int, body: DealPatch) -> dict:
             )
         if rerun:
             _store_run(conn, deal_id)
+        audit(
+            conn, c, "override.save" if "overrides" in changes else "deal.update", f"deal {deal_id}", **logged
+        )
         return _get(conn, deal_id)
 
 
@@ -350,19 +369,21 @@ def _store_run(conn, deal_id: int) -> None:
 
 
 @router.post("/deals/{deal_id}/rerun")
-def rerun_deal(deal_id: int) -> dict:
+def rerun_deal(deal_id: int, c: DealsCaller) -> dict:
     """Run feasibility again with the deal's saved edits and store today's numbers."""
-    with connect() as conn:
+    with scoped(connect(), c) as conn:
         _store_run(conn, deal_id)
+        audit(conn, c, "deal.rerun", f"deal {deal_id}")
         return _get(conn, deal_id)
 
 
 @router.delete("/deals/{deal_id}", status_code=204)
-def delete_deal(deal_id: int) -> Response:
+def delete_deal(deal_id: int, c: DealsCaller) -> Response:
     """Delete a deal and its outreach log."""
-    with connect() as conn:
+    with scoped(connect(), c) as conn:
         if conn.execute("delete from deal where id = %s returning id", (deal_id,)).fetchone() is None:
             raise HTTPException(404, f"deal {deal_id} not found")
+        audit(conn, c, "deal.delete", f"deal {deal_id}")
     return Response(status_code=204)
 
 
@@ -376,9 +397,11 @@ def _events(conn, deal_id: int) -> list[dict]:
 
 
 @router.get("/deals/{deal_id}/events")
-def list_events(deal_id: int, format: Annotated[str, Query(pattern="^(json|csv)$")] = "json"):
+def list_events(deal_id: int, c: DealsCaller, format: Annotated[str, Query(pattern="^(json|csv)$")] = "json"):
     """One deal's outreach log, oldest first."""
-    with connect() as conn:
+    if format == "csv":
+        export_gate(c, "export.outreach_csv", f"deal {deal_id}")
+    with scoped(connect(), c) as conn:
         d = _get(conn, deal_id)
         events = _events(conn, deal_id)
     if format == "csv":
@@ -391,26 +414,29 @@ def list_events(deal_id: int, format: Annotated[str, Query(pattern="^(json|csv)$
 
 
 @router.post("/deals/{deal_id}/events", status_code=201)
-def add_event(deal_id: int, body: EventIn) -> dict:
+def add_event(deal_id: int, body: EventIn, c: DealsCaller) -> dict:
     """Log an owner contact, a note or a reminder. Calls and texts follow TCPA rules; email follows CAN-SPAM."""
     if body.kind not in EVENT_KINDS:
         raise HTTPException(400, f"kind must be one of {', '.join(EVENT_KINDS)}")
-    with connect() as conn:
+    with scoped(connect(), c) as conn:
         _get(conn, deal_id)
         eid = conn.execute(
             "insert into deal_event (deal_id, kind, event_on, note) values (%s, %s, coalesce(%s, current_date), %s) returning id",
             (deal_id, body.kind, body.event_on, body.note),
         ).fetchone()[0]
         conn.execute("update deal set updated_at = now() where id = %s", (deal_id,))
+        audit(conn, c, "deal_event.create", f"deal {deal_id}", kind=body.kind)
         return next(e for e in _events(conn, deal_id) if e["id"] == eid)
 
 
 @router.delete("/deals/{deal_id}/events/{event_id}", status_code=204)
-def delete_event(deal_id: int, event_id: int) -> Response:
-    with connect() as conn:
+def delete_event(deal_id: int, event_id: int, c: DealsCaller) -> Response:
+    with scoped(connect(), c) as conn:
         gone = conn.execute(
             "delete from deal_event where id = %s and deal_id = %s returning id", (event_id, deal_id)
         ).fetchone()
+        if gone is not None:
+            audit(conn, c, "deal_event.delete", f"deal {deal_id}", event=event_id)
     if gone is None:
         raise HTTPException(404, f"event {event_id} not found on deal {deal_id}")
     return Response(status_code=204)

@@ -3,6 +3,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import Link from "next/link";
 import type { ExpressionSpecification, FilterSpecification, Map as MLMap, Marker, StyleSpecification } from "maplibre-gl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SaveSearch } from "../../components/SaveSearch";
 import { LotPanel } from "../../components/LotPanel";
 import { Source } from "../../components/Source";
 import { num, pct, titleCase, usd, usdK } from "../../lib/format";
@@ -445,6 +446,7 @@ export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial:
           <a className="btn small" href={`/api/lots?${lotsQuery(filters, 0, "csv")}`} data-testid="csv">
             Export list as CSV
           </a>
+          <SaveSearch params={lotsQuery(filters, 0).replace(/&?(limit|offset)=\d+/g, "").replace(/^&/, "")} suggested={areaName ? `${areaName} lots` : "Saved search"} />
           <button className="btn small" type="button" onClick={() => setFilters(DEFAULT_FILTERS)}>
             Clear
           </button>

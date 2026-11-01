@@ -9,6 +9,7 @@ import sys
 import traceback
 from collections.abc import Callable
 
+from core import errors
 from jobs import (
     build_comps,
     build_cost_index,
@@ -96,10 +97,11 @@ def main(argv: list[str] | None = None) -> int:
     for name, step in steps(a.year, a.skip_yearly):
         try:
             print(f"{name}: {step()}", flush=True)
-        except Exception:  # noqa: BLE001 - one failed source must not stop the others; the report lists it
+        except Exception as e:  # noqa: BLE001 - one failed source must not stop the others; the report lists it
             failures += 1
             print(f"{name}: FAILED", flush=True)
             traceback.print_exc()
+            errors.report(e, {"job": "nightly", "step": name}, wait=True)  # no-op without SENTRY_DSN
     report.main()
     return 1 if failures else 0
 

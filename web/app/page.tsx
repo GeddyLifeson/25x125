@@ -9,7 +9,7 @@ async function engineStatus(): Promise<string | null> {
   try {
     const res = await fetch(`${ENGINE_URL}/health`, { cache: "no-store" });
     const body = (await res.json()) as { status: string };
-    return body.status === "ok" ? null : `The engine reports: ${body.status}.`;
+    return body.status === "ok" || body.status === "stale" ? null : `The engine reports: ${body.status}.`;
   } catch {
     return `The engine is not answering at ${ENGINE_URL}. Start it with: python -m uvicorn engine.app:app --port 8000`;
   }

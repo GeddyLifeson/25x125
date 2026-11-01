@@ -44,3 +44,27 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run build
+
+  # Dependency scanning: Python packages from pyproject.toml (pip-audit) and the web app's npm packages.
+  # pip-audit fails the job on any known vulnerability. npm audit fails on critical advisories in runtime
+  # packages and lists the rest; on 2026-11-01 maplibre-gl 5.x (critical, fixed in 6.x) and next 15.x
+  # (postcss, high) are known and wait on an upgrade, so that step reports instead of failing until then.
+  dependency-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install pip-audit==2.10.1
+      - run: pip-audit .
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: npm audit (runtime packages)
+        working-directory: web
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=critical
+      - name: npm audit (all packages, report only)
+        working-directory: web
+        run: npm audit || echo "::warning::npm audit lists advisories; see the log above"
