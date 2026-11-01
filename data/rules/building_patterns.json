@@ -1,0 +1,14 @@
+{
+  "source": "Pattern library adapted from BC standardized housing designs, the NSW Housing Pattern Book and the GdW serial-construction framework (see docs/international-practices.md). Sized for a 25 x 125 Chicago lot (3,125 sq ft).",
+  "as_of": "2026-10-29",
+  "status": "draft: sizes from spec defaults; cost per sq ft and plan sets come from the partner contractor and partner architects",
+  "use": "Feasibility scenarios pick a pattern. The engine checks the pattern against the parcel's zoning path (units, FAR, height) and code thresholds, then prices it. Users can still enter a custom program.",
+  "patterns": [
+    {"id": "two-flat", "name": "2-flat", "units": 2, "stories": 2, "basement": true, "unit_sqft": 1300, "gross_sqft": 2912, "min_district": "RS-3 (block-face test) or RT-4", "sprinklers": false, "certificate_of_occupancy": false, "stairs": 1, "build_spec_default": "production"},
+    {"id": "three-flat", "name": "3-flat", "units": 3, "stories": 3, "basement": true, "unit_sqft": 1116, "gross_sqft": 3750, "min_district": "RT-4", "sprinklers": false, "certificate_of_occupancy": false, "stairs": 1, "build_spec_default": "production", "note": "gross area capped by RT-4 FAR 1.2 on 3,125 sq ft"},
+    {"id": "three-flat-coach-house", "name": "3-flat plus coach house", "units": 4, "stories": 3, "basement": true, "unit_sqft": 1116, "gross_sqft": 4350, "coach_house_sqft": 600, "min_district": "RT-4 (ADU rules)", "sprinklers": false, "certificate_of_occupancy": false, "stairs": 1, "build_spec_default": "production", "verify": "coach house as a separate building keeps the 3-flat under the 4-unit thresholds"},
+    {"id": "four-flat", "name": "4-flat", "units": 4, "stories": 3, "basement": true, "unit_sqft": 1000, "gross_sqft": 4480, "min_district": "RM-4.5", "sprinklers": true, "certificate_of_occupancy": true, "stairs": 1, "build_spec_default": "production"},
+    {"id": "six-flat", "name": "6-flat", "units": 6, "stories": 3, "basement": true, "unit_sqft": 930, "gross_sqft": 6250, "min_district": "RM-5", "sprinklers": true, "certificate_of_occupancy": true, "stairs": 1, "build_spec_default": "production", "note": "gross area capped by RM-5 FAR 2.0; mirrors the Morgan Park Missing Middle six-flats"},
+    {"id": "storefront-three", "name": "Storefront plus 3 units", "units": 3, "commercial_sqft": 1800, "stories": 4, "basement": false, "unit_sqft": 1150, "gross_sqft": 6875, "min_district": "B/C-2", "sprinklers": false, "certificate_of_occupancy": true, "stairs": 2, "build_spec_default": "standard", "note": "change of occupancy rules and ground-floor commercial; gross area at B/C-2 FAR 2.2; verify stair count against the 2026 code"}
+  ]
+}

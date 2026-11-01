@@ -1,0 +1,28 @@
+{
+  "note": "Rules under consideration. Each switches on as a data edit if adopted.",
+  "rules": [
+    {
+      "id": "chicago-single-stair",
+      "body": "Chicago City Council",
+      "file": "O2025-0017571",
+      "status": "in committee; subject-matter hearing 2026-06-04, no vote",
+      "effect": "single stair in residential buildings above 3 stories; affects 4+ story patterns on 25-ft lots; estimated savings 6-13%",
+      "sources": [
+        "https://www.chicagocityscape.com/blog/single-stair-benefits-for-chicagoans-20260330",
+        "https://hoodline.com/2026/05/city-stair-rules-trip-up-chicago-s-neighborhood-housing-boom/"
+      ],
+      "verified_on": "2026-10-29"
+    },
+    {
+      "id": "illinois-build",
+      "body": "Illinois General Assembly",
+      "file": "BUILD plan bills (2026 session)",
+      "status": "stalled June 2026; expected to return",
+      "effect": "statewide limits on minimum lot size, density and parking; would matter most outside Chicago",
+      "sources": [
+        "https://www.dailyherald.com/20260607/real-estate/whats-next-for-pritzkers-stalled-housing-plan/"
+      ],
+      "verified_on": "2026-10-29"
+    }
+  ]
+}

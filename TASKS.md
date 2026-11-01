@@ -1,6 +1,6 @@
 # Tasks
 
-Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and test each one before starting the next. Calibration results so far are in `docs/calibration-2026-10-29.md`.
+Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and test each one before starting the next. Calibration results so far are in `docs/calibration-2026-10-29.md`. Full schedule to paid launch (23 working weeks from 2026-11-02, launch week of 2027-04-19): https://claude.ai/artifact/SxJ23K1yPFYBrRnMY4h4Jj
 
 ## Step 0: Setup and calibration inputs
 
@@ -8,8 +8,8 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 - [ ] `docker-compose.yml` with PostgreSQL 16 + PostGIS. One command to start it on Windows and Mac.
 - [ ] `.env.example` filled in; settings loaded from env.
 - [x] Query every dataset in `data/sources/datasets.csv` once (done 2026-10-29; all answer).
-- [ ] Source the layers that are not on the data portals: transit-served areas, fire limits, 606/Pilsen surcharge districts, ADU areas, Opportunity Zone tracts, a current parcel polygon year.
-- [ ] Partner contractor session: actual $/sq ft and gross area on recent 2-6 flats, entered as cost records.
+- [ ] Source the layers that are not on the data portals: transit-served areas, fire limits, 606/Pilsen surcharge districts, the ADU eligibility map, Opportunity Zone tracts, a current parcel polygon year.
+- [x] Construction $/sq ft from published sources (docs/construction-costs-2026-10-29.md); contractor data replaces it when available.
 - [ ] Run 10 real parcels through the spec math by hand; note every question answered outside the tool.
 
 ## Step 1: Data foundation
@@ -30,6 +30,7 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 - [ ] Seed rule tables from `data/rules/zoning_districts.csv` and `zoning_steps.json`.
 - [ ] Load the full B/C height-by-frontage table from the code.
 - [ ] Implement the 10 calculation steps, with user-picked rezoning targets and the RS-3 block-face test.
+- [ ] One rule schema: rule, location reference, effective from/to, citation, verified-on (Dutch and UK practice; docs/international-practices.md).
 - [ ] Output per parcel and path: units, floor area, height, parking, flags, rule citation.
 - [ ] Hand-checked set: about 20 parcels Marlon knows (B/C-3, mixed use, RS-3, a 606 lot, a historic building).
 - [ ] Test: units by right on each test lot are at least the units built, or the result names the approval path used; hand-checked set matches.
@@ -38,7 +39,10 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 
 - [ ] Port `scripts/research/2026-10-29/` into jobs: comp pool from year built (211 + condo), first arm's-length sale, weighted median per unit, 25th-75th range, time adjustment.
 - [ ] Cost index job within unit-count groups, monthly (logic in `idx.py`); blend thin areas with neighbors.
-- [ ] Build-spec presets refit with the contractor's numbers.
+- [ ] Permit wait by review path from `processing_time` (self-cert 50 days, standard 85, medians); FHFA tract HPI time adjustment; PPI escalation of presets (round 2 of docs/international-practices.md).
+- [ ] Recency weights by quarter (1.00, 0.75, 0.56, 0.42) and side-of-city blending for thin areas.
+- [ ] Land value map: vacant-land and teardown sales, per sq ft of lot and per buildable sq ft, by Assessor neighborhood, with counts.
+- [x] Build-spec presets set from published evidence (production $165/$170).
 - [ ] Rent estimate: ACS B25031/B25064 + 25% premium, ZORI growth, HUD SAFMR floor, csik-bsws cross-check.
 - [ ] Test: sale estimate within 15% for at least 70% of test parcels (65% on 2026-10-29). Report the hit rate and median error.
 - [ ] Test: at actual sale and $60,000 land, at least 60% of test buildings show profit of $0 or more (57% on 2026-10-29).
@@ -48,6 +52,11 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 
 - [ ] All formulas from the spec for sell and hold, with the exact financing formula and margins that exclude land.
 - [ ] Incentives v1 from `data/rules/incentives_v1.csv` (OZ $0 for sell; bonus depreciation as deferral).
+- [ ] Pattern library scenarios from `data/rules/building_patterns.json`, checked against each zoning path.
+- [ ] Residual land value, profit as percent of value and cost, existing-use check; cost at P50 and P80.
+- [ ] Eligibility questions from `data/rules/incentive_questions.json` drive incentive toggles.
+- [ ] Reference lines: margin on cost 15-20%, spread over cap rate 1.0 pt, DSCR 1.3; buyer financing class (2-4 residential vs 5+ commercial) and FHA limit flag; Open Space Impact Fee line.
+- [ ] Fast-path flag per parcel (definition in `feasibility_defaults.json`).
 - [ ] Every output number carries source, date and comp count.
 - [ ] Nightly by-right run for every parcel; development score with points breakdown.
 - [ ] Unit tests on every formula.
@@ -62,8 +71,20 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 ## Step 6: Map search and deals
 
 - [ ] Parcel vector tiles; map and list matching `mockups/Main.dc.html`; filters and sorts; under 2 seconds.
+- [ ] Fast-path filter, land value map layer, and city lots for sale (ChiBlockBuilder) layer.
 - [ ] Deals screen matching `mockups/Deals.dc.html`: pipeline counts, deal table, outreach log, CSV export.
 - [ ] Email sign-in.
+
+## SaaS setup (weeks 8-17, alongside steps 4-6)
+
+- [ ] Organizations from day one: org id on deals, saved searches and overrides; Postgres row-level security; owner and member roles.
+- [ ] Stripe Checkout, customer portal, plan webhook, 14-day Pro trial, Stripe Tax.
+- [ ] Chicago cloud tax (lease transaction tax, 15% since 2026-01-01) on invoices; accountant confirms registration.
+- [ ] Hosting: managed Postgres with PostGIS and point-in-time restore, engine and jobs host, front-end host, PMTiles on object storage and CDN; staging and production.
+- [ ] Error tracking, uptime checks, nightly-job alerts (failed pull or count drop over 10%), stale-data note on screen, tested restore.
+- [ ] Security: secrets out of the repo, rate limits on search and PDF, audit log of overrides and exports, dependency scanning in CI, data deletion on request.
+- [ ] Data licensing review: attribution for portals and basemap, Zillow internal only, no MLS.
+- [ ] Onboarding: free address check, guided first parcel, sample deal, help pages, 2-minute video, support inbox.
 
 ## Step 7: Private test
 
@@ -79,6 +100,14 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 ## Version 1.1 (after launch)
 
 - [ ] Saved searches with alerts; CSV import; teams and shared deals; comps drawer; sensitivity sliders; lender Excel export.
+
+## Later, from the international review
+
+- [ ] Permit-ready plan sets for the pattern library with partner architects (Phase 2).
+- [ ] Entitlement tracker as gateways with one consolidated comment list per round (Phase 2a).
+- [ ] Refit cost margins from actual job costs, P50/P80 (Phase 4).
+- [ ] Policy mode: rerun all parcels under a proposed ordinance (after V1.1); seeded from `data/rules/pending_rules.json`.
+- [ ] Assembly finder (land readjustment idea), fee-simple townhome scenario, appraisal-gap check from FHFA UAD (V1.1).
 
 ## Business setup (Marlon, alongside)
 

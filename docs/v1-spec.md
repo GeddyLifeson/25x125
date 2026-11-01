@@ -14,7 +14,7 @@ Version 1 answers, for any Chicago parcel: what can be built, what it costs with
 
 - Zoning capacity for RS-3, RT-4, RM-4.5, RM-5, and B/C districts with -1 through -5 suffixes.
 
-- Feasibility scenarios: by right, plus coach house, administrative adjustment, rezoning.
+- Feasibility scenarios: by right, plus coach house, administrative adjustment, rezoning; each built from a pattern in the pattern library or a custom program.
 
 - Build-and-sell and build-and-hold results with dollar margins.
 
@@ -147,7 +147,7 @@ Sources: [B and C districts](https://codelibrary.amlegal.com/codes/chicago/lates
 
 4.  Administrative adjustment path: lot area may be 90% of the minimum, so units = floor(lot area / (0.9 x lot area per unit)); height +10%.
 
-5.  ADU path: +1 unit for a coach house or conversion unit in RT-4 and higher and in B/C districts; RS districts only in wards that opted in. Two or more ADUs trigger the affordability rule.
+5.  ADU path: +1 unit for a coach house or conversion unit in RT-4 and higher and in B/C districts; RS districts where the city's ADU eligibility map allows it (ordinance permanent citywide since 2026-04-01; alderpeople can block areas). Two or more ADUs trigger the affordability rule.
 
 6.  Rezoning path: recompute at a target district the user picks (defaults: RS-3 to RT-4, RT-4 to RM-5, RM-4.5 to RM-5, B/C -1 and -1.5 to -2, B/C -2 to -3). Targets are listed in `zoning_steps.json`.
 
@@ -190,11 +190,11 @@ Every input below is a default the user can override. Defaults are starting valu
 
 **Cost**
 
-- Land = asking price if entered, else neighborhood vacant-land price per sq ft x lot area.
+- Land = asking price if entered, else the land value map's price per buildable sq ft x buildable area (falling back to price per sq ft of lot).
 
 - Hard cost = gross floor area x base cost per sq ft x neighborhood adjustment (Cost model section).
 
-- Base cost by build-spec preset (2-3 units / 4-6 units): production \$160 / \$175, standard \$200 / \$215, high \$250 / \$265 per sq ft. Default preset by the area's cost index: below 1.3 production, 1.3-1.8 standard, 1.8 and up high. Provisional until the partner contractor's job costs are in (calibration in docs/calibration-2026-10-29.md).
+- Base cost by build-spec preset (2-3 units / 4-6 units): production \$165 / \$170, standard \$200 / \$215, high \$250 / \$265 per sq ft. Default preset by the area's cost index: below 1.3 production, 1.3-1.8 standard, 1.8 and up high. Set from published evidence (docs/construction-costs-2026-10-29.md); real job costs replace them when available.
 
 - Sprinklers: \$5 per sq ft of the building that has 4+ units. A detached coach house does not count toward the main building (verify).
 
@@ -304,6 +304,18 @@ Version 1 flags six programs that can be matched to a parcel from public data, s
 | Missing Middle program                  | City-owned lot in a Missing Middle round                                                | Up to \$150,000 per unit construction assistance; owner-occupant buyers required | Off                                              |
 
 **Excluded by default:** 45L and 179D (ended June 30, 2026), LIHTC and New Markets credits (shown as tract context only), historic credits (shown as a flag when the building is rated, since version 1 doesn't model rehabs).
+
+## Practices adopted from other countries
+
+Details and sources in `docs/international-practices.md`.
+
+- **Land value map** (Germany, Singapore): land sale price per sq ft of lot and per buildable sq ft for each Assessor neighborhood, from vacant-land and teardown sales in the last 36 months, with count and dates. Feeds the land default in Feasibility math.
+- **Residual land value** (UK): max land price is labeled residual land value. Profit shows as a percent of cost and of net sale value. Parcels with a building compare residual land value with existing-use value and flag when it falls short.
+- **P50 and P80 cost** (UK Homes England): the central estimate is P50; the high margin is shown as P80. Margins are refit from actual job costs once 20 or more projects are in.
+- **Recency-weighted cost index** (UK BCIS): permits weighted 1.00, 0.75, 0.56, 0.42 by quarter of age; thin areas blend with their side of the city.
+- **Pattern library** (BC, NSW, Germany): six standard buildings sized for a 25 x 125 lot in `data/rules/building_patterns.json`. Feasibility scenarios pick a pattern; a custom program is still allowed.
+- **Eligibility questions** (Netherlands): incentive toggles are set by short questions in `data/rules/incentive_questions.json`.
+- **Fast-path filter** (Japan, NSW): by right, no zoning relief, 1-8 units, no landmark or demolition hold; shows estimated weeks to permit.
 
 ## Screens and user flows
 

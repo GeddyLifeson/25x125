@@ -1,0 +1,11 @@
+{
+  "source": "Eligibility questions in the style of the Dutch applicable-rules question trees (docs/international-practices.md). Each answer switches incentive toggles; defaults stay at maximum value until the user answers.",
+  "as_of": "2026-10-29",
+  "questions": [
+    {"id": "has_capital_gains", "text": "Do you have capital gains you could invest in this project?", "affects": ["Opportunity Zone gain exclusion"], "if_no": "off"},
+    {"id": "hold_years", "text": "How long do you plan to own the building after it is finished?", "type": "number", "affects": ["Opportunity Zone gain exclusion", "Bonus depreciation (cost segregation)"], "rule": "OZ exclusion needs 10 or more years; bonus depreciation applies to hold scenarios"},
+    {"id": "materials_from_ez_supplier", "text": "Will you buy building materials through an Enterprise Zone certificate before purchase?", "affects": ["Enterprise Zone materials sales tax exemption"], "if_no": "off"},
+    {"id": "has_commercial_space", "text": "Does the building include ground-floor commercial space?", "affects": ["TIF Small Business Improvement Fund", "Cook County Class 7a/7b/8"]},
+    {"id": "owner_occupant_buyers", "text": "Will you sell the units to owner-occupants?", "affects": ["Missing Middle program"], "if_no": "off"}
+  ]
+}

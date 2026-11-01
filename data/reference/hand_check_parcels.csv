@@ -1,0 +1,21 @@
+address,pin,community_area,zoning_now,units_built,permit,permit_date,what_it_tests
+3333 W WALNUT ST,1611411012,East Garfield Park,RT-4,2,101080252,2026-10-26,"RT-4 2-flat, by right"
+3119 W POLK ST,1613312019,East Garfield Park,RT-4,3,101088728,2026-10-27,"RT-4 3-flat, check lot area per unit"
+4841 N KENMORE AVE,1408416010,Uptown,RT-4,4,101087506,2026-10-13,"RT-4 with 4+ units: needs adjustment, ADU or rezoning"
+2837 W CONGRESS PKWY,1613132007,East Garfield Park,RM-5,3,101083583,2026-10-20,RM-5 3-flat
+1529 N WIELAND ST,1704203010,Near North Side,RM-5,4,101086781,2026-09-03,RM-5 4-flat
+6156 S CHAMPLAIN AVE,2015412036,Woodlawn,RM-5,6,101088733,2026-10-15,"RM-5 6-flat, sprinklers"
+948 N MASSASOIT AVE,1605420039,Austin,RS-3,2,101077877,2026-10-26,RS-3 2-flat: block-face test
+4514 N CENTRAL AVE,1317224017,Portage Park,RS-3,3,101080712,2026-09-30,RS-3 3-flat: rezoning path
+4756 S ROCKWELL ST,1912203039,Brighton Park,RM-4.5,3,101082778,2026-09-30,RM-4.5
+1211 W CORNELIA AVE,1420314017,Lake View,RT-3.5,2,101087927,2026-10-27,RT-3.5
+225 W ALEXANDER ST,1728211019,Armour Square,B2-3,3,101073868,2026-09-14,B2-3: residential ground floor allowed
+2438 S BELL AVE,1730116038,Lower West Side,B2-3,4,101081550,2026-07-28,B2-3 second case
+4239 N WESTERN AVE,1418309008,North Center,B3-3,4,101050289,2025-12-03,B3-3: ground floor flag
+1124 S CALIFORNIA AVE,1613331024,North Lawndale,C1-2,3,101078982,2026-05-01,C1-2: ground floor flag
+1022 N CALIFORNIA AVE,1601312030,West Town,B3-2,6,101081084,2026-10-27,B3-2 mixed use
+2332 N ELSTON AVE,1431204020,Logan Square,M3-3,3,101068310,2025-10-27,Manufacturing district today: map changed or rezoned
+919 S BELL AVE,1718317024,Near West Side,PD 30,3,101084305,2026-10-22,Planned development: out of scope flag
+1912 N HUMBOLDT BLVD,1336303029,Logan Square,RT-4,3,101085244,2026-08-28,Near The 606: surcharge district check
+1458 N MAPLEWOOD AVE,,Humboldt Park,RM-5,,,,Orange-rated historic survey building (1890s): 90-day demolition hold flag
+(Marlon to pick),,,,,,,A parcel you are looking at now
