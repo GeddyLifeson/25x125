@@ -191,9 +191,27 @@ def selected(limit: int | None, ids: set[str] | None) -> list[dict]:
     return rows[:limit] if limit else rows
 
 
-def estimate(rows: list[dict]) -> dict:
+def measure_tokens_per_page(rows: list[dict], n: int = 5) -> float:
+    """Free count_tokens calls on a few real rows: input tokens per page sent, prompt included."""
+    import anthropic
+
+    client = anthropic.Anthropic()
+    sample = rows[:: max(1, len(rows) // n)][:n]
+    tokens = pages = 0
+    for r in sample:
+        p = request_params(first_pages(ROOT / r["path"]))
+        tokens += client.messages.count_tokens(model=p["model"], messages=p["messages"]).input_tokens
+        pages += min(int(r["pages"] or 1), PAGES)
+    return tokens / pages
+
+
+def estimate(rows: list[dict], per_page: float | None = None) -> dict:
+    """Dollar estimate. per_page comes from measure_tokens_per_page when a key is set, else a fixed guess."""
     pages = sum(min(int(r["pages"] or 1), PAGES) for r in rows)
-    tin = pages * TOKENS_PER_PAGE + len(rows) * PROMPT_TOKENS
+    if per_page:
+        tin = round(pages * per_page)
+    else:
+        tin = pages * TOKENS_PER_PAGE + len(rows) * PROMPT_TOKENS
     tout = len(rows) * OUT_TOKENS
     cost = tin / 1e6 * PRICE_IN + tout / 1e6 * PRICE_OUT
     return {
@@ -202,6 +220,7 @@ def estimate(rows: list[dict]) -> dict:
         "tokens_in": tin,
         "tokens_out": tout,
         "dollars": cost,
+        "measured": bool(per_page),
     }
 
 
@@ -259,8 +278,8 @@ def save_state(state: dict) -> None:
 def submit(rows: list[dict], max_dollars: float) -> list[str]:
     import anthropic
 
-    est = estimate(rows)
-    print(f"estimate: {est['ordinances']:,} ordinances, ${est['dollars']:.2f}")
+    est = estimate(rows, measure_tokens_per_page(rows))
+    print(f"estimate (count_tokens on 5 rows): {json.dumps(est)}")
     if est["dollars"] > max_dollars:
         sys.exit(f"estimate ${est['dollars']:.2f} is over the ${max_dollars:.2f} cap; ask Marlon first")
     state = load_state()
@@ -338,7 +357,7 @@ def collect() -> int:
     if OUT.exists():
         with OUT.open(newline="", encoding="utf-8") as f:
             rows = {r["record_number"]: r for r in csv.DictReader(f)}
-    totals = {"in": 0, "out": 0, "ok": 0, "failed": 0}
+    totals = {"in": 0, "out": 0, "cache_write": 0, "cache_read": 0, "ok": 0, "failed": 0}
     for b in state["batches"]:
         batch = client.messages.batches.retrieve(b["id"])
         if batch.processing_status != "ended":
@@ -383,6 +402,8 @@ def collect() -> int:
             }
             totals["in"] += msg.usage.input_tokens
             totals["out"] += msg.usage.output_tokens
+            totals["cache_write"] += msg.usage.cache_creation_input_tokens or 0
+            totals["cache_read"] += msg.usage.cache_read_input_tokens or 0
             totals["ok"] += 1
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with OUT.open("w", newline="", encoding="utf-8") as f:
@@ -391,7 +412,7 @@ def collect() -> int:
         w.writerows(sorted(rows.values(), key=lambda r: r["record_number"]))
     cost = totals["in"] / 1e6 * PRICE_IN + totals["out"] / 1e6 * PRICE_OUT
     print(f"collected {totals['ok']:,} ({totals['failed']:,} failed); tokens {totals['in']:,} in / "
-          f"{totals['out']:,} out; about ${cost:.2f}; {len(rows):,} rows in {OUT.relative_to(ROOT)}")  # fmt: skip
+          f"{totals['out']:,} out, cache {totals['cache_write']:,} written / {totals['cache_read']:,} read; about ${cost:.2f}; {len(rows):,} rows in {OUT.relative_to(ROOT)}")  # fmt: skip
     return len(rows)
 
 
@@ -426,7 +447,9 @@ def main(argv: list[str] | None = None) -> None:
     if a.step == "fetch":
         fetch(a.limit, ids)
     elif a.step == "estimate":
-        print(json.dumps(estimate(selected(a.limit, ids)), indent=2))
+        rows = selected(a.limit, ids)
+        per_page = measure_tokens_per_page(rows) if os.environ.get("ANTHROPIC_API_KEY") else None
+        print(json.dumps(estimate(rows, per_page), indent=2))
     elif a.step == "submit":
         submit(selected(a.limit, ids), a.max_dollars)
     elif a.step == "collect":
