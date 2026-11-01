@@ -16,7 +16,7 @@ import json
 import re
 import urllib.request
 from collections.abc import Callable, Iterator
-from datetime import datetime
+from datetime import date
 from html.parser import HTMLParser
 
 from core.db import connect
@@ -96,8 +96,12 @@ def money(v: str) -> float | None:
 
 
 def day(v: str) -> str | None:
+    """'11/2/2026' -> '2026-11-02'."""
+    m = re.fullmatch(r"(\d{1,2})/(\d{1,2})/(\d{4})", (v or "").strip())
+    if not m:
+        return None
     try:
-        return datetime.strptime(v.strip(), "%m/%d/%Y").date().isoformat()  # noqa: DTZ007
+        return date(int(m[3]), int(m[1]), int(m[2])).isoformat()
     except ValueError:
         return None
 
