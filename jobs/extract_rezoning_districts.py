@@ -11,6 +11,7 @@ Steps (each one picks up where the last stopped, so a run can be resumed):
   python -m jobs.extract_rezoning_districts submit    # send the batches (paid, needs ANTHROPIC_API_KEY)
   python -m jobs.extract_rezoning_districts collect   # results into data/reference/rezoning_districts.csv
   python -m jobs.extract_rezoning_districts apply     # copy the CSV into the rezoning table
+Paid steps need: python -m pip install -e ".[ai]"
 Options: --limit N (first N ordinances only, for a test run), --ids O2026-0025357,... (just these).
 """
 
