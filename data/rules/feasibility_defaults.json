@@ -9,9 +9,9 @@
   "circulation_factor": 1.12,
   "build_spec_presets": {
     "production": {
-      "2-3": 165,
-      "4-6": 170,
-      "note": "small-builder spec flats; evidence in docs/construction-costs-2026-10-29.md (Missing Middle awards, NAHB, test-set sales)"
+      "2-3": 155,
+      "4-6": 160,
+      "note": "small-builder spec flats; evidence in docs/construction-costs-2026-10-29.md (Missing Middle awards, NAHB, test-set sales). Lowered from $165/$170 on 2026-11-01 (Marlon approved): the test buildings, costed at their build midpoint and Assessor size, break even at a median $159/sf (25th percentile $145), and Missing Middle budgets include developer fees (docs/calibration-2026-10-29.md, 2026-11-01 section)"
     },
     "standard": {
       "2-3": 200,

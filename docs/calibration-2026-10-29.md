@@ -78,4 +78,4 @@ The check also prints each building's break-even production cost per sq ft: the 
 
 Break-even production cost across the test buildings: median $159 per sq ft, 25th percentile $145. By area: Woodlawn $156 (8 buildings), South Lawndale $151 (4), Grand Boulevard $159 (7), East Garfield Park $169 (4). These builders built and sold, so their real cost sat at or under break-even. The Missing Middle West Chatham awards imply about $162 of hard cost, and those budgets include developer fees, so the hard cost is if anything lower.
 
-Recommendation: production $155 / $160. It is under both the test-set median break-even and the Missing Middle figure, passes the market check (63%), and the Missing Middle budgets stay inside the 3-flat range. The spec still says $165 / $170, so this waits for Marlon.
+Recommendation: production $155 / $160. It is under both the test-set median break-even and the Missing Middle figure, passes the market check (63%), and the Missing Middle budgets stay inside the 3-flat range. Marlon approved on 2026-11-01; production is now $155 / $160 in `feasibility_defaults.json` and the spec copy.
