@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { SaveDeal } from "../../../components/SaveDeal";
 import { Source } from "../../../components/Source";
 import { getParcel, getSaleValue, getZoning, postFeasibility, settle } from "../../../lib/engine";
 import { day, feet, formatPin, num, pct, sqft, titleCase, usd } from "../../../lib/format";
@@ -173,9 +174,7 @@ export default async function ParcelPage({ params, searchParams }: Props) {
           </span>
         </div>
         <div className="btns">
-          <button className="btn off" type="button" disabled title="Deals arrive in step 6">
-            Save to deals
-          </button>
+          <SaveDeal pin={p.pin} />
           <Link className="btn primary" href={`/parcels/${p.pin}/feasibility${tq}`}>
             Run feasibility
           </Link>

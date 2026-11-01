@@ -9,6 +9,7 @@ from fastapi import Body, FastAPI, HTTPException, Query
 from fastapi.responses import Response
 
 from core.db import connect
+from engine import areas, deals
 from engine.comps import RULES_DIR, Target, estimate, index_from_db, miles, params_from_files, pool_from_db
 from engine.parcel_feasibility import feasibility
 from engine.parcels import LOT_COLUMNS, lots, parcel, search
@@ -18,6 +19,8 @@ from engine.sites import site_by_pin
 from engine.zoning import evaluate
 
 app = FastAPI(title="25x125 engine", version="0.1.0")
+app.include_router(deals.router)
+app.include_router(areas.router)
 
 
 @app.get("/health")
@@ -183,6 +186,19 @@ def list_lots(
                    + ["25x125 nightly score; estimates, not tax, legal, zoning or appraisal advice"])  # fmt: skip
     return Response(buf.getvalue(), media_type="text/csv",
                     headers={"Content-Disposition": "attachment; filename=25x125-lots.csv"})  # fmt: skip
+
+
+@app.get("/lots/{pin10}")
+def one_lot(pin10: str) -> dict:
+    """One lot's row from the scored list (same columns as /lots), for the map's side panel."""
+    pin10 = pin10.replace("-", "")[:10]
+    if not pin10.isdigit() or len(pin10) != 10:
+        raise HTTPException(400, "PIN must be 10 or 14 digits")
+    with connect() as conn:
+        rows = lots(conn, pin10=pin10, limit=1)
+    if not rows:
+        raise HTTPException(404, f"lot {pin10} has no score")
+    return rows[0]
 
 
 @app.get("/parcels/{pin}")

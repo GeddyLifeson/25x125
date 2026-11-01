@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@react-pdf/renderer": "4.9.0",
+    "maplibre-gl": "5.24.0",
     "next": "15.5.28",
     "react": "19.2.0",
     "react-dom": "19.2.0"

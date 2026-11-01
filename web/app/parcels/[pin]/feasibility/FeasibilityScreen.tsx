@@ -21,6 +21,8 @@ type Props = {
   targets: string[];
   questions: Question[];
   questionsAsOf: string;
+  /** Set when the screen was opened from a saved deal: its edits and scenario. */
+  deal?: { id: number; scenario: number | null; overrides: Overrides } | null;
 };
 
 type NumField = (typeof NUMBER_FIELDS)[number];
@@ -126,8 +128,9 @@ export function FeasibilityScreen(props: Props) {
   const [data, setData] = useState<Feasibility>(props.initial);
   const [exit, setExit] = useState<"sell" | "hold">(props.initialExit);
   const [target, setTarget] = useState<string | null>(props.initialTarget);
-  const [overrides, setOverrides] = useState<Overrides>({});
-  const [pick, setPick] = useState(0);
+  const [overrides, setOverrides] = useState<Overrides>(props.deal?.overrides ?? {});
+  const [pick, setPick] = useState(props.deal?.scenario ?? 0);
+  const [savedDeal, setSavedDeal] = useState<{ id: number; updated: boolean } | null>(null);
   const [scope, setScope] = useState<"this" | "all">("this");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -173,8 +176,12 @@ export function FeasibilityScreen(props: Props) {
     [pin],
   );
 
-  // Bring back this parcel's saved edits from an earlier visit.
+  // Bring back this parcel's saved edits from an earlier visit (not when a deal's edits were loaded).
   useEffect(() => {
+    if (props.deal) {
+      setNotice(`Loaded the edits saved with deal ${props.deal.id}.`);
+      return;
+    }
     try {
       const raw = localStorage.getItem(storageKey(pin));
       const saved = raw ? (JSON.parse(raw) as Overrides) : null;
@@ -186,7 +193,7 @@ export function FeasibilityScreen(props: Props) {
     } catch {
       // ignore bad saved state
     }
-  }, [pin, props.initialExit, props.initialTarget, run]);
+  }, [pin, props.initialExit, props.initialTarget, props.deal, run]);
 
   const scenarios = data.scenarios;
   const sel = scenarios[Math.min(pick, scenarios.length - 1)];
@@ -253,6 +260,25 @@ export function FeasibilityScreen(props: Props) {
       // ignore
     }
     void run({}, exit, target);
+  };
+
+  // Save the scenario on screen, with its edits, as a deal; the engine re-runs it and stores the numbers.
+  const saveDeal = async (update: boolean) => {
+    setError(null);
+    const body = { pin, exit, target, scenario: Number(selKey), overrides };
+    const url = update && props.deal ? `/api/deals/${props.deal.id}` : "/api/deals";
+    try {
+      const res = await fetch(url, {
+        method: update ? "PATCH" : "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(update ? { exit, target, scenario: Number(selKey), overrides } : { ...body, stage: "feasibility" }),
+      });
+      const d = (await res.json()) as { id?: number; detail?: string };
+      if (!res.ok || !d.id) throw new Error(d.detail ?? res.statusText);
+      setSavedDeal({ id: d.id, updated: update });
+    } catch (e) {
+      setError(`Could not save the deal: ${e instanceof Error ? e.message : String(e)}`);
+    }
   };
 
   const downloadAssumptions = () => {
@@ -744,9 +770,25 @@ export function FeasibilityScreen(props: Props) {
             </p>
           </section>
 
-          <button className="btn off" type="button" disabled title="Deals arrive in step 6">
-            Save scenario to deal
-          </button>
+          <section className="card">
+            <h2>Deal</h2>
+            <p className="sub small">Saves scenario {sel.name} with the {editCount} edit{editCount === 1 ? "" : "s"} on screen. The engine runs it again and keeps the numbers with the date.</p>
+            <div className="bar">
+              {props.deal && (
+                <button className="btn primary small" type="button" onClick={() => void saveDeal(true)} data-testid="update-deal">
+                  Update deal {props.deal.id}
+                </button>
+              )}
+              <button className={`btn small${props.deal ? "" : " primary"}`} type="button" onClick={() => void saveDeal(false)} data-testid="save-deal">
+                {props.deal ? "Save as a new deal" : "Save scenario to deal"}
+              </button>
+            </div>
+            {savedDeal && (
+              <p className="small" role="status" style={{ marginTop: 8 }}>
+                {savedDeal.updated ? "Updated" : "Saved as"} deal {savedDeal.id}. <Link href={`/deals?d=${savedDeal.id}`}>Open deals</Link>
+              </p>
+            )}
+          </section>
         </aside>
       </div>
     </main>

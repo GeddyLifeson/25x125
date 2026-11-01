@@ -288,3 +288,113 @@ export type ScenarioOverrides = {
   answers?: Record<string, boolean | number>;
 };
 export type Overrides = Record<string, ScenarioOverrides>;
+
+/** One row of GET /lots (engine/parcels.py LOT_COLUMNS): a scored lot with its points by part. */
+export type Lot = {
+  pin10: string;
+  pin: string;
+  address: string | null;
+  zip: string | null;
+  community_area: string | null;
+  zone_class: string | null;
+  lot_sqft: number | null;
+  score: number;
+  zoning_upside: number;
+  profit: number;
+  acquisition: number;
+  location: number;
+  incentives: number;
+  penalties: number;
+  units_now: number | null;
+  by_right_units: number | null;
+  units_priced: number | null;
+  sale_per_unit: number | null;
+  sale_comps: number | null;
+  land: number | null;
+  total_cost: number | null;
+  profit_central: number | null;
+  profit_p25: number | null;
+  return_on_cost: number | null;
+  return_on_cost_p25: number | null;
+  max_land_price: number | null;
+  details: {
+    signals?: string[];
+    penalties?: string[];
+    incentives?: string[];
+    fast_path?: boolean;
+    profit?: string;
+    sale_ring?: number;
+    comps_within_0_75_mi?: number;
+    priced_units?: number;
+  };
+  computed_on: string;
+  lat: number | null;
+  lon: number | null;
+};
+
+export type CommunityArea = { num: number; name: string; bounds: [number, number, number, number] };
+
+export type AreaSnapshot = {
+  num: number;
+  name: string;
+  sales: { kind: string; sales: number; median_per_unit: number; first_sale: string; last_sale: string; computed_on: string }[];
+  sales_source: string;
+  cost_index: { index: number; permits: number; thin: boolean; computed_on: string; source: string } | null;
+  land_value: { per_lot_sqft: number; sales: number; first_sale: string | null; last_sale: string | null; computed_on: string; source: string } | null;
+};
+
+export type DealStage = "lead" | "contacted" | "feasibility" | "under_contract" | "passed";
+
+export type DealEvent = { id: number; kind: string; kind_label: string; event_on: string; note: string; created_at: string };
+
+export type Deal = {
+  id: number;
+  org_id: string | null;
+  pin: string;
+  pin10: string;
+  address: string | null;
+  stage: DealStage;
+  stage_label: string;
+  next_step: string | null;
+  next_step_on: string | null;
+  exit: "sell" | "hold" | null;
+  target: string | null;
+  scenario: number | null;
+  scenario_name: string | null;
+  overrides: Overrides;
+  result: {
+    scenario: number;
+    name: string;
+    units: number;
+    exit: string;
+    total_cost: number;
+    total_cost_low: number;
+    total_cost_high: number;
+    profit?: number;
+    profit_p10?: number | null;
+    profit_p90?: number | null;
+    return_on_cost?: number;
+    max_land_price?: number;
+    noi?: number;
+    yield_on_cost?: number;
+    run_on: string;
+    source: string;
+  } | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  community_area: string | null;
+  zone_class: string | null;
+  lot_sqft: number | null;
+  nightly: {
+    score: number;
+    by_right_units: number | null;
+    profit_central: number | null;
+    max_land_price: number | null;
+    return_on_cost_p25: number | null;
+    computed_on: string;
+    source: string;
+  } | null;
+  events?: DealEvent[];
+  outreach_note?: string;
+};

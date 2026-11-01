@@ -75,3 +75,15 @@ export async function settle<T>(p: Promise<T>): Promise<{ ok: true; value: T } |
     return { ok: false, error: String(e), status: 500 };
   }
 }
+
+export function getCommunityAreas(): Promise<import("./types").CommunityArea[]> {
+  return call(`/community-areas`);
+}
+
+export function getDeals(): Promise<import("./types").Deal[]> {
+  return call(`/deals`);
+}
+
+export function getDeal(id: string | number): Promise<import("./types").Deal> {
+  return call(`/deals/${encodeURIComponent(String(id))}`);
+}

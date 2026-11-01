@@ -14,8 +14,11 @@ export function Nav() {
         <span>Chicago development pipeline</span>
       </Link>
       <nav aria-label="Screens">
+        <Link href="/map" className={path === "/map" ? "on" : undefined}>
+          Map and list
+        </Link>
         <Link href="/" className={path === "/" ? "on" : undefined}>
-          Search
+          Address search
         </Link>
         {pin ? (
           <Link href={`/parcels/${pin}`} className={!onFeas ? "on" : undefined}>
@@ -31,7 +34,9 @@ export function Nav() {
         ) : (
           <span>Feasibility</span>
         )}
-        <span title="Arrives in step 6">Deals</span>
+        <Link href="/deals" className={path === "/deals" ? "on" : undefined}>
+          Deals
+        </Link>
       </nav>
       <div className="note">Every number is an estimate and can be edited</div>
     </header>
