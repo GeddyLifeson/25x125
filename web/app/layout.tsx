@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import "./globals.css";
+import { Nav } from "../components/Nav";
 
 export const metadata = {
   title: "25x125",
@@ -8,7 +10,14 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body style={{ fontFamily: "system-ui, sans-serif", margin: 0 }}>{children}</body>
+      <body>
+        <Nav />
+        {children}
+        <footer className="foot">
+          Estimates, not tax, legal, zoning or appraisal advice. Data from the Chicago Data Portal, the Cook County data
+          catalog, the U.S. Census Bureau and FHFA, copied nightly into the 25x125 database.
+        </footer>
+      </body>
     </html>
   );
 }
