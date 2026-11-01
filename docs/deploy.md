@@ -22,7 +22,7 @@ nightly Machine ┘
 | Fly app | What runs | Image | Size | Public |
 | --- | --- | --- | --- | --- |
 | `x25x125-web` | Next.js standalone server | `deploy/web.Dockerfile` (Node 22.23.4) | shared-cpu-1x, 512 MB | yes (HTTPS) |
-| `x25x125-engine` | FastAPI engine, 2 workers; runs migrations on each deploy | `deploy/engine.Dockerfile` (Python 3.12.16) | shared-cpu-1x, 1 GB | no |
+| `x25x125-engine` | FastAPI engine, 2 workers; runs migrations on each deploy | `deploy/engine.Dockerfile` (Python 3.12.16) | shared-cpu-1x, 512 MB | no |
 | `x25x125-engine`, Machine `nightly` | `python -m jobs.nightly --skip-yearly`, daily, stops after the run | same image as the engine | shared-cpu-1x, 2 GB | no |
 | `x25x125-tiles` | Martin v0.18.1 (same as `docker-compose.yml`) with `martin/config.yaml` | `deploy/tiles.Dockerfile` | shared-cpu-1x, 512 MB | no |
 
@@ -41,7 +41,7 @@ nightly Machine ┘
 | Web container, after map, parcel and feasibility pages | 89 MB | |
 | Martin container, serving a lot tile | 3 MB plus its tile cache (256 MB cap) | |
 
-The scorer sets the nightly size: 1.6 GB peak, so the job Machine gets 2 GB. The engine at 1 GB has room for 2 workers and spikes. The web app and Martin fit in 512 MB. The local database is 3.0 GB, which fits in Supabase Pro's 8 GB disk.
+The scorer sets the nightly size: 1.6 GB peak, so the job Machine gets 2 GB. The engine at 512 MB has room for 2 workers (131 MB measured). The web app and Martin fit in 512 MB. The local database is 3.0 GB, which fits in Supabase Pro's 8 GB disk.
 
 ## Monthly cost
 
@@ -49,18 +49,18 @@ The scorer sets the nightly size: 1.6 GB peak, so the job Machine gets 2 GB. The
 | --- | --- | --- |
 | Supabase | Pro: 8 GB disk, daily backups kept 7 days | $25 |
 | Supabase compute | Small, 2 GB RAM: $15 less the $10 compute credit in Pro | $5 |
-| Fly engine | shared-cpu-1x, 1 GB, always on | about $6.70 |
+| Fly engine | shared-cpu-1x, 512 MB, always on | about $3.69 |
 | Fly web | shared-cpu-1x, 512 MB, always on | about $3.50 |
 | Fly tiles | shared-cpu-1x, 512 MB, always on | about $3.50 |
 | Fly nightly job | 2 GB Machine, billed only while it runs (estimate: 30-60 minutes a day; locally the parcel-site build took 13 minutes and the score 4) | about $0.50-1 |
 | Fly extras | stopped-Machine disk, image storage, outbound data | about $1-5 |
-| **Fly total** | | **about $15-20** |
+| **Fly total** | | **about $12-17** |
 | Resend | Free: 3,000 emails a month, 100 a day | $0 |
 | Sentry | Free Developer plan | $0 |
 | UptimeRobot | Free: 50 monitors, 5-minute checks | $0 |
 | Stripe | No monthly fee; 2.9% + 30¢ per card charge (a $129 Pro charge costs $4.04) | per charge |
 | Domain | Any registrar | about $10-15 a year |
-| **Total before Stripe fees** | | **about $45-50 a month, plus the domain** |
+| **Total before Stripe fees** | | **about $42-47 a month, plus the domain** |
 
 Upgrade later if needed: Supabase point-in-time restore is an add-on; Fly's dedicated IPv4 is $2 a month (the free shared IPv4 is enough for one site).
 
@@ -109,7 +109,7 @@ This was checked on 2026-11-01 against a copy of that setup: PostgreSQL 17 with 
 - Run the yearly reloads (new tax year, or to start over): `python -m scripts.deploy --only nightly --first-load`, or by hand:
   `fly machine run registry.fly.io/x25x125-engine:<label> --app x25x125-engine --vm-memory 2048 --restart no --rm -- python -m jobs.nightly`
   Image labels: `fly releases --app x25x125-engine --image`.
-- One step by hand, e.g. the score: `fly ssh console --app x25x125-engine -C "python -m jobs.score_parcels"` (runs on the engine Machine, which has 1 GB; use a 2 GB `fly machine run` like the one above for the score or the full load).
+- One step by hand, e.g. the score: `fly ssh console --app x25x125-engine -C "python -m jobs.score_parcels"` (runs on the engine Machine, which has 512 MB; use a 2 GB `fly machine run` like the one above for the score or the full load).
 - Logs: `fly logs --app x25x125-engine`. A failed step goes to Sentry with the step name; the report at the end of each run lists every source and row count.
 
 ## Restore from a Supabase backup
