@@ -98,3 +98,5 @@ Checks: `npm run typecheck`, `npm run build`, and with the engine, the tile serv
 - Error tracking: set `SENTRY_DSN` on the engine and the web app. Engine errors, nightly-job failures and web server errors go to Sentry; empty means they are only logged.
 - Data deletion on request: "Delete my account" on `/account`, or `python -m jobs.delete_account person@example.com` (add `--confirm` to delete). Organizations the person owns go with all their data; the Stripe subscription is canceled when billing is set up; other members keep their sign-in. `deletion_log` records each deletion without the email address.
 - CI runs `pip-audit` and `npm audit` (job `dependency-scan`).
+
+**Hosting.** Supabase (Postgres with PostGIS) and Fly.io (engine, web app, tile server, nightly job). Copy `.env.production.example` to `.env.production`, fill it in, then `python -m scripts.deploy --dry-run` and `python -m scripts.deploy --first-load`. Steps, costs, restores and rollbacks: `docs/deploy.md`.
