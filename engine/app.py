@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse, Response
 
 from core import errors
 from core.db import connect
-from engine import accounts, areas, billing, deals
+from engine import accounts, areas, billing, deals, feedback
 from engine.accounts import export_gate
 from engine.auth import Caller, caller, check_rate
 from engine.comps import RULES_DIR, Target, estimate, index_from_db, miles, params_from_files, pool_from_db
@@ -26,6 +26,7 @@ app.include_router(deals.router)
 app.include_router(areas.router)
 app.include_router(accounts.router)
 app.include_router(billing.router)
+app.include_router(feedback.router)
 
 
 @app.exception_handler(Exception)

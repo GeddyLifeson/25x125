@@ -21,6 +21,7 @@ from core.db import connect
 from engine import billing, mail
 from engine.auth import (
     Caller,
+    admin_emails,
     audit,
     check_rate,
     effective_plan,
@@ -217,6 +218,7 @@ def session(body: Annotated[dict, Body()], c: Annotated[Caller, Depends(signed)]
         ).fetchall()
     return {
         "user": {"id": user_id, "email": row[2], "name": row[3]},
+        "is_admin": row[2] in admin_emails(),
         "org": org,
         "orgs": [{"id": r[0], "name": r[1], "role": r[2]} for r in orgs],
         "expires_at": row[4].isoformat(),
@@ -422,6 +424,13 @@ def delete_user(conn: psycopg.Connection, user_id: str, requested_by: str) -> di
         )
         canceled += billing.cancel_subscription(sub)
         conn.execute("delete from org where id = %s", (org_id,))
+    # Feedback on the app's numbers stays for the product owner, without the person's email or account.
+    n = conn.execute(
+        "update feedback set email = null, user_id = null where user_id = %s or email = %s",
+        (user_id, user[0]),
+    ).rowcount
+    if n:
+        counts["feedback_anonymized"] = n
     conn.execute("delete from auth_token where email = %s", (user[0],))
     conn.execute("delete from org_invite where email = %s", (user[0],))
     conn.execute("delete from account_user where id = %s", (user_id,))

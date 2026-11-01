@@ -174,6 +174,30 @@ def owner(c: Annotated[Caller, Depends(member)]) -> Caller:
     return c
 
 
+def admin_emails() -> frozenset[str]:
+    """Product admins: the emails in ADMIN_EMAILS (comma-separated)."""
+    return frozenset(e.strip().lower() for e in settings.admin_emails.split(",") if e.strip())
+
+
+def user_email(conn: psycopg.Connection, user_id: str | None) -> str | None:
+    if not user_id:
+        return None
+    row = conn.execute("select email from account_user where id = %s", (user_id,)).fetchone()
+    return row[0] if row else None
+
+
+def admin(c: Annotated[Caller, Depends(caller)]) -> Caller:
+    """A signed-in user whose email is in ADMIN_EMAILS. The user comes from the signed claim; the email from
+    the database."""
+    if not c.signed or not c.user_id:
+        raise HTTPException(401, "Sign in first.")
+    with connect() as conn:
+        email = user_email(conn, c.user_id)
+    if email is None or email not in admin_emails():
+        raise HTTPException(403, "Only product admins can see this.")
+    return Caller(True, c.ip, c.user_id, c.org_id, None, email)
+
+
 def needs(feature: str):
     """Dependency: a member whose plan includes `feature` (data/rules/plans.json)."""
 

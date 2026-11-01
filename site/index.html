@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>25x125</title>
+<meta name="description" content="What can be built on a Chicago parcel, what it costs, and whether it makes money.">
+<style>
+  :root { --ink:#1d2327; --muted:#5b6670; --line:#d9dee2; --bg:#fbfbfa; --accent:#1f5f8b; }
+  @media (prefers-color-scheme: dark) { :root { --ink:#e8eaec; --muted:#a3adb5; --line:#33393e; --bg:#16191b; --accent:#7fb6dc; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 48px 16px 64px; }
+  h1 { font-size: 34px; margin: 0 0 8px; letter-spacing: -0.5px; }
+  h2 { font-size: 19px; margin: 36px 0 10px; }
+  p, li { color: var(--ink); }
+  .muted { color: var(--muted); }
+  ol { padding-left: 22px; }
+  table { border-collapse: collapse; width: 100%; }
+  td, th { text-align: left; padding: 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-weight: 600; width: 40%; }
+  .btn { display:inline-block; margin-top:18px; padding:10px 18px; border-radius:6px; background:var(--accent); color:var(--bg); text-decoration:none; font-weight:600; }
+  footer { margin-top: 48px; font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>25x125</h1>
+  <p class="muted">Development feasibility for Chicago lots, for small builders who take a project from purchase through construction.</p>
+  <a class="btn" href="https://x25x125-web.fly.dev/">Open the app</a>
+
+  <h2>Four questions for any Chicago parcel</h2>
+  <ol>
+    <li><strong>What can be built.</strong> Zoning district, lot size, height, floor area and parking, read against the Chicago Zoning Ordinance.</li>
+    <li><strong>What it costs.</strong> A dollar estimate with a dollar range, priced by neighborhood from city building permits.</li>
+    <li><strong>Which incentives apply.</strong> Shown at full value, with a switch to turn off each one that doesn't fit your deal.</li>
+    <li><strong>Whether it makes money.</strong> Sale and hold scenarios built from recent sales of new 2-6 unit buildings and condos nearby.</li>
+  </ol>
+  <p>Every number shows where it came from and the date it was pulled. Every default can be changed per deal. The app shows the math; it doesn't tell you what to build.</p>
+
+  <h2>Data</h2>
+  <p>Chicago Data Portal, Cook County Assessor and data catalog, U.S. Census Bureau and FHFA. Public data, copied into the 25x125 database each night.</p>
+
+  <h2>Pricing</h2>
+  <table>
+    <tr><th>Pro</th><td>$129 a month</td></tr>
+    <tr><th>Founding members</th><td>$79 a month</td></tr>
+    <tr><th>Trial</th><td>14 days free, no card needed to start</td></tr>
+  </table>
+
+  <footer>Chicago only for now. Results are estimates, not tax, legal, zoning or appraisal advice.</footer>
+</main>
+</body>
+</html>

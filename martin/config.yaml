@@ -1,7 +1,8 @@
 # Martin tile server: serves the map's vector tiles from the PostGIS functions in
 # db/migrations/0022_map_tiles.sql. Started by docker compose (service "tiles").
 # Tiles: http://localhost:3100/lots/{z}/{x}/{y}, /land_value/{z}/{x}/{y}, /lots_for_sale/{z}/{x}/{y}
-listen_addresses: "0.0.0.0:3000"
+# MARTIN_LISTEN: "[::]:3000" on Fly so the private network (IPv6) reaches it; local default below.
+listen_addresses: "${MARTIN_LISTEN:0.0.0.0:3000}"
 cache_size_mb: 256
 postgres:
   connection_string: ${DATABASE_URL}

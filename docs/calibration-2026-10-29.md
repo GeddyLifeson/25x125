@@ -60,3 +60,22 @@ Thin margins at the median match what the spec expected for new 3-flats outside 
 ## Data portal check
 
 All Chicago and Cook County datasets in `data/sources/datasets.csv` answered a one-row query on 2026-10-29. The parcel universe (`pabr-t5kh`) already carries ward, community area, census tract, Assessor neighborhood and TIF district for each PIN, which removes several spatial joins. Transit-served areas, fire limits, the 606/Pilsen districts and ADU areas are not on either data portal; they need the city's GIS layers or a hand-digitized map.
+
+## Market check recount, 2026-11-01
+
+After the production adjustment was floored at 1.0 (South Chicago and other low-index areas no longer cost less than the production preset), the market check fell from 51% to 37% of 35 test buildings. The check itself had two faults, now fixed in `jobs/check_costs.py`:
+
+- It priced buildings finished in 2022-2025 at September 2026 costs. Costs are now moved back to each building's build midpoint (halfway from permit to first sale) with the Census under-construction index the presets escalate with (factors 0.90 to 0.98).
+- It sized every building at the pattern size (a 3-flat at 4,032 sq ft). Buildings are now sized at their Assessor square feet where the Assessor has it (2,086 to 5,190 sq ft).
+
+The check also prints each building's break-even production cost per sq ft: the base at which profit is $0 with $60,000 of land, in September 2026 dollars.
+
+| Production preset, 2-3 / 4-6 units | Test buildings with profit of $0 or more | Standard 3-flat per unit (range) |
+| --- | --- | --- |
+| $165 / $170 (spec) | 14 of 35 (40%) | $306,230 ($248,984 to $406,410) |
+| $155 / $160 | 22 of 35 (63%) | $289,028 ($235,222 to $383,187) |
+| $150 / $155 | 23 of 35 (66%) | $280,427 ($228,341 to $371,576) |
+
+Break-even production cost across the test buildings: median $159 per sq ft, 25th percentile $145. By area: Woodlawn $156 (8 buildings), South Lawndale $151 (4), Grand Boulevard $159 (7), East Garfield Park $169 (4). These builders built and sold, so their real cost sat at or under break-even. The Missing Middle West Chatham awards imply about $162 of hard cost, and those budgets include developer fees, so the hard cost is if anything lower.
+
+Recommendation: production $155 / $160. It is under both the test-set median break-even and the Missing Middle figure, passes the market check (63%), and the Missing Middle budgets stay inside the 3-flat range. Marlon approved on 2026-11-01; production is now $155 / $160 in `feasibility_defaults.json` and the spec copy.

@@ -41,3 +41,19 @@ def test_skip_yearly_leaves_only_nightly_steps():
         "rules",
         "development score",
     ]
+
+
+def test_a_second_run_stops_while_one_holds_the_lock(db_url, monkeypatch, capsys):
+    import psycopg
+
+    from core.settings import settings
+
+    monkeypatch.setattr(settings, "database_url", db_url)
+    ran = []
+    monkeypatch.setattr(nightly, "steps", lambda year, skip: [("a", lambda: ran.append("a"))])
+    monkeypatch.setattr(nightly.report, "main", lambda: None)
+    with psycopg.connect(db_url, autocommit=True) as other:
+        other.execute("select pg_advisory_lock(%s)", (nightly.LOCK_KEY,))
+        assert nightly.main(["--skip-yearly"]) == 0
+        assert ran == [] and "in progress" in capsys.readouterr().out
+    assert nightly.main(["--skip-yearly"]) == 0 and ran == ["a"]

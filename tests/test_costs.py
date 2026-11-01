@@ -17,7 +17,7 @@ def test_preset_and_adjustment_do_not_count_the_area_twice():
 def test_standard_3_flat_lines():
     c = cost(D, 3, 60_000, lot_sqft=3125, far=1.2, preset="production")
     assert c.gfa_sqft == 3750  # lot x FAR is smaller than 3 x 1,200 x 1.12
-    assert c.hard == 3750 * 165 and c.sprinklers == 0 and c.permit == 2000
+    assert c.hard == 3750 * 155 and c.sprinklers == 0 and c.permit == 2000
     pre = 60_000 + c.hard * (1 + 0.05 + 0.22) + 2000
     assert round(c.financing) == round(0.65 * pre * 0.08 * (0.55 + 0.5))
     assert round(c.tax_insurance) == round(0.015 * pre * 1.5)
@@ -27,5 +27,5 @@ def test_standard_3_flat_lines():
 
 def test_four_units_add_sprinklers_and_thin_index_widens():
     c = cost(D, 4, 0, index=1.0, thin_index=True)
-    assert c.sprinklers == c.gfa_sqft * 5 and c.base_per_sqft == 170
+    assert c.sprinklers == c.gfa_sqft * 5 and c.base_per_sqft == 160
     assert round(c.high) == round(c.total * (1 + 0.35 + 0.10))
