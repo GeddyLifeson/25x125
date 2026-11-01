@@ -212,3 +212,12 @@ def test_checked_file_covers_every_flagged_row():
         for c in json.loads(r["changes"] or "[]"):
             assert c["from"] is None or x.valid_district(c["from"]), (r["record_number"], c)
             assert x.valid_district(c["to"]), (r["record_number"], c)
+
+
+def test_nightly_imports_without_the_ai_extra():
+    """The desktop app installs only the main dependencies, so jobs.nightly must not import anthropic."""
+    import subprocess
+    import sys
+
+    code = "import sys, jobs.nightly; sys.exit(1 if 'anthropic' in sys.modules else 0)"
+    assert subprocess.run([sys.executable, "-c", code]).returncode == 0
