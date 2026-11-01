@@ -9,7 +9,7 @@ from fastapi import Body, FastAPI, HTTPException, Query
 from fastapi.responses import Response
 
 from core.db import connect
-from engine.comps import RULES_DIR, Target, estimate, index_from_db, params_from_files, pool_from_db
+from engine.comps import RULES_DIR, Target, estimate, index_from_db, miles, params_from_files, pool_from_db
 from engine.parcel_feasibility import feasibility
 from engine.parcels import LOT_COLUMNS, lots, parcel, search
 from engine.rents import rent
@@ -75,6 +75,14 @@ def parcel_sale_value(
     e = estimate(t, pool, params_from_files(), index)
     if e is None:
         raise HTTPException(404, "no comps")
+    if e.radius_mi > 3:
+        return {"per_unit": None, "low": None, "high": None, "comps": 0,
+                "missing": "no new-construction sales within 3 miles: enter a sale price per unit",
+                "source": "Cook County Assessor sales (wvhk-k5uv) and characteristics", "comp_list": []}  # fmt: skip
+    top = sorted(e.comps, key=lambda x: -x[2])[:25]
+    with connect() as conn:
+        addr = dict(conn.execute("select pin, address from parcel_address where pin = any(%s)",
+                                 ([c.pin for c, _, _ in top],)).fetchall())  # fmt: skip
     return {
         "per_unit": round(e.per_unit), "low": round(e.low) if e.low else None,
         "high": round(e.high) if e.high else None, "range": "80% range from tested errors",
@@ -83,9 +91,10 @@ def parcel_sale_value(
         "source": "Cook County Assessor sales (wvhk-k5uv) and characteristics; FHFA HPI",
         "label": "estimate, not an appraisal",
         "comp_list": [
-            {"pin": c.pin, "kind": c.kind, "sale_date": c.sale_date.isoformat(), "price_per_unit": round(c.price_per_unit),
-             "adjusted": round(v), "weight": round(w, 3)}
-            for c, v, w in sorted(e.comps, key=lambda x: -x[2])[:25]
+            {"pin": c.pin, "address": addr.get(c.pin), "kind": c.kind, "units": c.units,
+             "sale_date": c.sale_date.isoformat(), "miles": round(miles(row[0], row[1], c.lat, c.lon), 2),
+             "price_per_unit": round(c.price_per_unit), "adjusted": round(v), "weight": round(w, 3)}
+            for c, v, w in top
         ],
     }  # fmt: skip
 

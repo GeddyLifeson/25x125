@@ -56,6 +56,16 @@ def permit_waits(conn) -> dict:
             for r in conn.execute("select review_type, permits, days_p25, days_median, days_p75, computed_on from permit_wait")}  # fmt: skip
 
 
+def existing_use(conn, pin10: str) -> dict | None:
+    """Assessor market value of the lot (view lot_market_value), the existing-use check's comparison."""
+    if not conn.execute("select to_regclass('lot_market_value')").fetchone()[0]:
+        return None
+    row = conn.execute(
+        "select market_value, tax_year from lot_market_value where pin10 = %s", (pin10,)
+    ).fetchone()
+    return {"market_value": float(row[0]), "tax_year": row[1]} if row and row[0] else None
+
+
 def load_questions() -> list[dict]:
     return json.loads((RULES_DIR / "incentive_questions.json").read_text())["questions"]
 
@@ -112,9 +122,10 @@ def feasibility(
     today = date.today()
     picks = scenarios_for(z, patterns)
     esc = escalation(conn, d)
+    eu = existing_use(conn, ctx["pin10"])
     out = {"pin": ctx["pin"], "address_area": ctx["ca_name"], "zone_class": z.zone_class, "lot_sqft": z.lot_sqft,
            "frontage_ft": z.frontage_ft, "exit": exit_, "zoning_flags": [f.__dict__ for f in z.flags],
-           "inputs": {"cost_index": ctx["cost_index"], "land_value": ctx["land_values"], "escalation": esc}, "scenarios": [],
+           "inputs": {"cost_index": ctx["cost_index"], "land_value": ctx["land_values"], "escalation": esc, "existing_use": eu}, "scenarios": [],
            "label": "Estimates, not tax, legal, zoning or appraisal advice."}  # fmt: skip
     for i, pick in enumerate(picks):
         path = pick["path"]
@@ -126,15 +137,23 @@ def feasibility(
         sell_as = o.get("sell_as", "building")
         est = estimate(Target(ctx["lat"], ctx["lon"], min(units, 6), today, unit_sqft,
                               "condo" if sell_as == "condo" else None), pool, params, index)  # fmt: skip
+        citywide = est is not None and est.radius_mi > 3
+        if citywide:  # no local new-construction sales: show no number rather than a citywide one
+            est = None
         r = rent(conn, bedrooms_for(unit_sqft), ctx["tract"], ctx["zip"], d, today)
         x = inputs_for(ctx, z, rules, pick, units, unit_sqft, est, r, esc, o)
+        x.existing_use_value = (
+            float(o["existing_use_value"])
+            if "existing_use_value" in o
+            else (eu["market_value"] if eu else None)
+        )
         letter = "ABC"[i]
         sc = scenario(d, x, exit_, f"{letter} · {_label(pick, path)}", path.approval, today.year)
         sc["path"] = {"id": path.id, "district": path.district, "units": path.units,
                       "floor_area_sqft": path.floor_area_sqft, "max_height_ft": path.max_height_ft,
                       "parking_spaces": path.parking_spaces, "notes": path.notes, "citations": path.citations}  # fmt: skip
         sc["pattern"] = pick["pattern"]
-        sc["sale_source"] = None if not est else {
+        sc["sale_source"] = {"missing": "no new-construction sales within 3 miles: enter a sale price per unit"} if citywide else None if not est else {
             "comps": est.n, "radius_mi": est.radius_mi, "same_size_group": est.same_group, "notes": est.notes,
             "sell_as": sell_as, "time_index": est.index_used,
             "source": "Cook County Assessor sales of buildings built 2014 or later; FHFA metro index"}  # fmt: skip

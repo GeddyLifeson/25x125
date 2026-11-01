@@ -243,6 +243,7 @@ def _sell(d, x: Inputs, c: Cost) -> dict:
             "existing_use_value": round(x.existing_use_value),
             "gap": round(res["max_land_price"] - x.existing_use_value),
             "label": "max land price minus the Assessor's market value; the owner may want more than either",
+            "source": "Cook County Assessor assessed value / level of assessment",
         }
     return res
 
