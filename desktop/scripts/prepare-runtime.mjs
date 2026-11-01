@@ -2,6 +2,7 @@
 //   pgsql/   PostgreSQL 16 (EDB Windows binaries) with the PostGIS 3.5 bundle (OSGeo) copied in
 //   python/  Python 3.12 (python.org build from NuGet) with the engine's packages from pyproject.toml
 //   app/     core, db, engine, jobs, data/{rules,sources,reference} and desktop_bootstrap.py
+//   node/    node.exe (Node.js 22, signed by the OpenJS Foundation) that runs the web server
 //   web/     the Next.js standalone server, built with LOCAL_MODE=1
 // Run on Windows from desktop/: node scripts/prepare-runtime.mjs   (CI: .github/workflows/desktop.yml)
 // Downloads are checked against the SHA-256 values below and cached in desktop/build/cache.
@@ -30,6 +31,12 @@ const DOWNLOADS = {
   postgis: {
     url: "https://download.osgeo.org/postgis/windows/pg16/archive/postgis-bundle-pg16-3.5.3x64.zip",
     sha256: "db5c96627d24160cca9bd4378407a4041149d02df9b88faeda2ce1736b3a736d",
+  },
+  // Node.js runs the web app's server. Its exe is signed by the OpenJS Foundation, so antivirus tools don't
+  // see 25x125.exe itself acting as a server.
+  node: {
+    url: "https://nodejs.org/dist/v22.23.4/node-v22.23.4-win-x64.zip",
+    sha256: "cbc74b5e0982c9dbb41525fd8fb5dcd32fbee237863f7829072f4639a1ce5f20",
   },
   python: {
     url: "https://api.nuget.org/v3-flatcontainer/python/3.12.10/python.3.12.10.nupkg",
@@ -124,6 +131,16 @@ async function python() {
   sh(exe, ["-m", "pip", "install", "--no-warn-script-location", "--disable-pip-version-check", ...deps]);
 }
 
+async function node() {
+  const zip = await download("node");
+  step("unpack Node.js (node.exe only)");
+  const nodeTmp = path.join(tmp, "node");
+  unzip(zip, nodeTmp);
+  const dir = path.join(nodeTmp, fs.readdirSync(nodeTmp).find((n) => n.startsWith("node-")));
+  fs.mkdirSync(path.join(out, "node"), { recursive: true });
+  for (const f of ["node.exe", "LICENSE"]) fs.copyFileSync(path.join(dir, f), path.join(out, "node", f));
+}
+
 function appCode() {
   step("copy the engine, jobs and data");
   const app = path.join(out, "app");
@@ -153,11 +170,12 @@ fs.mkdirSync(cache, { recursive: true });
 fs.rmSync(tmp, { recursive: true, force: true });
 if (only.length === 0) fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(out, { recursive: true });
-if (!WIN && (want("postgres") || want("python"))) {
-  throw new Error("The Postgres and Python downloads are Windows builds. On Mac or Linux run only: app web");
+if (!WIN && (want("postgres") || want("python") || want("node"))) {
+  throw new Error("The Postgres, Python and Node downloads are Windows builds. On Mac or Linux run only: app web");
 }
 if (want("postgres")) await postgres();
 if (want("python")) await python();
+if (want("node")) await node();
 if (want("app")) appCode();
 if (want("web")) web();
 fs.rmSync(tmp, { recursive: true, force: true });

@@ -37,7 +37,12 @@ const R = {
   python: WIN ? path.join(runtime, "python", "python.exe") : path.join(runtime, "python", "bin", "python3"),
   app: path.join(runtime, "app"),
   webServer: path.join(runtime, "web", "web", "server.js"),
+  // Signed Node.js for the web server (runtime/node/node.exe). Without it (development builds) Electron's own
+  // binary runs the server as Node.
+  node: path.join(runtime, "node", WIN ? "node.exe" : "node"),
 };
+const appUrl = () => `http://127.0.0.1:${ports.web}`;
+let appReady = false;
 
 let userData, logsDir, pgData, configFile, config;
 let ports = { pg: 0, engine: 0, web: 0 };
@@ -59,13 +64,22 @@ function log(line) {
   } catch {
     // logs folder not ready yet
   }
-  if (statusWindow && !statusWindow.isDestroyed()) statusWindow.webContents.send("log", text);
+  send("log", text);
   if (SELF_TEST) process.stdout.write(text + "\n");
 }
 
+/** To the status window and, while it shows the status page, the main window. */
+function send(channel, text) {
+  for (const w of [statusWindow, mainWindow]) {
+    if (w && !w.isDestroyed() && w.webContents.getURL().startsWith("file:")) w.webContents.send(channel, text);
+  }
+}
+
+let lastStatus = "Starting...";
 function setStatus(text) {
+  lastStatus = text;
   log(text);
-  if (statusWindow && !statusWindow.isDestroyed()) statusWindow.webContents.send("status", text);
+  send("status", text);
 }
 
 function loadConfig() {
@@ -188,12 +202,14 @@ function startService(name, cmd, args, extraEnv = {}) {
     children.delete(name);
     if (!quitting) {
       log(`${name} stopped (exit ${code}). See logs\\${name}.log.`);
-      if (!SELF_TEST && mainWindow && !mainWindow.isDestroyed()) {
-        dialog.showMessageBox(mainWindow, {
-          type: "error",
-          message: `The ${name} stopped.`,
-          detail: `Close 25x125 and open it again. If it keeps happening, send Claude the file logs\\${name}.log from ${userData}.`,
-        });
+      if (!SELF_TEST) {
+        appReady = false;
+        // An antivirus tool stopping the process looks like this too; the message says where to look.
+        showStatusPage(
+          `The ${name === "web" ? "app server" : name} stopped (exit code ${code}). Close 25x125 and open it again. If an antivirus program ` +
+            `(Norton, for example) warned about 25x125 just now, it may have stopped it; see the install guide. ` +
+            `Details: logs\\${name}.log in ${logsDir}.`,
+        );
       }
     }
   });
@@ -202,9 +218,10 @@ function startService(name, cmd, args, extraEnv = {}) {
 }
 
 function killTree(child) {
+  // The engine, the web server and a data load are single processes (Postgres stops through pg_ctl), so a
+  // plain kill is enough. No taskkill: force-killing process trees is a pattern antivirus tools flag.
   if (!child || child.exitCode !== null) return;
-  if (WIN) spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { windowsHide: true });
-  else child.kill("SIGTERM");
+  child.kill();
 }
 
 // ---------- the database ----------
@@ -277,8 +294,9 @@ async function startEngine() {
 
 async function startWeb() {
   setStatus("Starting the app...");
-  startService("web", process.execPath, [R.webServer], {
-    ELECTRON_RUN_AS_NODE: "1",
+  const useNode = fs.existsSync(R.node);
+  startService("web", useNode ? R.node : process.execPath, [R.webServer], {
+    ...(useNode ? {} : { ELECTRON_RUN_AS_NODE: "1" }),
     NODE_ENV: "production",
     PORT: String(ports.web),
     HOSTNAME: "127.0.0.1",
@@ -357,32 +375,70 @@ function openStatusWindow() {
   statusWindow.on("closed", () => (statusWindow = null));
 }
 
+/** The main window. It shows the status page (start-up steps, data load, errors) until the app answers, and
+ * goes back to it when the app fails to load, so it is never a blank page. */
 function openMainWindow() {
   if (mainWindow && !mainWindow.isDestroyed()) return mainWindow.show();
-  const origin = `http://127.0.0.1:${ports.web}`;
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
     title: "25x125",
-    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
+    backgroundColor: "#f7f6f2",
+    webPreferences: {
+      preload: path.join(__dirname, "status-preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
   });
+  const wc = mainWindow.webContents;
   // Links to other sites (sources, apply links) open in the normal browser.
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith(origin)) return { action: "allow" };
+  wc.setWindowOpenHandler(({ url }) => {
+    if (appReady && url.startsWith(appUrl())) return { action: "allow" };
     if (/^https?:\/\//.test(url)) shell.openExternal(url);
     return { action: "deny" };
   });
-  mainWindow.webContents.on("will-navigate", (e, url) => {
-    if (!url.startsWith(origin)) {
-      e.preventDefault();
-      if (/^https?:\/\//.test(url)) shell.openExternal(url);
-    }
+  wc.on("will-navigate", (e, url) => {
+    if (url.startsWith("file:") || (appReady && url.startsWith(appUrl()))) return;
+    e.preventDefault();
+    if (/^https?:\/\//.test(url)) shell.openExternal(url);
   });
-  mainWindow.loadURL(origin + "/map");
+  wc.on("did-fail-load", (_e, code, desc, url, isMainFrame) => {
+    if (!isMainFrame || code === -3 || !url.startsWith("http")) return; // -3: navigation replaced by another
+    showStatusPage(`The app page did not load (${desc}). Click "Open 25x125" to try again, or see the logs folder.`);
+  });
+  wc.on("render-process-gone", (_e, d) => {
+    showStatusPage(`The window stopped (${d.reason}). Click "Open 25x125" to try again.`);
+  });
+  mainWindow.loadFile(path.join(__dirname, "status.html"));
   mainWindow.on("closed", () => {
     mainWindow = null;
     if (!quitting) app.quit();
   });
+}
+
+let loadTimer = null;
+function showApp() {
+  if (!mainWindow || mainWindow.isDestroyed() || !appReady) return;
+  const wc = mainWindow.webContents;
+  clearTimeout(loadTimer);
+  log("Opening the app in the window...");
+  // If the page has not drawn after 90 seconds, say so instead of leaving a white window.
+  loadTimer = setTimeout(async () => {
+    const r = await get(`${appUrl()}/`, 5000);
+    showStatusPage(
+      `The app has not answered the window in 90 seconds (web server check: ${r.status || "no answer"}). ` +
+        `Click "Open 25x125" to try again. If it keeps happening, send the files in the logs folder.`,
+    );
+  }, 90 * 1000);
+  wc.once("did-finish-load", () => clearTimeout(loadTimer));
+  wc.loadURL(appUrl() + "/map");
+}
+
+function showStatusPage(message) {
+  clearTimeout(loadTimer);
+  if (message) setStatus(message);
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.loadFile(path.join(__dirname, "status.html"));
 }
 
 function updateMenu() {
@@ -431,12 +487,21 @@ function stopJob() {
 }
 
 ipcMain.handle("status:init", () => ({
+  status: lastStatus,
+  ready: appReady,
   lines: statusLines,
   dataDir: userData,
   ...(config ? { lastUpdateAt: config.lastUpdateAt, lastFullAt: config.lastFullAt, lastResult: config.lastResult } : {}),
   running: job ? job.kind : null,
 }));
-ipcMain.handle("status:open-app", () => (ports.web ? openMainWindow() : null));
+ipcMain.handle("status:open-app", (e) => {
+  if (!appReady) return false;
+  if (!mainWindow || mainWindow.isDestroyed()) openMainWindow();
+  if (e.sender !== mainWindow.webContents) mainWindow.focus();
+  showApp();
+  return true;
+});
+ipcMain.handle("status:open-logs", () => shell.openPath(logsDir));
 
 // ---------- start and stop ----------
 
@@ -500,6 +565,14 @@ async function selfTest() {
 }
 
 async function start() {
+  // 25x125 never starts with Windows. Clear any login entry so antivirus tools don't see a startup item.
+  if (WIN && !SELF_TEST) {
+    try {
+      if (app.getLoginItemSettings().openAtLogin) app.setLoginItemSettings({ openAtLogin: false });
+    } catch {
+      // not available; nothing to clear
+    }
+  }
   if (SELF_TEST) {
     // CI watchdog: never hang the build; report where start-up got to and stop.
     setTimeout(() => {
@@ -527,7 +600,7 @@ async function start() {
 
   if (!SELF_TEST) {
     updateMenu();
-    openStatusWindow();
+    openMainWindow();
   }
   try {
     for (const p of [R.pgBin, R.python, R.app, R.webServer]) {
@@ -545,23 +618,26 @@ async function start() {
       );
       return shutdown(1);
     }
-    dialog.showErrorBox("25x125 could not start", `${e.message}\n\nLogs: ${logsDir}`);
-    return shutdown(1);
+    // Stay open on the status page with the reason, so the logs can be opened from it.
+    setStatus(`25x125 could not start: ${e.message} Logs: ${logsDir}`);
+    return;
   }
   setStatus(`Ready. App at http://127.0.0.1:${ports.web} (this computer only).`);
 
   if (SELF_TEST) return shutdown((await selfTest()) ? 0 : 1);
 
-  openMainWindow();
+  appReady = true;
   const { lastFull } = dataState();
   checkData();
   if (!lastFull) {
-    openStatusWindow();
+    // First start: stay on the status page, which shows the load; the button opens the app.
     setStatus(
       "First start: loading the public data now. This takes 1 to 2 hours and about 3 GB. " +
         "You can look around the app meanwhile; the map and lists fill in when the load finishes. " +
         "Keep 25x125 open until this window says the load finished.",
     );
+  } else {
+    showApp();
   }
   setInterval(checkData, 3600 * 1000);
 }

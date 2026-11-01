@@ -4,6 +4,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("x25", {
   init: () => ipcRenderer.invoke("status:init"),
   openApp: () => ipcRenderer.invoke("status:open-app"),
+  openLogs: () => ipcRenderer.invoke("status:open-logs"),
   onLog: (fn) => ipcRenderer.on("log", (_e, line) => fn(line)),
   onStatus: (fn) => ipcRenderer.on("status", (_e, text) => fn(text)),
 });
