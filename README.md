@@ -27,6 +27,13 @@ Planning and calibration are done (2026-10-29). Step 0 (setup) is in place: data
 | `mockups/` | Search, parcel, feasibility and deals screen mockups |
 | `martin/` | Tile server config for the map's vector tiles |
 | `desktop/` | Windows desktop program (Electron) and its installer build |
+| `.devcontainer/` | GitHub Codespaces setup (docs/codespaces.md) |
+
+## Open it in your browser (GitHub Codespaces)
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/GeddyLifeson/25x125?quickstart=1)
+
+The whole app runs in a GitHub codespace: no sign-in, no hosting, nothing to install. The first start takes about 15 minutes and restores the weekly data snapshot; later starts take about a minute. Free within GitHub's monthly Codespaces allowance. Details and costs: [docs/codespaces.md](docs/codespaces.md).
 
 ## Desktop program (Windows, one person)
 

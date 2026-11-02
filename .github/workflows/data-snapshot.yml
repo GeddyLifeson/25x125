@@ -1,0 +1,97 @@
+# Data snapshot for GitHub Codespaces (docs/codespaces.md). Runs the full load from the public portals on a
+# GitHub runner (free on a public repository), dumps the database and publishes the dump on the release
+# `data-snapshot`. A new codespace restores it in about 10 minutes in place of the 1-2 hour load
+# (scripts/codespace.py). The dump holds public data only: the runner's database has no deals or accounts.
+name: Data snapshot
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Mondays 09:00 UTC (3 or 4 a.m. in Chicago)
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [".github/workflows/data-snapshot.yml"]
+  pull_request:
+    paths: [".github/workflows/data-snapshot.yml"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    services:
+      db:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: x25x125
+        ports: ["5432:5432"]
+        options: >-
+          --shm-size=512m
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/x25x125
+      SOCRATA_APP_TOKEN: ${{ secrets.SOCRATA_APP_TOKEN }}
+      CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install -e .
+      - run: python -m db.migrate
+      - name: Full load from the portals (1-2 hours)
+        # One failed source doesn't stop the others (jobs/nightly.py); the check below decides.
+        run: python -m jobs.nightly --year "$(date +%Y)" || echo "::warning::some sources failed; see the report above"
+      - name: Check the load
+        run: |
+          python - <<'PY'
+          import psycopg, os, sys
+          with psycopg.connect(os.environ["DATABASE_URL"]) as c:
+              n = {t: c.execute(f"select count(*) from {t}").fetchone()[0] for t in ("parcel_site", "parcel_score")}
+              size = c.execute("select pg_size_pretty(pg_database_size(current_database()))").fetchone()[0]
+          print(n, "database size", size)
+          sys.exit(0 if n["parcel_site"] > 100000 and n["parcel_score"] > 1000 else 1)
+          PY
+      - name: Dump the database
+        run: |
+          mkdir -p out
+          docker exec ${{ job.services.db.id }} pg_dump -U postgres -d x25x125 -Fc -Z 6 -f /tmp/x25x125.dump
+          docker cp ${{ job.services.db.id }}:/tmp/x25x125.dump out/x25x125.dump
+          ls -l out
+          # Release files are limited to 2 GiB each; split a bigger dump (scripts/codespace.py joins the parts).
+          if [ "$(stat -c %s out/x25x125.dump)" -gt 2000000000 ]; then
+            split -b 1900m -d -a 2 out/x25x125.dump out/x25x125.dump.part-
+            rm out/x25x125.dump
+          fi
+          sha=$(cat out/x25x125.dump* | sha256sum | cut -d' ' -f1)
+          size=$(cat out/x25x125.dump* | wc -c)
+          printf '{"built_at": "%s", "sha256": "%s", "bytes": %s, "commit": "%s"}\n' \
+            "$(date -u +%Y-%m-%dT%H:%M:%S+00:00)" "$sha" "$size" "${{ github.sha }}" > out/snapshot.json
+          cat out/snapshot.json
+      - name: Publish on the data-snapshot release
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=data-snapshot
+          notes="Public data for 25x125 in GitHub Codespaces, refreshed every Monday. A new codespace restores it on its first start (docs/codespaces.md). Not a program download: the Windows program is under the releases named 25x125 desktop."
+          if ! gh release view "$tag" > /dev/null 2>&1; then
+            gh release create "$tag" --target "${{ github.event.repository.default_branch }}" --latest=false \
+              --title "25x125 data snapshot (for Codespaces)" --notes "$notes"
+          fi
+          gh release upload "$tag" out/* --clobber
+          # Remove pieces from an earlier snapshot that this one doesn't have (a split dump, say).
+          keep=$(ls out | sort)
+          gh release view "$tag" --json assets -q '.assets[].name' | sort | comm -23 - <(echo "$keep") | while read -r old; do
+            gh release delete-asset "$tag" "$old" --yes
+          done

@@ -9,7 +9,11 @@ export function proxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
   if (pathname.startsWith("/api/") && !["GET", "HEAD", "OPTIONS"].includes(req.method) && pathname !== "/api/billing/webhook") {
     const origin = req.headers.get("origin");
-    if (origin && new URL(origin).host !== req.headers.get("host")) {
+    // Behind a port forwarder (GitHub Codespaces) the browser's address differs from the Host header the app
+    // sees, so APP_ORIGINS lists the extra hosts allowed to send changes (comma-separated, e.g.
+    // name-3000.app.github.dev). scripts/codespace.py sets it.
+    const allowed = [req.headers.get("host"), ...(process.env.APP_ORIGINS ?? "").split(",").map((h) => h.trim())];
+    if (origin && !allowed.includes(new URL(origin).host)) {
       return new NextResponse("Cross-site request refused.", { status: 403 });
     }
   }

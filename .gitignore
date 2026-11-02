@@ -19,3 +19,4 @@ web/screenshots/
 .env.*.local
 desktop/build/
 desktop/dist/
+.codespace/
