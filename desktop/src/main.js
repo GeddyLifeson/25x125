@@ -541,7 +541,7 @@ async function selfTest() {
     return `status ${r.status}`;
   });
   await check("address search answers", async () => {
-    const r = await get(`${web}/?q=1600%20N%20Milwaukee`);
+    const r = await get(`${web}/search?q=1600%20N%20Milwaukee`);
     if (r.status !== 200) throw new Error(`search page answered ${r.status}`);
     return "search page 200";
   });
