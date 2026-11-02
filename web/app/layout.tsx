@@ -1,4 +1,10 @@
 import type { ReactNode } from "react";
+// IBM Plex, as in the mockups. Bundled with the app (no font request at run time, so it works offline on the desktop).
+import "@fontsource/ibm-plex-sans/latin-400.css";
+import "@fontsource/ibm-plex-sans/latin-500.css";
+import "@fontsource/ibm-plex-sans/latin-600.css";
+import "@fontsource/ibm-plex-mono/latin-400.css";
+import "@fontsource/ibm-plex-mono/latin-500.css";
 import "./globals.css";
 import { Nav } from "../components/Nav";
 import { StaleDataNote } from "../components/StaleDataNote";

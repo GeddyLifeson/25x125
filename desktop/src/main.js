@@ -432,7 +432,7 @@ function showApp() {
     );
   }, 90 * 1000);
   wc.once("did-finish-load", () => clearTimeout(loadTimer));
-  wc.loadURL(appUrl() + "/map");
+  wc.loadURL(appUrl() + "/");
 }
 
 function showStatusPage(message) {

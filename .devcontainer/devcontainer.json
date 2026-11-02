@@ -21,7 +21,14 @@
   },
   "otherPortsAttributes": { "onAutoForward": "ignore" },
   "customizations": {
-    "codespaces": { "openFiles": ["docs/codespaces.md"] },
-    "vscode": { "extensions": ["ms-python.python"] }
+    // The editor always opens next to the app; this note says so and where the app is.
+    "codespaces": { "openFiles": [".devcontainer/START-HERE.md"] },
+    "vscode": {
+      "extensions": ["ms-python.python"],
+      "settings": {
+        "workbench.startupEditor": "none",
+        "workbench.editorAssociations": { "*.md": "vscode.markdown.preview.editor" }
+      }
+    }
   }
 }

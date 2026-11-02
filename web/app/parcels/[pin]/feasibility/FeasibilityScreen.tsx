@@ -514,73 +514,6 @@ export function FeasibilityScreen(props: Props) {
           </section>
 
           <section className="card">
-            <h2>Scenarios side by side</h2>
-            <p className="sub">Same assumptions, each zoning path. Click a scenario card to see its cost lines.</p>
-            <div className="scroll">
-              <table className="t">
-                <thead>
-                  <tr>
-                    <th></th>
-                    {scenarios.map((s, i) => (
-                      <th key={i} className="num">
-                        {s.name.split(" · ")[0]} · {s.units} units
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {(
-                    [
-                      ["Approval", (s: Scenario) => s.approval, false],
-                      ["Gross floor area", (s: Scenario) => `${num(s.gross_sqft)} sq ft`, true],
-                      ["Land", (s: Scenario) => usd(s.cost.land), true],
-                      ["Total cost", (s: Scenario) => usd(s.cost_range.central), true],
-                      ["Cost range", (s: Scenario) => `-${usd(-s.cost_range.low_margin)} / +${usd(s.cost_range.high_margin)}`, true],
-                      ["Cost per unit", (s: Scenario) => usd(s.cost_per_unit), true],
-                      ...(sell
-                        ? ([
-                            ["Sale value", (s: Scenario) => usd(s.sell?.sale_total), true],
-                            ["Profit", (s: Scenario) => usd(s.sell?.profit), true],
-                            ["Return on cost", (s: Scenario) => pct(s.sell?.return_on_cost), true],
-                            ["Max land price at 20%", (s: Scenario) => usd(s.sell?.max_land_price_at["20%"]), true],
-                            ["Profit P10 to P90", (s: Scenario) => (s.sell?.range ? `${usdK(s.sell.range.p10)} to ${usdK(s.sell.range.p90)}` : "n/a"), true],
-                            ["Draws with a loss", (s: Scenario) => pct(s.sell?.range?.loss_share), true],
-                          ] as const)
-                        : ([
-                            ["Net operating income", (s: Scenario) => usd(s.hold?.noi), true],
-                            ["Value", (s: Scenario) => usd(s.hold?.value), true],
-                            ["Yield on cost", (s: Scenario) => pct(s.hold?.yield_on_cost, 2), true],
-                            ["Loan at 1.3 DSCR", (s: Scenario) => usd(s.hold?.loan_at_dscr), true],
-                            ["Refinance gap", (s: Scenario) => usd(s.hold?.refinance_gap), true],
-                          ] as const)),
-                      ["Incentive value", (s: Scenario) => usd(s.incentive_total), true],
-                    ] as const
-                  ).map(([label, fn, isNum]) => (
-                    <tr key={label}>
-                      <td>{label}</td>
-                      {scenarios.map((s, i) => (
-                        <td key={i} className={isNum ? "num" : "small"} style={i === pick ? { background: "#E6F1FA" } : undefined}>
-                          {fn(s)}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                  <tr>
-                    <td>Your check</td>
-                    {scenarios.map((s, i) => (
-                      <td key={i} className="num" style={i === pick ? { background: "#E6F1FA" } : undefined}>
-                        <Link className="btn small" href={checkHref(s, i)} data-testid={`check-numbers-${"ABC"[i]}`}>
-                          Check these numbers
-                        </Link>
-                      </td>
-                    ))}
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section className="card">
             <h2 style={{ marginBottom: 14 }}>Code thresholds this scenario crosses</h2>
             <ul className="plain flags">
               {allFlags.map((f, i) => (
@@ -605,104 +538,6 @@ export function FeasibilityScreen(props: Props) {
             </ul>
           </section>
 
-          <section className="card">
-            <h2>Assumptions</h2>
-            <p className="sub">
-              Every default can be changed. Blank fields use the engine default shown below each box. Edited fields are outlined in blue.
-            </p>
-            <div className="bar" style={{ marginBottom: 12 }}>
-              <span className="small muted">Apply edits to</span>
-              <div role="group" aria-label="Apply edits to" className="seg">
-                <button type="button" aria-pressed={scope === "this"} onClick={() => setScope("this")} style={{ height: 34 }}>
-                  {sel.name.split(" · ")[0]} only
-                </button>
-                <button type="button" aria-pressed={scope === "all"} onClick={() => setScope("all")} style={{ height: 34 }}>
-                  All scenarios
-                </button>
-              </div>
-            </div>
-            <form
-              className="form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                void run(overrides, exit, target);
-              }}
-            >
-              {fields.map((field) => {
-                const cur = currentValue(data, sel, field);
-                const val = (scoped as Record<string, unknown>)[field];
-                const inherited = scope === "this" && val === undefined ? (effective as Record<string, unknown>)[field] : undefined;
-                const isText = field in TEXT_CHOICES;
-                return (
-                  <label key={field}>
-                    {FIELD_LABELS[field]}
-                    {isText ? (
-                      <select
-                        className={val !== undefined ? "set" : undefined}
-                        value={val === undefined ? "" : String(val)}
-                        onChange={(e) => setField(field, e.target.value)}
-                      >
-                        <option value="">Default ({String(cur ?? "n/a")})</option>
-                        {TEXT_CHOICES[field as TextField].map((c) => (
-                          <option key={c} value={c}>
-                            {c}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        inputMode="decimal"
-                        className={val !== undefined ? "set" : undefined}
-                        value={val === undefined ? "" : String(val)}
-                        placeholder={cur === null ? "n/a" : String(typeof cur === "number" ? Math.round(cur * 10000) / 10000 : cur)}
-                        onChange={(e) => setField(field, e.target.value)}
-                      />
-                    )}
-                    <span className="def">
-                      Now {typeof cur === "number" ? (field === "cost_index" || field === "escalation" ? cur.toFixed(3) : num(cur)) : (cur ?? "n/a")}
-                      {inherited !== undefined ? " (set for all scenarios)" : ""} <Source>{fieldSource(data, sel, field)}</Source>
-                    </span>
-                  </label>
-                );
-              })}
-              <div className="bar" style={{ gridColumn: "1 / -1" }}>
-                <button className="btn primary small" type="submit" disabled={busy}>
-                  Recalculate
-                </button>
-                <button className="btn small" type="button" onClick={reset} disabled={busy}>
-                  Reset to defaults
-                </button>
-                {dirty && <span className="status">Edits not yet applied.</span>}
-              </div>
-            </form>
-          </section>
-
-          <section className="card">
-            <h2>Sources behind this scenario</h2>
-            <p className="sub">Where each input comes from and when it was pulled or computed.</p>
-            <div className="scroll">
-              <table className="t">
-                <thead>
-                  <tr>
-                    <th>Input</th>
-                    <th>Source</th>
-                    <th>Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {scenarioSources(data, sel).map((r, i) => (
-                    <tr key={i}>
-                      <td>{r.what}</td>
-                      <td className="small">{r.source}</td>
-                      <td className="small" style={{ whiteSpace: "nowrap" }}>
-                        {r.asOf}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
         </div>
 
         <aside className="side">
@@ -747,78 +582,6 @@ export function FeasibilityScreen(props: Props) {
           </section>
 
           <section className="card">
-            <h2>Eligibility questions</h2>
-            <p className="sub small">
-              Answers switch incentives off when they can&apos;t apply. Unanswered questions keep the maximum.{" "}
-              <Source>data/rules/incentive_questions.json, as of {props.questionsAsOf}</Source>
-            </p>
-            <div className="form" style={{ gridTemplateColumns: "1fr" }}>
-              {props.questions.map((q) => (
-                <label key={q.id}>
-                  {q.text}
-                  {q.type === "number" ? (
-                    <input
-                      inputMode="numeric"
-                      className={answers[q.id] !== undefined ? "set" : undefined}
-                      defaultValue={answers[q.id] === undefined ? "" : String(answers[q.id])}
-                      placeholder="years"
-                      onBlur={(e) => {
-                        if (e.target.value !== String(answers[q.id] ?? "")) answer(q.id, e.target.value);
-                      }}
-                    />
-                  ) : (
-                    <select
-                      className={answers[q.id] !== undefined ? "set" : undefined}
-                      value={answers[q.id] === undefined ? "" : answers[q.id] ? "yes" : "no"}
-                      onChange={(e) => answer(q.id, e.target.value)}
-                    >
-                      <option value="">Not answered</option>
-                      <option value="yes">Yes</option>
-                      <option value="no">No</option>
-                    </select>
-                  )}
-                  <span className="def">Affects: {q.affects.join(", ")}</span>
-                </label>
-              ))}
-            </div>
-          </section>
-
-          <section className="card">
-            <h2>Export and import</h2>
-            <p className="sub small">The PDF and CSV use the assumptions on screen.</p>
-            <div className="bar">
-              <a className="btn primary small" href={`/parcels/${pin}/report.pdf?${linkQs}`} target="_blank" rel="noreferrer">
-                One-page PDF
-              </a>
-              <a className="btn small" href={`/parcels/${pin}/feasibility.csv?${linkQs}`}>
-                Lines as CSV
-              </a>
-              <button className="btn small" type="button" onClick={downloadAssumptions}>
-                Assumptions CSV
-              </button>
-              <button className="btn small" type="button" onClick={() => fileRef.current?.click()}>
-                Import assumptions
-              </button>
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".csv,text/csv"
-                hidden
-                data-testid="import"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) void importAssumptions(f);
-                }}
-              />
-            </div>
-            <p className="small muted" style={{ marginTop: 10 }}>
-              Import file: one row per value, <span className="mono">field,value</span> or <span className="mono">scenario,field,value</span>{" "}
-              (scenario all, A, B or C). Fields: {[...NUMBER_FIELDS, ...Object.keys(TEXT_CHOICES)].join(", ")}, toggle.&lt;incentive&gt;,
-              answer.&lt;question&gt;.
-            </p>
-          </section>
-
-          <section className="card">
             <h2>Deal</h2>
             <p className="sub small">Saves scenario {sel.name} with the {editCount} edit{editCount === 1 ? "" : "s"} on screen. The engine runs it again and keeps the numbers with the date.</p>
             <div className="bar">
@@ -855,6 +618,255 @@ export function FeasibilityScreen(props: Props) {
           </section>
         </aside>
       </div>
+      <section aria-label="Work the numbers" className="more">
+        <h2>Work the numbers</h2>
+        <p className="sub muted">Edit any default, compare the scenarios, answer the eligibility questions, see every source, export.</p>
+        <div className="moregrid">
+            <details className="card fold" open>
+              <summary>
+                <h2>Assumptions</h2>
+              </summary>
+              <p className="sub">
+                Every default can be changed. Blank fields use the engine default shown below each box. Edited fields are outlined in blue.
+              </p>
+              <div className="bar" style={{ marginBottom: 12 }}>
+                <span className="small muted">Apply edits to</span>
+                <div role="group" aria-label="Apply edits to" className="seg">
+                  <button type="button" aria-pressed={scope === "this"} onClick={() => setScope("this")} style={{ height: 34 }}>
+                    {sel.name.split(" · ")[0]} only
+                  </button>
+                  <button type="button" aria-pressed={scope === "all"} onClick={() => setScope("all")} style={{ height: 34 }}>
+                    All scenarios
+                  </button>
+                </div>
+              </div>
+              <form
+                className="form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void run(overrides, exit, target);
+                }}
+              >
+                {fields.map((field) => {
+                  const cur = currentValue(data, sel, field);
+                  const val = (scoped as Record<string, unknown>)[field];
+                  const inherited = scope === "this" && val === undefined ? (effective as Record<string, unknown>)[field] : undefined;
+                  const isText = field in TEXT_CHOICES;
+                  return (
+                    <label key={field}>
+                      {FIELD_LABELS[field]}
+                      {isText ? (
+                        <select
+                          className={val !== undefined ? "set" : undefined}
+                          value={val === undefined ? "" : String(val)}
+                          onChange={(e) => setField(field, e.target.value)}
+                        >
+                          <option value="">Default ({String(cur ?? "n/a")})</option>
+                          {TEXT_CHOICES[field as TextField].map((c) => (
+                            <option key={c} value={c}>
+                              {c}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          inputMode="decimal"
+                          className={val !== undefined ? "set" : undefined}
+                          value={val === undefined ? "" : String(val)}
+                          placeholder={cur === null ? "n/a" : String(typeof cur === "number" ? Math.round(cur * 10000) / 10000 : cur)}
+                          onChange={(e) => setField(field, e.target.value)}
+                        />
+                      )}
+                      <span className="def">
+                        Now {typeof cur === "number" ? (field === "cost_index" || field === "escalation" ? cur.toFixed(3) : num(cur)) : (cur ?? "n/a")}
+                        {inherited !== undefined ? " (set for all scenarios)" : ""} <Source>{fieldSource(data, sel, field)}</Source>
+                      </span>
+                    </label>
+                  );
+                })}
+                <div className="bar" style={{ gridColumn: "1 / -1" }}>
+                  <button className="btn primary small" type="submit" disabled={busy}>
+                    Recalculate
+                  </button>
+                  <button className="btn small" type="button" onClick={reset} disabled={busy}>
+                    Reset to defaults
+                  </button>
+                  {dirty && <span className="status">Edits not yet applied.</span>}
+                </div>
+              </form>
+            </details>
+            <details className="card fold">
+              <summary>
+                <h2>Scenarios side by side</h2>
+              </summary>
+              <p className="sub">Same assumptions, each zoning path. Click a scenario card to see its cost lines.</p>
+              <div className="scroll">
+                <table className="t">
+                  <thead>
+                    <tr>
+                      <th></th>
+                      {scenarios.map((s, i) => (
+                        <th key={i} className="num">
+                          {s.name.split(" · ")[0]} · {s.units} units
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(
+                      [
+                        ["Approval", (s: Scenario) => s.approval, false],
+                        ["Gross floor area", (s: Scenario) => `${num(s.gross_sqft)} sq ft`, true],
+                        ["Land", (s: Scenario) => usd(s.cost.land), true],
+                        ["Total cost", (s: Scenario) => usd(s.cost_range.central), true],
+                        ["Cost range", (s: Scenario) => `-${usd(-s.cost_range.low_margin)} / +${usd(s.cost_range.high_margin)}`, true],
+                        ["Cost per unit", (s: Scenario) => usd(s.cost_per_unit), true],
+                        ...(sell
+                          ? ([
+                              ["Sale value", (s: Scenario) => usd(s.sell?.sale_total), true],
+                              ["Profit", (s: Scenario) => usd(s.sell?.profit), true],
+                              ["Return on cost", (s: Scenario) => pct(s.sell?.return_on_cost), true],
+                              ["Max land price at 20%", (s: Scenario) => usd(s.sell?.max_land_price_at["20%"]), true],
+                              ["Profit P10 to P90", (s: Scenario) => (s.sell?.range ? `${usdK(s.sell.range.p10)} to ${usdK(s.sell.range.p90)}` : "n/a"), true],
+                              ["Draws with a loss", (s: Scenario) => pct(s.sell?.range?.loss_share), true],
+                            ] as const)
+                          : ([
+                              ["Net operating income", (s: Scenario) => usd(s.hold?.noi), true],
+                              ["Value", (s: Scenario) => usd(s.hold?.value), true],
+                              ["Yield on cost", (s: Scenario) => pct(s.hold?.yield_on_cost, 2), true],
+                              ["Loan at 1.3 DSCR", (s: Scenario) => usd(s.hold?.loan_at_dscr), true],
+                              ["Refinance gap", (s: Scenario) => usd(s.hold?.refinance_gap), true],
+                            ] as const)),
+                        ["Incentive value", (s: Scenario) => usd(s.incentive_total), true],
+                      ] as const
+                    ).map(([label, fn, isNum]) => (
+                      <tr key={label}>
+                        <td>{label}</td>
+                        {scenarios.map((s, i) => (
+                          <td key={i} className={isNum ? "num" : "small"} style={i === pick ? { background: "#E6F1FA" } : undefined}>
+                            {fn(s)}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                    <tr>
+                      <td>Your check</td>
+                      {scenarios.map((s, i) => (
+                        <td key={i} className="num" style={i === pick ? { background: "#E6F1FA" } : undefined}>
+                          <Link className="btn small" href={checkHref(s, i)} data-testid={`check-numbers-${"ABC"[i]}`}>
+                            Check these numbers
+                          </Link>
+                        </td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </details>
+            <details className="card fold">
+              <summary>
+                <h2>Eligibility questions</h2>
+              </summary>
+              <div className="sub small">
+                Answers switch incentives off when they can&apos;t apply. Unanswered questions keep the maximum.{" "}
+                <Source>data/rules/incentive_questions.json, as of {props.questionsAsOf}</Source>
+              </div>
+              <div className="form" style={{ gridTemplateColumns: "1fr" }}>
+                {props.questions.map((q) => (
+                  <label key={q.id}>
+                    {q.text}
+                    {q.type === "number" ? (
+                      <input
+                        inputMode="numeric"
+                        className={answers[q.id] !== undefined ? "set" : undefined}
+                        defaultValue={answers[q.id] === undefined ? "" : String(answers[q.id])}
+                        placeholder="years"
+                        onBlur={(e) => {
+                          if (e.target.value !== String(answers[q.id] ?? "")) answer(q.id, e.target.value);
+                        }}
+                      />
+                    ) : (
+                      <select
+                        className={answers[q.id] !== undefined ? "set" : undefined}
+                        value={answers[q.id] === undefined ? "" : answers[q.id] ? "yes" : "no"}
+                        onChange={(e) => answer(q.id, e.target.value)}
+                      >
+                        <option value="">Not answered</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                      </select>
+                    )}
+                    <span className="def">Affects: {q.affects.join(", ")}</span>
+                  </label>
+                ))}
+              </div>
+            </details>
+            <details className="card fold">
+              <summary>
+                <h2>Export and import</h2>
+              </summary>
+              <p className="sub small">The PDF and CSV use the assumptions on screen.</p>
+              <div className="bar">
+                <a className="btn primary small" href={`/parcels/${pin}/report.pdf?${linkQs}`} target="_blank" rel="noreferrer">
+                  One-page PDF
+                </a>
+                <a className="btn small" href={`/parcels/${pin}/feasibility.csv?${linkQs}`}>
+                  Lines as CSV
+                </a>
+                <button className="btn small" type="button" onClick={downloadAssumptions}>
+                  Assumptions CSV
+                </button>
+                <button className="btn small" type="button" onClick={() => fileRef.current?.click()}>
+                  Import assumptions
+                </button>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept=".csv,text/csv"
+                  hidden
+                  data-testid="import"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) void importAssumptions(f);
+                  }}
+                />
+              </div>
+              <p className="small muted" style={{ marginTop: 10 }}>
+                Import file: one row per value, <span className="mono">field,value</span> or <span className="mono">scenario,field,value</span>{" "}
+                (scenario all, A, B or C). Fields: {[...NUMBER_FIELDS, ...Object.keys(TEXT_CHOICES)].join(", ")}, toggle.&lt;incentive&gt;,
+                answer.&lt;question&gt;.
+              </p>
+            </details>
+            <details className="card fold">
+              <summary>
+                <h2>Sources behind this scenario</h2>
+              </summary>
+              <p className="sub">Where each input comes from and when it was pulled or computed.</p>
+              <div className="scroll">
+                <table className="t">
+                  <thead>
+                    <tr>
+                      <th>Input</th>
+                      <th>Source</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {scenarioSources(data, sel).map((r, i) => (
+                      <tr key={i}>
+                        <td>{r.what}</td>
+                        <td className="small">{r.source}</td>
+                        <td className="small" style={{ whiteSpace: "nowrap" }}>
+                          {r.asOf}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+        </div>
+      </section>
     </main>
   );
 }

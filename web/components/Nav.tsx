@@ -9,6 +9,7 @@ export function Nav({ account }: { account?: NavAccount }) {
   const m = path.match(/^\/parcels\/(\d+)/);
   const pin = m?.[1];
   const onFeas = path.endsWith("/feasibility");
+  const onSearch = path === "/" || path === "/map" || path === "/search";
   return (
     <header className="top">
       <Link href="/" className="brand">
@@ -16,48 +17,44 @@ export function Nav({ account }: { account?: NavAccount }) {
         <span>Chicago development pipeline</span>
       </Link>
       <nav aria-label="Screens">
-        <Link href="/map" className={path === "/map" ? "on" : undefined}>
-          Map and list
-        </Link>
-        <Link href="/" className={path === "/" ? "on" : undefined}>
-          Address search
+        <Link href="/" className={onSearch ? "on" : undefined}>
+          Search
         </Link>
         {pin ? (
           <Link href={`/parcels/${pin}`} className={!onFeas ? "on" : undefined}>
             Parcel
           </Link>
         ) : (
-          <span>Parcel</span>
+          <span title="Pick a lot from the search list first">Parcel</span>
         )}
         {pin ? (
           <Link href={`/parcels/${pin}/feasibility`} className={onFeas ? "on" : undefined}>
             Feasibility
           </Link>
         ) : (
-          <span>Feasibility</span>
+          <span title="Pick a lot from the search list first">Feasibility</span>
         )}
         <Link href="/deals" className={path === "/deals" ? "on" : undefined}>
           Deals
         </Link>
-        <Link href={path === "/feedback" ? "/feedback" : `/feedback?from=${encodeURIComponent(path)}`} className={path === "/feedback" ? "on" : undefined} data-testid="nav-feedback">
+      </nav>
+      <div className="note">
+        <Link href={path === "/feedback" ? "/feedback" : `/feedback?from=${encodeURIComponent(path)}`} data-testid="nav-feedback">
           Feedback
         </Link>
         {account?.isAdmin && (
-          <Link href="/admin/feedback" className={path.startsWith("/admin") ? "on" : undefined} data-testid="nav-admin">
+          <Link href="/admin/feedback" data-testid="nav-admin">
             Feedback received
           </Link>
         )}
-      </nav>
-      <div className="note">
-        Every number is an estimate and can be edited ·{" "}
         {account?.local ? (
-          <span data-testid="nav-local">Desktop, this computer only</span>
+          <span data-testid="nav-local">This computer only</span>
         ) : account ? (
-          <Link href="/account" style={{ color: "#fff" }} data-testid="nav-account">
+          <Link href="/account" data-testid="nav-account">
             {account.email} ({account.plan})
           </Link>
         ) : (
-          <Link href={`/signin?next=${encodeURIComponent(path)}`} style={{ color: "#fff" }} data-testid="nav-signin">
+          <Link href={`/signin?next=${encodeURIComponent(path)}`} data-testid="nav-signin">
             Sign in
           </Link>
         )}
