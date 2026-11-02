@@ -41,7 +41,9 @@ p { margin: 0; }
 .top nav a, .top nav span { color: #d5dadf; text-decoration: none; padding: 8px 12px; border-radius: 6px; }
 .top nav span { color: #7d858d; }
 .top nav a.on { background: #2b3138; color: #fff; font-weight: 500; }
-.top .note { margin-left: auto; font-size: 12px; color: #b9c0c7; }
+.top .note { margin-left: auto; font-size: 12px; color: #b9c0c7; display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; }
+.top .note a { color: #d5dadf; text-decoration: none; }
+.top .note a:hover { color: #fff; text-decoration: underline; }
 
 .wrap { max-width: 1280px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
 .head { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; justify-content: space-between; }
@@ -57,7 +59,7 @@ p { margin: 0; }
 .main { flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 20px; }
 .side { flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 20px; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 20px; }
-.card > p.sub { margin: 0 0 14px; color: var(--muted); }
+.card > p.sub, .card > div.sub, details.fold > div.sub { margin: 0 0 14px; color: var(--muted); }
 .card.warn { background: var(--warn-bg); border-color: var(--warn-line); }
 .card.warn h2 { color: var(--warn-ink); }
 .card.warn ul { color: #4a2600; }
@@ -80,6 +82,7 @@ table.t th { text-align: left; color: var(--muted); font-weight: 500; padding: 8
 table.t td { padding: 9px 8px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
 table.t th:first-child, table.t td:first-child { padding-left: 0; }
 table.t td.num, table.t th.num { text-align: right; font-family: var(--mono); white-space: nowrap; }
+table.t th.num { font-family: var(--sans); }
 table.t tr.total td { border-bottom: 0; font-weight: 600; padding-top: 12px; }
 table.t td .basis { color: var(--muted); font-size: 12px; }
 table.t tr.sel td { background: var(--blue-soft); }
@@ -188,7 +191,10 @@ li.on .rnum { background: var(--blue); }
 .rtags { display: flex; flex-wrap: wrap; gap: 6px; }
 .tag.n { background: #f1f3f5; color: #3a4047; }
 .tag.g { background: #e3f2ec; color: #1d5c42; }
-.rpts { color: #3a4047; }
+.rpts { color: #8a9199; font-size: 11px; }
+.chip.clear { border-style: dashed; color: var(--muted); }
+form.addr { display: flex; gap: 6px; margin-left: auto; }
+form.addr input { height: 36px; width: 240px; max-width: 60vw; padding: 0 14px; border: 1px solid #c9cfd5; border-radius: 18px; font: inherit; font-size: 13px; }
 .mapbox { flex: 999 1 560px; min-width: 0; min-height: 640px; position: relative; overflow: hidden; background: #eceeea; }
 .mapcanvas { position: absolute; inset: 0; }
 .legend { position: absolute; left: 12px; bottom: 36px; display: flex; flex-direction: column; gap: 6px; background: #fff; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); font-size: 12px; max-width: 260px; z-index: 2; }
@@ -269,3 +275,15 @@ button.linkish { border: 0; background: none; padding: 0; font: inherit; color: 
 .fbstats .k { font-size: 12px; color: var(--muted); }
 .fbstats .v { font-family: var(--mono); font-size: 18px; }
 .fbtext { white-space: pre-wrap; max-width: 360px; }
+
+/* Feasibility: the mockup's first screen (cards, cost, thresholds, result, incentives), then the working panels. */
+section.more { display: flex; flex-direction: column; gap: 12px; }
+section.more > h2 { margin: 8px 0 0; }
+.moregrid { display: flex; flex-direction: column; gap: 12px; }
+details.fold > summary { list-style: none; cursor: pointer; display: flex; align-items: baseline; gap: 12px; }
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary h2 { margin: 0; }
+details.fold > summary::before { content: "+"; font-family: var(--mono); color: var(--blue); width: 12px; }
+details.fold[open] > summary::before { content: "\2212"; }
+details.fold[open] > summary { margin-bottom: 12px; }
+details.fold > p.sub { margin: 0 0 14px; color: var(--muted); }

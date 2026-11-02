@@ -432,7 +432,7 @@ function showApp() {
     );
   }, 90 * 1000);
   wc.once("did-finish-load", () => clearTimeout(loadTimer));
-  wc.loadURL(appUrl() + "/map");
+  wc.loadURL(appUrl() + "/");
 }
 
 function showStatusPage(message) {
@@ -527,7 +527,7 @@ async function selfTest() {
   await check("local session: no sign-in, Pro", async () => {
     const r = await get(`${web}/deals`);
     if (r.status !== 200) throw new Error(`/deals answered ${r.status} ${r.headers?.location ?? ""}`);
-    if (!r.body.includes("Desktop, this computer only")) throw new Error("the page does not show local mode");
+    if (!r.body.includes("data-testid=\"nav-local\"")) throw new Error("the page does not show local mode");
     return "deals page opens without sign-in";
   });
   await check("rules load (Python on Windows reads the rule files)", async () => {
@@ -541,7 +541,7 @@ async function selfTest() {
     return `status ${r.status}`;
   });
   await check("address search answers", async () => {
-    const r = await get(`${web}/?q=1600%20N%20Milwaukee`);
+    const r = await get(`${web}/search?q=1600%20N%20Milwaukee`);
     if (r.status !== 200) throw new Error(`search page answered ${r.status}`);
     return "search page 200";
   });

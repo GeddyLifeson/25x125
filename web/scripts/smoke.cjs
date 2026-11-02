@@ -424,6 +424,8 @@ async function feedbackChecks(browser) {
   await page.waitForSelector(".sc");
   check((await page.locator("[data-testid^=check-numbers-]").count()) === 3, "each scenario has a Check these numbers button");
   const shownTotal = (await page.locator("tr.total td.num").textContent()).match(/\$[\d,]+/)[0];
+  // The per-scenario buttons sit in the "Scenarios side by side" fold under the main result.
+  await page.click("summary:has-text('Scenarios side by side')");
   await page.click("[data-testid=check-numbers-A]");
   await page.waitForURL("**/feedback?*");
   const u = new URL(page.url());

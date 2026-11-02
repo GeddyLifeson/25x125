@@ -165,7 +165,7 @@ export default async function ParcelPage({ params, searchParams }: Props) {
       <section className="head">
         <div>
           <Link href="/" style={{ fontSize: 13 }}>
-            Back to search
+            Back to results
           </Link>
           <h1>{address}</h1>
           <span className="muted">
@@ -358,19 +358,19 @@ export default async function ParcelPage({ params, searchParams }: Props) {
               </div>
             )}
             {sv && (
-              <p className="small muted" style={{ marginTop: 10 }}>
+              <div className="small muted" style={{ marginTop: 10 }}>
                 Estimate {usd(sv.per_unit)} per unit, 80% range {usd(sv.low)} to {usd(sv.high)}. Adjusted prices use the
                 FHFA metro index and a 0.70 factor on condo comps for whole-building estimates. {sv.notes.join(" ")}{" "}
                 <Source>{sv.source}. {sv.label}.</Source>
-              </p>
+              </div>
             )}
           </section>
 
           <section className="card">
             <h2>Violation, 311 and sale history</h2>
-            <p className="sub">
+            <div className="sub">
               Last 25 records matched to this lot <Source>{p.sources.signals}; Cook County Assessor sales; pulled {pulled}</Source>
-            </p>
+            </div>
             {history.length === 0 ? (
               <p className="muted">No violations, 311 reports, demolition notices, city land records or sales on file.</p>
             ) : (

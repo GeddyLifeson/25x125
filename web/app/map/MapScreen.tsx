@@ -1,6 +1,5 @@
 "use client";
 import "maplibre-gl/dist/maplibre-gl.css";
-import Link from "next/link";
 import type { ExpressionSpecification, FilterSpecification, Map as MLMap, Marker, StyleSpecification } from "maplibre-gl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SaveSearch } from "../../components/SaveSearch";
@@ -447,13 +446,7 @@ export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial:
               ))}
             </select>
           </label>
-          <a className="btn small" href={`/api/lots?${lotsQuery(filters, 0, "csv")}`} data-testid="csv">
-            Export list as CSV
-          </a>
           <SaveSearch params={lotsQuery(filters, 0).replace(/&?(limit|offset)=\d+/g, "").replace(/^&/, "")} suggested={areaName ? `${areaName} lots` : "Saved search"} />
-          <button className="btn small" type="button" onClick={() => setFilters(DEFAULT_FILTERS)}>
-            Clear
-          </button>
         </div>
         <div role="group" aria-label="Signals" className="chips">
           {chips.map((c) => (
@@ -461,6 +454,15 @@ export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial:
               {c.label}
             </button>
           ))}
+          <button className="chip clear" type="button" onClick={() => setFilters(DEFAULT_FILTERS)}>
+            Clear filters
+          </button>
+          <form className="addr" action="/search" method="get" role="search">
+            <input name="q" placeholder="Go to an address or PIN" aria-label="Address or PIN" minLength={3} autoComplete="off" />
+            <button className="chip" type="submit">
+              Go
+            </button>
+          </form>
         </div>
       </section>
 
@@ -499,9 +501,12 @@ export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial:
         <section aria-label="Results" className="results">
           <div className="rhead">
             <span>
-              <b data-testid="count">{loading && lots.length === 0 ? "Loading" : `${lots.length}${more ? "+" : ""} lots`}</b>
+              <b data-testid="count">{loading && lots.length === 0 ? "Loading" : `${lots.length}${more ? "+" : ""} parcels`}</b>
               <span className="small muted"> {areaName ? `in ${areaName}` : "in Chicago"}</span>
             </span>
+            <a className="small" href={`/api/lots?${lotsQuery(filters, 0, "csv")}`} data-testid="csv">
+              CSV
+            </a>
             <label className="small muted sortl">
               Sort
               <select value={filters.sort} onChange={(e) => set("sort", e.target.value)} data-testid="sort">
@@ -513,11 +518,14 @@ export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial:
               </select>
             </label>
           </div>
-          <p className="small muted rnote">
-            Score: {SCORE_LABEL} Nightly run of {computedOn ?? "n/a"}. Profit and max land are the by-right program at the central estimate.
-            {timing.list !== undefined && ` Last update: list ${timing.list} ms`}
-            {timing.map !== undefined && `, map ${timing.map} ms.`}
-          </p>
+          <div className="small muted rnote" data-timing={`${timing.list ?? ""},${timing.map ?? ""}`}>
+            Scored {computedOn ?? "n/a"} · profit and max land for the by-right building ·{" "}
+            <Source>
+              Score: {SCORE_LABEL} Profit and max land are the by-right program at the central estimate, from the nightly run of {computedOn ?? "n/a"}.
+              {timing.list !== undefined && ` List loaded in ${timing.list} ms`}
+              {timing.map !== undefined && `, map drawn in ${timing.map} ms.`}
+            </Source>
+          </div>
           {error && <p className="err rnote">{error}</p>}
           {!loading && lots.length === 0 && !error && <p className="rnote">No lots match these filters.</p>}
           <ol className="rlist" data-testid="results">
@@ -532,7 +540,7 @@ export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial:
                     </span>
                     <span className="small muted">
                       {l.zone_class ?? "n/a"} · {l.lot_sqft ? `${num(l.lot_sqft)} sq ft` : "lot size n/a"} · {l.by_right_units ?? 0} units by right
-                      {l.units_now ? `, ${l.units_now} standing` : ""} · {titleCase(l.community_area)}
+                      {l.units_now ? ` (${l.units_now} standing)` : ""}
                     </span>
                     <span className="rtags">
                       {l.details.fast_path && <span className="tag g">Fast path</span>}
@@ -547,20 +555,18 @@ export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial:
                         </span>
                       ))}
                     </span>
-                    <span className="rpts mono small">
-                      Zoning {num(l.zoning_upside)} · Profit {num(l.profit)} · Signals {num(l.acquisition)} · Location {num(l.location)} · Incentives{" "}
-                      {num(l.incentives)} · Penalties {num(l.penalties)}
-                    </span>
                     <span className="small">
                       {l.profit_central !== null ? (
                         <>
-                          Est. profit <b className="mono">{usdK(l.profit_central)}</b> · return on cost {pct(l.return_on_cost)} · Max land{" "}
-                          <b className="mono">{usdK(l.max_land_price)}</b>
+                          Est. profit <b className="mono">{usdK(l.profit_central)}</b> · Max land <b className="mono">{usdK(l.max_land_price)}</b> · {pct(l.return_on_cost)} on cost
                         </>
                       ) : (
-                        <span className="muted">No profit points: {l.details.profit ?? "not priced"}</span>
+                        <span className="muted">Not priced: {l.details.profit ?? "no comps"}</span>
                       )}
-                      {l.profit_central !== null && l.details.profit && <span className="muted"> · No profit points: {l.details.profit}</span>}
+                    </span>
+                    <span className="rpts mono" title="Points behind the score">
+                      Zoning {num(l.zoning_upside)} · Profit {num(l.profit)} · Signals {num(l.acquisition)} · Location {num(l.location)} · Incentives{" "}
+                      {num(l.incentives)} · Penalties {num(l.penalties)}
                     </span>
                   </span>
                 </button>
@@ -629,9 +635,6 @@ export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial:
           </div>
         </section>
       </main>
-      <p className="small muted" style={{ padding: "8px 24px" }}>
-        Every lot shows the points behind its score. <Link href="/">Search by address or PIN</Link>.
-      </p>
     </div>
   );
 }
