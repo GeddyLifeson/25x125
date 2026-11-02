@@ -464,6 +464,24 @@ def restart() -> int:
     return start()
 
 
+def open_in_browser() -> None:
+    """Ask the editor to open the app in a browser tab. In a codespace $BROWSER is the editor's helper: it
+    forwards localhost:3000 and shows an "Open" prompt, which browsers don't block the way they block a tab
+    that opens by itself."""
+    helper = os.environ.get("BROWSER")
+    if not helper:
+        return
+    try:
+        subprocess.Popen(
+            [helper, f"http://localhost:{WEB_PORT}"],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError:
+        pass
+
+
 def status(follow: bool) -> int:
     pos = 0
     shown_ready = False
@@ -482,6 +500,11 @@ def status(follow: bool) -> int:
         if state.get("app_ready") and not shown_ready:
             shown_ready = True
             print(f"\nOpen 25x125: {app_url()}", flush=True)
+            print(
+                "Bookmark that address. It stays the same for this codespace while it is running.", flush=True
+            )
+            if follow:
+                open_in_browser()
             if state.get("phase") in ("loading", "updating"):
                 print("A data load is running in the background; the log above shows its steps.", flush=True)
         gone = time.time() - began > 20 and running_pid() is None
