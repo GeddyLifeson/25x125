@@ -527,7 +527,7 @@ async function selfTest() {
   await check("local session: no sign-in, Pro", async () => {
     const r = await get(`${web}/deals`);
     if (r.status !== 200) throw new Error(`/deals answered ${r.status} ${r.headers?.location ?? ""}`);
-    if (!r.body.includes("Desktop, this computer only")) throw new Error("the page does not show local mode");
+    if (!r.body.includes("data-testid=\"nav-local\"")) throw new Error("the page does not show local mode");
     return "deals page opens without sign-in";
   });
   await check("rules load (Python on Windows reads the rule files)", async () => {
