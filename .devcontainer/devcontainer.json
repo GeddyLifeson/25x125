@@ -1,0 +1,27 @@
+{
+  // Open with https://codespaces.new/GeddyLifeson/25x125?quickstart=1 (README, "Open in GitHub Codespaces").
+  // The app opens in a browser tab on port 3000 once it is up. scripts/codespace.py does the work.
+  "name": "25x125",
+  "dockerComposeFile": "compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/25x125",
+  "shutdownAction": "stopCompose",
+  "hostRequirements": { "cpus": 2, "memory": "8gb", "storage": "32gb" },
+  // Once, when the codespace is made: Python packages, web packages, web build.
+  "onCreateCommand": "python scripts/codespace.py setup",
+  // Every start: data (snapshot on the first start), engine and app, in the background.
+  "postStartCommand": "python scripts/codespace.py start",
+  // Every time the editor connects: show progress until the app is up, then its address.
+  "postAttachCommand": "python scripts/codespace.py status --follow",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": { "label": "25x125", "onAutoForward": "openBrowser" },
+    "8000": { "label": "engine (inside only)", "onAutoForward": "ignore" },
+    "5432": { "label": "database (inside only)", "onAutoForward": "ignore" }
+  },
+  "otherPortsAttributes": { "onAutoForward": "ignore" },
+  "customizations": {
+    "codespaces": { "openFiles": ["docs/codespaces.md"] },
+    "vscode": { "extensions": ["ms-python.python"] }
+  }
+}
