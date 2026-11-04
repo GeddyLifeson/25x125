@@ -28,7 +28,7 @@ Codespaces is free up to a monthly allowance on a personal GitHub Free account: 
 
 ## Where the data comes from
 
-The workflow "Data snapshot" (`.github/workflows/data-snapshot.yml`) runs the full load from the public portals every Monday on a free GitHub runner and publishes the database dump on the release `data-snapshot`. It holds public data only. Run it by hand from the repo's **Actions** tab, "Data snapshot", **Run workflow**.
+The workflow "Data snapshot" (`.github/workflows/data-snapshot.yml`) runs the full load from the public portals every Monday on a free GitHub runner and publishes the database dump on the release `data-snapshot`. It also publishes `chicago-basemap.pmtiles`, the map's background (about 70 MB, from the Protomaps build of OpenStreetMap), which a codespace downloads beside the data so the map never waits on an outside tile server; `python scripts/codespace.py basemap` fetches it again. It holds public data only. Run it by hand from the repo's **Actions** tab, "Data snapshot", **Run workflow**.
 
 If there is no snapshot, the first start runs the full load from the portals instead (1 to 2 hours). Keep the editor tab open until the terminal says it finished.
 

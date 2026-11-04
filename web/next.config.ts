@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["@react-pdf/renderer"],
   turbopack: { root: repoRoot },
   outputFileTracingRoot: repoRoot,
+  // The basemap glyphs are read from disk at run time (app/basemap/fonts); keep them in standalone builds.
+  outputFileTracingIncludes: { "/basemap/fonts/[stack]/[range]": ["./basemap-assets/**/*"] },
   // The production image (deploy/web.Dockerfile) sets NEXT_OUTPUT=standalone: a self-contained server in
   // .next/standalone. Left unset, `npm run build` and `npm run start` work as before.
   ...(process.env.NEXT_OUTPUT === "standalone" ? { output: "standalone" as const } : {}),

@@ -28,7 +28,7 @@ nightly Machine ┘
 
 - The browser only talks to the web app. The web app reaches the engine and the tile server over Fly's private network (`.internal` names, IPv6). The engine and the tile server have no public address.
 - Config per app: `deploy/fly.engine.toml`, `deploy/fly.web.toml`, `deploy/fly.tiles.toml`. Each lists its secrets by name; values live only in Fly.
-- The basemap is still OpenFreeMap's public Positron style (no key, attribution on the map). Self-hosting the basemap is a later item. To change it, set `NEXT_PUBLIC_BASEMAP_STYLE` under `[build.args]` in `deploy/fly.web.toml`; it is read at build time.
+- The background map comes from `data/basemap/chicago.pmtiles` on the engine (`python -m jobs.build_basemap`; the Codespaces snapshot ships it as `chicago-basemap.pmtiles`). A hosted engine without the file falls back to OpenFreeMap's public Positron style (no key, attribution on the map); copy the file into the engine image or volume to self-host it there too. To change it, set `NEXT_PUBLIC_BASEMAP_STYLE` under `[build.args]` in `deploy/fly.web.toml`; it is read at build time.
 
 ### Sizes, from local measurements (2026-11-01)
 

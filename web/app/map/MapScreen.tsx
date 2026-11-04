@@ -34,7 +34,33 @@ export const DEFAULT_FILTERS: Filters = {
 };
 
 const PAGE = 50;
-const BASEMAP = process.env.NEXT_PUBLIC_BASEMAP_STYLE ?? "https://tiles.openfreemap.org/styles/positron";
+// The background map: the local Chicago file served by this app (jobs/build_basemap.py) when it is there, else
+// OpenFreeMap's public style. NEXT_PUBLIC_BASEMAP_STYLE picks another style URL, or "none" for a plain background.
+const LOCAL_BASEMAP = "/basemap/style.json";
+const OUTSIDE_BASEMAP = "https://tiles.openfreemap.org/styles/positron";
+const BASEMAP = process.env.NEXT_PUBLIC_BASEMAP_STYLE ?? LOCAL_BASEMAP;
+
+/** The style to draw under the lots, or null. The local style's URLs are relative; MapLibre needs them absolute. */
+async function loadBasemap(): Promise<StyleSpecification | null> {
+  if (BASEMAP === "none") return null;
+  const get = async (url: string) => {
+    const r = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    return r.ok ? ((await r.json()) as StyleSpecification) : null;
+  };
+  try {
+    const local = BASEMAP === LOCAL_BASEMAP ? await get(LOCAL_BASEMAP) : null;
+    if (local) {
+      const abs = (u: string) => (u.startsWith("/") ? window.location.origin + u : u);
+      if (local.glyphs) local.glyphs = abs(local.glyphs);
+      if (typeof local.sprite === "string") local.sprite = abs(local.sprite);
+      for (const src of Object.values(local.sources)) if ("tiles" in src && src.tiles) src.tiles = src.tiles.map(abs);
+      return local;
+    }
+    return await get(BASEMAP === LOCAL_BASEMAP ? OUTSIDE_BASEMAP : BASEMAP);
+  } catch {
+    return null;
+  }
+}
 const CHICAGO: [number, number, number, number] = [-87.94, 41.645, -87.524, 42.023];
 
 // Score colours: one hue, light to dark (sequential), so a higher score reads darker.
@@ -241,6 +267,7 @@ export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial:
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      const basemapStyle = loadBasemap(); // fetched while the map library loads
       const maplibregl = await import("maplibre-gl");
       // MapLibre 6 ships ES modules only; the bundler emits the worker file and this points the map at it.
       maplibregl.setWorkerUrl(new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString());
@@ -250,24 +277,17 @@ export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial:
         sources: {},
         layers: [{ id: "bg", type: "background", paint: { "background-color": "#eceeea" } }],
       };
-      let ok = false;
-      if (BASEMAP !== "none") {
-        try {
-          const r = await fetch(BASEMAP, { signal: AbortSignal.timeout(5000) });
-          if (r.ok) {
-            style = (await r.json()) as StyleSpecification;
-            ok = true;
-          }
-        } catch {
-          // no basemap: lots on a plain background
-        }
-      }
+      const fetched = await basemapStyle;
+      const ok = fetched !== null;
+      if (fetched) style = fetched; // else no basemap: lots on a plain background
       if (cancelled || !mapDiv.current) return;
       setBasemap(ok ? "ok" : "plain");
       const map = new maplibregl.Map({
         container: mapDiv.current,
         style,
         bounds: CHICAGO,
+        // The same padding as the fit below, so the first view is final and its tiles load once.
+        fitBoundsOptions: { padding: 30 },
         minZoom: 9,
         maxZoom: 19,
         attributionControl: { compact: false },
@@ -276,10 +296,11 @@ export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial:
       });
       mapRef.current = map;
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-left");
-      map.on("load", () => {
+      // style.load, not load: load waits for the background tiles and fonts, and the lots would queue behind them.
+      map.on("style.load", () => {
         const origin = window.location.origin;
         const attribution = "Parcels: Cook County Assessor; zoning and city land: City of Chicago; score: 25x125 nightly";
-        map.addSource("lots", { type: "vector", tiles: [`${origin}/tiles/lots/{z}/{x}/{y}`], minzoom: 10, maxzoom: 16, attribution });
+        map.addSource("lots", { type: "vector", tiles: [`${origin}/tiles/lots/{z}/{x}/{y}`], minzoom: 9, maxzoom: 16, attribution });
         map.addSource("land_value", { type: "vector", tiles: [`${origin}/tiles/land_value/{z}/{x}/{y}`], minzoom: 9, maxzoom: 14 });
         map.addSource("lots_for_sale", { type: "vector", tiles: [`${origin}/tiles/lots_for_sale/{z}/{x}/{y}`], minzoom: 9, maxzoom: 16 });
         // Put our layers under the basemap's labels when there are any.

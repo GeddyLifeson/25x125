@@ -50,3 +50,12 @@ def test_update_due():
 def test_repo_name():
     assert codespace.repo_name({"GITHUB_REPOSITORY": "someone/fork"}) == "someone/fork"
     assert codespace.repo_name({}) == "GeddyLifeson/25x125"
+
+
+def test_basemap_due_when_missing_or_older_than_a_week(tmp_path):
+    f = tmp_path / "chicago.pmtiles"
+    assert codespace.basemap_due(f, 1_000_000)
+    f.write_bytes(b"x")
+    mtime = f.stat().st_mtime
+    assert not codespace.basemap_due(f, mtime + 7 * 86400)
+    assert codespace.basemap_due(f, mtime + 9 * 86400)
