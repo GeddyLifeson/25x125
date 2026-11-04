@@ -200,7 +200,9 @@ def run(url: str | None = None, limit: int | None = None) -> dict:
                 if errors <= 5:
                     print(f"  {row[0]}: {type(e).__name__}: {e}")
         if not limit:
-            conn.execute("truncate parcel_score")
+            # delete, not truncate: truncate locks the table until the commit, and the list screen waited about
+            # 10 s each night. Deleted rows stay visible to readers until the new ones are committed.
+            conn.execute("delete from parcel_score")
         else:
             conn.execute("delete from parcel_score where pin10 = any(%s)", ([r["pin10"] for r in out],))
         with conn.cursor().copy(f"copy parcel_score ({', '.join(COLUMNS)}) from stdin") as cp:

@@ -272,6 +272,10 @@ def take(conn: psycopg.Connection, bucket: str, who: str) -> float | None:
 
 
 def check_rate(bucket: str, who: str) -> None:
+    # One person on their own computer (desktop program, codespace): limits protect a shared server, and here they
+    # only cut off the owner after a minute of quick filter changes.
+    if is_local():
+        return
     with connect() as conn:
         wait = take(conn, bucket, who)
     if wait is not None:
