@@ -197,8 +197,12 @@ export default async function ParcelPage({ params, searchParams }: Props) {
         <Fact
           label="On the lot now"
           value={p.use_now ? (USE_NOW[p.use_now] ?? titleCase(p.use_now)) : "n/a"}
-          note={`${p.units_now ?? 0} unit(s)${p.stories ? ` · ${p.stories} stories` : ""}`}
-          src={`Cook County Assessor building characteristics, summed over building cards; pulled ${pulled}`}
+          note={
+            p.use_now === "vacant" && p.stories
+              ? `0 units · the city's building map still shows ${p.stories} ${p.stories === 1 ? "story" : "stories"}; it may lag a demolition`
+              : `${p.units_now ?? 0} unit(s)${p.stories ? ` · ${p.stories} ${p.stories === 1 ? "story" : "stories"}` : ""}`
+          }
+          src={`Cook County Assessor building characteristics, summed over building cards; stories from the City of Chicago building footprints; pulled ${pulled}`}
         />
         <Fact
           label="Buildable by right"

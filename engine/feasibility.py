@@ -188,7 +188,7 @@ def _lines(d, x: Inputs, c: Cost, fee: float) -> list[dict]:
     adj = f" x {c.adjustment:.2f} area adjustment" if c.adjustment != 1 else ""
     lines = [
         ("land", "Land", x.land_basis + " · no margin applied", c.land),
-        ("hard", "Hard cost", f"{c.gfa_sqft:,.0f} sq ft x ${c.base_per_sqft} ({c.preset} spec){adj}", c.hard),
+        ("hard", "Hard cost", f"{c.gfa_sqft:,.0f} sq ft x ${c.base_per_sqft:,.2f} ({c.preset} spec){adj}", c.hard),
         ("sprinklers", "Sprinkler system",
          "Required: building has 4+ units" if c.sprinklers else "Not required: no building over 3 units", c.sprinklers),
         ("contingency", "Contingency", "5% of hard cost", c.contingency),

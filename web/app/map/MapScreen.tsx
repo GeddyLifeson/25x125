@@ -197,12 +197,25 @@ export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial:
     }
   }, []);
 
+  // Typing in a box waits for a pause (300 ms), so "RT-4" asks the engine once rather than once per key.
+  const lastFilters = useRef<Filters | null>(null);
   useEffect(() => {
-    t0.current = performance.now();
-    void load(filters, 0);
-    const u = new URL(window.location.href);
-    u.search = lotsQuery(filters, 0).replace(/&?limit=\d+|&?offset=\d+/g, "");
-    window.history.replaceState(null, "", u);
+    const prev = lastFilters.current;
+    lastFilters.current = filters;
+    const typed = (["zone", "min_score", "min_units"] as const).some((k) => prev && prev[k] !== filters[k]);
+    const go = () => {
+      t0.current = performance.now();
+      void load(filters, 0);
+      const u = new URL(window.location.href);
+      u.search = lotsQuery(filters, 0).replace(/&?limit=\d+|&?offset=\d+/g, "");
+      window.history.replaceState(null, "", u);
+    };
+    if (!typed) {
+      go();
+      return;
+    }
+    const id = window.setTimeout(go, 300);
+    return () => window.clearTimeout(id);
   }, [filters, load]);
 
   // Area snapshot.

@@ -15,7 +15,8 @@ const line = "#DDE1E5";
 const s = StyleSheet.create({
   page: { padding: 26, fontSize: 7.4, fontFamily: "Helvetica", color: ink, lineHeight: 1.3 },
   brand: { fontFamily: "Courier-Bold", fontSize: 11 },
-  h1: { fontSize: 14, fontFamily: "Helvetica-Bold", marginTop: 4 },
+  // lineHeight set here: the page's 1.3 is sized for 7.4 pt text, so a 14 pt title ran into the line below.
+  h1: { fontSize: 14, fontFamily: "Helvetica-Bold", marginTop: 4, marginBottom: 2, lineHeight: 1.25 },
   h2: { fontSize: 9, fontFamily: "Helvetica-Bold", marginTop: 8, marginBottom: 3 },
   muted: { color: muted },
   row: { flexDirection: "row", borderBottomWidth: 0.5, borderBottomColor: line, paddingVertical: 1.5 },

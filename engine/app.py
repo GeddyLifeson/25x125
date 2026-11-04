@@ -1,6 +1,8 @@
 import csv
 import io
 import json
+import threading
+from contextlib import asynccontextmanager
 from datetime import date
 from typing import Annotated
 
@@ -13,15 +15,31 @@ from core.db import connect
 from engine import accounts, areas, billing, deals, feedback
 from engine.accounts import export_gate
 from engine.auth import Caller, caller, check_rate
-from engine.comps import RULES_DIR, Target, estimate, index_from_db, miles, params_from_files, pool_from_db
-from engine.parcel_feasibility import feasibility
+from engine.comps import RULES_DIR, Target, estimate, miles, params_from_files
+from engine.parcel_feasibility import comp_tables, feasibility
 from engine.parcels import LOT_COLUMNS, lots, parcel, search
 from engine.rents import rent
 from engine.rules import Rules
 from engine.sites import site_by_pin
 from engine.zoning import evaluate
 
-app = FastAPI(title="25x125 engine", version="0.1.0")
+
+def _warm() -> None:
+    """Load the comp pool, price index and older sales once at startup, so the first parcel page is not the slow one."""
+    try:
+        with connect() as conn:
+            comp_tables(conn)
+    except Exception:  # noqa: BLE001, S110 - no database yet (tests, first start): the first request loads them
+        pass
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    threading.Thread(target=_warm, daemon=True).start()
+    yield
+
+
+app = FastAPI(title="25x125 engine", version="0.1.0", lifespan=lifespan)
 app.include_router(deals.router)
 app.include_router(areas.router)
 app.include_router(accounts.router)
@@ -113,7 +131,7 @@ def parcel_sale_value(
         ).fetchone()
         if row is None:
             raise HTTPException(404, f"PIN {pin} has no location in the parcel table")
-        pool, index = pool_from_db(conn), index_from_db(conn)
+        pool, index, _ = comp_tables(conn)
     sqft = sqft_per_unit or {2: 1300, 3: 1200}.get(units, 1000)
     t = Target(row[0], row[1], units, date.today(), sqft, "condo" if sell == "condo" else None)
     e = estimate(t, pool, params_from_files(), index)

@@ -60,7 +60,10 @@ export default async function AddressSearch({ searchParams }: { searchParams: Pr
               ? `No parcels match "${q}"`
               : `${result.value.length}${result.value.length === 25 ? "+" : ""} parcels match "${q}"`}
           </h2>
-          <p className="sub">Addresses in street order. A building with condo units lists one row per unit PIN.</p>
+          <p className="sub">
+            Addresses in street order. A building with condo units lists one row per unit PIN.
+            {result.value.length === 25 ? " Showing the first 25: add more of the address to narrow the list." : ""}
+          </p>
           {result.value.length > 0 && (
             <div className="scroll">
               <table className="t hits">

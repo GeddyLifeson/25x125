@@ -55,7 +55,7 @@ def parcel(conn, pin: str) -> dict | None:
             left join parcel_address a on a.pin = p.pin
             left join parcel_site ps on ps.pin = p.pin
             left join lot_use lu on lu.pin10 = p.pin10
-            left join block_face bf on bf.block_face = lu.block_face
+            left join lateral (select * from block_face b where b.block_face = lu.block_face offset 0) bf on true
             left join source_pull sp on sp.id = p.source_pull_id
             where p.pin = %s or p.pin10 = %s order by p.tax_year desc, p.pin limit 1""",
         (pin, pin[:10]),
@@ -73,8 +73,9 @@ def parcel(conn, pin: str) -> dict | None:
     out["recent_sales"] = [
         {"date": d.isoformat(), "price": float(p), "deed_type": t}
         for d, p, t in conn.execute(
-            "select sale_date, sale_price, deed_type from sale where left(pin, 10) = %s order by sale_date desc limit 5",
-            (out["pin10"],),
+            # A PIN range rather than left(pin, 10), so the lookup uses the pin index (0.2 s down to under 1 ms).
+            "select sale_date, sale_price, deed_type from sale where pin between %s and %s order by sale_date desc limit 5",
+            (out["pin10"] + "0000", out["pin10"] + "9999"),
         ).fetchall()
     ]
     out["signals"] = [
@@ -102,8 +103,11 @@ def parcel(conn, pin: str) -> dict | None:
     return out
 
 
-LOT_SORTS = {"score": "s.score desc", "return": "s.return_on_cost_p25 desc nulls last",
-             "upside": "s.by_right_units - coalesce(s.units_now, 0) desc", "lot": "ps.lot_sqft desc nulls last"}  # fmt: skip
+# Each sort ends in a unique key and matches an index (db/migrations/0093_lot_list_indexes.sql), so a page of
+# the list reads 50 rows instead of sorting 600,000. ps.pin orders the same as s.pin10 here: one scored row per lot.
+LOT_SORTS = {"score": "s.score desc, s.pin10", "return": "s.return_on_cost_p25 desc nulls last, s.pin10",
+             "upside": "(s.by_right_units - coalesce(s.units_now, 0)) desc, s.pin10",
+             "lot": "ps.lot_sqft desc nulls last, ps.pin"}  # fmt: skip
 LOT_COLUMNS = ["pin10", "pin", "address", "zip", "community_area", "zone_class", "lot_sqft", "score", "zoning_upside",
                "profit", "acquisition", "location", "incentives", "penalties", "units_now", "by_right_units",
                "units_priced", "sale_per_unit", "sale_comps", "land", "total_cost", "profit_central", "profit_p25",
@@ -114,7 +118,10 @@ def lots(conn, *, community_area: int | None = None, zone_prefix: str | None = N
          min_units: int = 0, signal: str | None = None, for_sale: bool = False, vacant: bool = False, fast_path: bool = False,
          sort: str = "score", limit: int = 100, offset: int = 0, pin10: str | None = None) -> list[dict]:  # fmt: skip
     """The list screen: scored lots with filters, from parcel_score (jobs/score_parcels.py)."""
-    where, args = ["s.score >= %s"], [min_score]
+    where, args = (
+        ["s.score >= %s::numeric"],
+        [min_score],
+    )  # numeric, or a float parameter skips the score index
     if pin10:
         where.append("s.pin10 = %s")
         args.append(pin10)
@@ -144,10 +151,10 @@ def lots(conn, *, community_area: int | None = None, zone_prefix: str | None = N
                    s.details, s.computed_on, st_y(p.geom), st_x(p.geom)
             from parcel_score s
             join parcel_site ps on ps.pin = s.pin
-            join lateral (select * from parcel x where x.pin = s.pin order by x.tax_year desc limit 1) p on true
+            join parcel p on p.pin = s.pin
             left join parcel_address a on a.pin = s.pin
             where {" and ".join(where)}
-            order by {LOT_SORTS.get(sort, LOT_SORTS["score"])}, s.pin10
+            order by {LOT_SORTS.get(sort, LOT_SORTS["score"])}
             limit %s offset %s""",
         [*args, limit, offset],
     ).fetchall()

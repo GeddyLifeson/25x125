@@ -93,3 +93,13 @@ def test_engine_tiles(db):
     assert r.status_code in (200, 204)
     if r.status_code == 200:
         assert r.headers["content-type"] == "application/x-protobuf"
+
+
+def test_local_mode_has_no_rate_limits(db, monkeypatch):
+    monkeypatch.setattr(settings, "local_mode", True)
+    from engine.auth import check_rate
+
+    with psycopg.connect(db) as conn:
+        conn.execute("delete from rate_bucket where key like 'search:%'")
+    for _ in range(80):  # the search bucket allows a burst of 60
+        check_rate("search", "local-test")
