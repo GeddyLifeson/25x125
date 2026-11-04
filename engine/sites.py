@@ -8,7 +8,7 @@ select ps.pin, ps.zone_class, ps.zone_class_2, ps.zone_share_2, ps.lot_sqft, ps.
        lu.use_now, lu.units_now, bf.lots, bf.multi_lots, bf.single_lots, bf.two_flat_lots, bf.vacant_lots
 from parcel_site ps
 left join lot_use lu on lu.pin10 = ps.pin10
-left join block_face bf on bf.block_face = lu.block_face
+left join lateral (select * from block_face b where b.block_face = lu.block_face offset 0) bf on true
 where {where}
 """
 FIELDS = ["pin", "zone_class", "zone_class_2", "zone_share_2", "lot_sqft", "frontage_ft", "lot_source", "zone_share", "transit_served",

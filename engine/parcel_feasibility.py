@@ -134,6 +134,24 @@ def land_value(conn, nbhd: str | None, ca_num: int | None, min_sales: int = 5) -
     return None
 
 
+# The comp pool, the price index and the older sales are the same for every parcel and change only when a load
+# rebuilds them, so the engine keeps one copy and reloads it when a table's rows change (row count and newest
+# transaction id; about 30 ms to check against about 350 ms to reload).
+_COMP_TABLES: dict = {"key": None, "value": None}
+
+
+def comp_tables(conn) -> tuple[list, object, list | None]:
+    has_older = conn.execute("select to_regclass('older_sale')").fetchone()[0] is not None
+    sig = "(select count(*)::text || ':' || coalesce(max(xmin::text::bigint), 0) from {t})"
+    tables = ["comp", "hpi"] + (["older_sale"] if has_older else [])
+    key = (conn.info.dsn, conn.execute("select " + ", ".join(sig.format(t=t) for t in tables)).fetchone())
+    if _COMP_TABLES["key"] != key:
+        older = older_sales.sales_from_db(conn) if has_older else None
+        _COMP_TABLES["value"] = (pool_from_db(conn), index_from_db(conn), older)
+        _COMP_TABLES["key"] = key
+    return _COMP_TABLES["value"]
+
+
 def feasibility(
     conn, pin: str, exit_: str = "sell", overrides: dict | None = None, target: str | None = None
 ) -> dict | None:
@@ -148,12 +166,8 @@ def feasibility(
     z = evaluate(site, rules, rezoning_target=target)
     d = load_defaults()
     patterns = load_patterns()
-    pool, index, params = pool_from_db(conn), index_from_db(conn), params_from_files()
-    older = (
-        older_sales.sales_from_db(conn)
-        if conn.execute("select to_regclass('older_sale')").fetchone()[0]
-        else None
-    )
+    pool, index, older = comp_tables(conn)
+    params = params_from_files()
     today = date.today()
     picks = scenarios_for(z, patterns)
     esc = escalation(conn, d)
