@@ -1,8 +1,8 @@
-# This is the code editor. The app opens next to it.
+# This is the code editor. The app runs in its own browser tab.
 
-When the app is ready it shows up inside this window, in a tab named after its address. That takes about 1 minute on later starts, and 15 to 20 minutes the first time (it builds the app and restores the data). The terminal at the bottom shows each step.
+The app takes about 1 minute to start on later starts, and 15 to 20 minutes the first time (it builds the app and restores the data).
 
-**For the app in its own browser tab:** when the terminal says "Open 25x125", a box asks to open the address. Click **Open**. Or Ctrl+click the address in the terminal.
+**To open it:** click **Terminal** at the bottom and Ctrl+click the address after "Open it". Every new terminal prints it. When the app comes up, a notice at the bottom right also has an **Open in Browser** button. Don't use the editor's built-in browser: it can't sign in to the codespace and shows a blank page.
 
 **Bookmark that address** (it looks like `https://<name>-3000.app.github.dev`). It stays the same for this codespace. It only works while the codespace is running: if it says the codespace is stopped, open https://github.com/codespaces, click the codespace to start it, and use the bookmark once the terminal says the app is up.
 

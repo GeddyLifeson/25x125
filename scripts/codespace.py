@@ -351,16 +351,99 @@ def wait_http(url: str, timeout_s: int) -> bool:
 # ---------- the background run ----------
 
 
+class StartupPage:
+    """A small page on the app's port while the app isn't up yet (build, data restore), so the browser shows
+    progress instead of a 502 error. It refreshes itself and steps aside when the real app starts."""
+
+    def __init__(self) -> None:
+        import http.server
+        import threading
+
+        page = self
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                body = page.html().encode()
+                self.send_response(200)
+                self.send_header("content-type", "text/html; charset=utf-8")
+                self.send_header("cache-control", "no-store")
+                self.send_header("content-length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *_):
+                pass
+
+        self.server = None
+        try:
+            self.server = http.server.ThreadingHTTPServer(("0.0.0.0", WEB_PORT), Handler)
+        except OSError:
+            return  # the port is taken (the app from an earlier run is still up)
+        threading.Thread(target=self.server.serve_forever, daemon=True).start()
+
+    @staticmethod
+    def html() -> str:
+        import html
+
+        state = load_state()
+        phase = state.get("phase", "starting")
+        what = {
+            "starting": "Getting the code ready",
+            "building": "Building the app (about 3 minutes)",
+            "database": "Waiting for the database",
+            "snapshot": "Downloading and restoring the data (first start only, 10 to 30 minutes)",
+            "failed": "Something stopped the start. The log below says what.",
+        }.get(phase, phase)
+        try:
+            lines = LOG.read_text(errors="replace").splitlines()[-40:]
+        except OSError:
+            lines = []
+        refresh = "" if phase == "failed" else '<meta http-equiv="refresh" content="5">'
+        return (
+            f"<!doctype html><html><head><meta charset='utf-8'>{refresh}<title>25x125 is starting</title>"
+            "<style>body{font:16px system-ui,sans-serif;margin:40px;max-width:900px;color:#222}"
+            "pre{background:#f4f4f4;padding:12px;font-size:13px;white-space:pre-wrap}</style></head><body>"
+            f"<h1>25x125 is starting</h1><p><b>{html.escape(what)}</b></p>"
+            "<p>This page refreshes every 5 seconds and turns into the app when it is ready. "
+            "Keep the codespace tab open meanwhile.</p>"
+            f"<pre>{html.escape(chr(10).join(lines))}</pre></body></html>"
+        )
+
+    def close(self) -> None:
+        if self.server is not None:
+            self.server.shutdown()
+            self.server.server_close()
+            self.server = None
+
+
 def run() -> int:
     STATE_DIR.mkdir(exist_ok=True)
     save_state(phase="starting", app_ready=False)
     log("25x125 is starting.")
+    page = StartupPage()
+    try:
+        return _run(page)
+    except Exception:  # noqa: BLE001 - show the failure on the page and in the log, and keep the page up
+        import traceback
+
+        log("The start failed:\n" + traceback.format_exc())
+        log("Fix or retry: python scripts/codespace.py restart")
+        save_state(phase="failed", app_ready=False)
+        while True:
+            time.sleep(3600)
+
+
+def _run(page: StartupPage) -> int:
     if pull_latest():
+        save_state(phase="building")
         log("New code came in from main; reinstalling and rebuilding the app (about 3 minutes).")
-        setup()
+        if setup():
+            raise RuntimeError("Installing or building the app failed (the lines above say why).")
     elif load_state().get("web_built_for") != head_commit():
+        save_state(phase="building")
         log("The app's build is older than the code; rebuilding (about 2 minutes).")
-        build_web()
+        if build_web():
+            raise RuntimeError("Building the app failed (the lines above say why).")
 
     save_state(phase="database")
     log("Waiting for the database.")
@@ -373,6 +456,7 @@ def run() -> int:
         restored = restore_snapshot()
     migrate()
 
+    page.close()
     engine, web = start_engine(), start_web()
     ok = wait_http(f"http://127.0.0.1:{ENGINE_PORT}/health", 180) and wait_http(
         f"http://127.0.0.1:{WEB_PORT}/", 180
@@ -389,10 +473,12 @@ def run() -> int:
     loader = None
     if fresh and not restored:
         save_state(phase="loading")
-        loader = subprocess.Popen([sys.executable, __file__, "full-reload"], cwd=ROOT)
+        loader = subprocess.Popen(["nice", "-n", "15", sys.executable, __file__, "full-reload"], cwd=ROOT)
+    elif restored:
+        log("Data restored from the snapshot; the update from the portals runs on the next start.")
     elif update_due(load_state(), now_utc()):
         save_state(phase="updating")
-        loader = subprocess.Popen([sys.executable, __file__, "update"], cwd=ROOT)
+        loader = subprocess.Popen(["nice", "-n", "15", sys.executable, __file__, "update"], cwd=ROOT)
 
     # Keep the engine and the app running; restart either one if it stops.
     stopping = False
@@ -433,6 +519,7 @@ def running_pid() -> int | None:
 def start() -> int:
     """Start `run` detached from this shell, so it keeps going after the devcontainer's start command ends."""
     STATE_DIR.mkdir(exist_ok=True)
+    add_terminal_greeting()
     if pid := running_pid():
         print(f"25x125 is already running (process {pid}).")
         return 0
@@ -482,6 +569,74 @@ def open_in_browser() -> None:
         pass
 
 
+BASHRC_LINE = "python /workspaces/25x125/scripts/codespace.py hello 2>/dev/null  # 25x125: app address"
+
+
+def add_terminal_greeting() -> None:
+    """Every new terminal prints the app's state and address, so a plain terminal still shows the link."""
+    rc = Path.home() / ".bashrc"
+    try:
+        text = rc.read_text() if rc.exists() else ""
+        if BASHRC_LINE not in text:
+            with open(rc, "a") as f:
+                f.write("\n" + BASHRC_LINE + "\n")
+    except OSError:
+        pass
+
+
+def hello() -> int:
+    """One short block for a new terminal: is the app up, and where."""
+    state = load_state()
+    if state.get("app_ready"):
+        print(f"\n25x125 is running. Open it (Ctrl+click): {app_url()}", flush=True)
+        if state.get("phase") in ("loading", "updating"):
+            print("A data load is running in the background: python scripts/codespace.py status", flush=True)
+    elif running_pid():
+        print(
+            f"\n25x125 is starting ({state.get('phase', 'starting')}). Watch: python scripts/codespace.py status --follow"
+        )
+    else:
+        print("\n25x125 is not running. Start it: python scripts/codespace.py start")
+    print(flush=True)
+    return 0
+
+
+def check() -> int:
+    """One screen to paste when something is wrong: what runs, how much data is in, the last log lines."""
+    import psycopg
+
+    state = load_state()
+    print(
+        f"phase: {state.get('phase')}  app_ready: {state.get('app_ready')}  background run: {running_pid()}"
+    )
+    for k in ("snapshot_restored_at", "last_update_at", "last_full_at", "last_load_code"):
+        print(f"{k}: {state.get(k)}")
+    for name, url in (
+        ("engine", f"http://127.0.0.1:{ENGINE_PORT}/health"),
+        ("app", f"http://127.0.0.1:{WEB_PORT}/"),
+    ):
+        print(f"{name}: {'answers' if wait_http(url, 3) else 'NOT answering'}")
+    try:
+        with psycopg.connect(db_url(), connect_timeout=5) as conn:
+            for t in ("parcel", "parcel_site", "parcel_score", "sale", "deal"):
+                if conn.execute("select to_regclass(%s)", (t,)).fetchone()[0] is None:
+                    print(f"{t}: no table")
+                else:
+                    print(f"{t}: {conn.execute(f'select count(*) from {t}').fetchone()[0]:,} rows")
+    except Exception as e:  # noqa: BLE001
+        print(f"database: NOT reachable ({e})")
+    mem = subprocess.run(["free", "-m"], capture_output=True, text=True, check=False).stdout
+    print(mem.strip())
+    for f in (LOG, STATE_DIR / "engine.log", STATE_DIR / "web.log"):
+        try:
+            tail = f.read_text(errors="replace").splitlines()[-12:]
+        except OSError:
+            continue
+        print(f"---- {f.name}")
+        print("\n".join(tail))
+    return 0
+
+
 def status(follow: bool) -> int:
     pos = 0
     shown_ready = False
@@ -527,7 +682,8 @@ def status(follow: bool) -> int:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument(
-        "command", choices=["setup", "start", "run", "status", "update", "full-reload", "restart"]
+        "command",
+        choices=["setup", "start", "run", "status", "check", "hello", "update", "full-reload", "restart"],
     )
     ap.add_argument(
         "--follow", action="store_true", help="with status: keep showing progress until the app is up"
@@ -541,6 +697,10 @@ def main(argv: list[str] | None = None) -> int:
         return run()
     if a.command == "status":
         return status(a.follow)
+    if a.command == "check":
+        return check()
+    if a.command == "hello":
+        return hello()
     if a.command == "restart":
         return restart()
     return data_load(full=a.command == "full-reload")
