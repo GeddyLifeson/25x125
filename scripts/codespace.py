@@ -433,6 +433,7 @@ def running_pid() -> int | None:
 def start() -> int:
     """Start `run` detached from this shell, so it keeps going after the devcontainer's start command ends."""
     STATE_DIR.mkdir(exist_ok=True)
+    add_terminal_greeting()
     if pid := running_pid():
         print(f"25x125 is already running (process {pid}).")
         return 0
@@ -482,6 +483,38 @@ def open_in_browser() -> None:
         pass
 
 
+BASHRC_LINE = "python /workspaces/25x125/scripts/codespace.py hello 2>/dev/null  # 25x125: app address"
+
+
+def add_terminal_greeting() -> None:
+    """Every new terminal prints the app's state and address, so a plain terminal still shows the link."""
+    rc = Path.home() / ".bashrc"
+    try:
+        text = rc.read_text() if rc.exists() else ""
+        if BASHRC_LINE not in text:
+            with open(rc, "a") as f:
+                f.write("\n" + BASHRC_LINE + "\n")
+    except OSError:
+        pass
+
+
+def hello() -> int:
+    """One short block for a new terminal: is the app up, and where."""
+    state = load_state()
+    if state.get("app_ready"):
+        print(f"\n25x125 is running. Open it (Ctrl+click): {app_url()}", flush=True)
+        if state.get("phase") in ("loading", "updating"):
+            print("A data load is running in the background: python scripts/codespace.py status", flush=True)
+    elif running_pid():
+        print(
+            f"\n25x125 is starting ({state.get('phase', 'starting')}). Watch: python scripts/codespace.py status --follow"
+        )
+    else:
+        print("\n25x125 is not running. Start it: python scripts/codespace.py start")
+    print(flush=True)
+    return 0
+
+
 def status(follow: bool) -> int:
     pos = 0
     shown_ready = False
@@ -527,7 +560,7 @@ def status(follow: bool) -> int:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument(
-        "command", choices=["setup", "start", "run", "status", "update", "full-reload", "restart"]
+        "command", choices=["setup", "start", "run", "status", "hello", "update", "full-reload", "restart"]
     )
     ap.add_argument(
         "--follow", action="store_true", help="with status: keep showing progress until the app is up"
@@ -541,6 +574,8 @@ def main(argv: list[str] | None = None) -> int:
         return run()
     if a.command == "status":
         return status(a.follow)
+    if a.command == "hello":
+        return hello()
     if a.command == "restart":
         return restart()
     return data_load(full=a.command == "full-reload")
