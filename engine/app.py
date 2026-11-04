@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse, Response
 
 from core import errors
 from core.db import connect
-from engine import accounts, areas, billing, deals, feedback
+from engine import accounts, areas, basemap, billing, deals, feedback
 from engine.accounts import export_gate
 from engine.auth import Caller, caller, check_rate
 from engine.comps import RULES_DIR, Target, estimate, miles, params_from_files
@@ -283,10 +283,31 @@ def parcel_facts(pin: str) -> dict:
 # Map tiles straight from the PostGIS functions in db/migrations/0022_map_tiles.sql, for setups without the
 # Martin tile server (the desktop program). Zoom ranges match martin/config.yaml. Empty tiles answer 204.
 TILE_FUNCTIONS = {
-    "lots": ("lot_tiles", 10, 18),
+    "lots": ("lot_tiles", 9, 18),
     "land_value": ("land_value_tiles", 9, 16),
     "lots_for_sale": ("lot_for_sale_tiles", 9, 18),
 }
+
+
+@app.get("/basemap")
+def basemap_info() -> dict:
+    """The local background map: zooms, bounds and the attribution the map must show. 404 when there is none."""
+    i = basemap.info()
+    if i is None:
+        raise HTTPException(404, "no local basemap; run python -m jobs.build_basemap")
+    return i
+
+
+@app.get("/tiles/basemap/{z}/{x}/{y}")
+def basemap_tile(z: int, x: int, y: int) -> Response:
+    if not (0 <= x < 2**z and 0 <= y < 2**z):
+        raise HTTPException(400, "tile out of range")
+    t = basemap.tile(z, x, y)
+    if t is None:
+        return Response(status_code=204)
+    body, encoding = t
+    headers = {"content-encoding": encoding} if encoding else {}
+    return Response(body, media_type="application/x-protobuf", headers=headers)
 
 
 @app.get("/tiles/{layer}/{z}/{x}/{y}")

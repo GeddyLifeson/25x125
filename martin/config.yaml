@@ -11,7 +11,7 @@ postgres:
     lots:
       schema: public
       function: lot_tiles
-      minzoom: 10
+      minzoom: 9
       maxzoom: 18
       bounds: [-87.95, 41.64, -87.52, 42.03]
     land_value:

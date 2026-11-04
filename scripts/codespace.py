@@ -10,6 +10,7 @@ By hand, in the codespace terminal:
   python scripts/codespace.py update           pull what is new from the portals now (5-20 minutes)
   python scripts/codespace.py full-reload      reload everything from the portals (1-2 hours)
   python scripts/codespace.py restart          stop and start the engine and the app
+  python scripts/codespace.py basemap          fetch the background map file again (about 70 MB)
 
 First start: the database is empty, so `run` downloads the data snapshot that the "Data snapshot" workflow
 publishes weekly on the repo's Releases page (release `data-snapshot`) and restores it. That takes about 5-15
@@ -42,6 +43,9 @@ DEFAULT_REPO = "GeddyLifeson/25x125"
 ENGINE_PORT = 8000
 WEB_PORT = 3000
 UPDATE_AFTER_HOURS = 20
+BASEMAP = ROOT / "data" / "basemap" / "chicago.pmtiles"
+BASEMAP_ASSET = "chicago-basemap.pmtiles"
+BASEMAP_MAX_AGE_DAYS = 8
 
 
 # ---------- small helpers (tested in tests/test_codespace.py) ----------
@@ -69,6 +73,14 @@ def update_due(state: dict, now: dt.datetime, hours: float = UPDATE_AFTER_HOURS)
     if not last:
         return True
     return now - dt.datetime.fromisoformat(last) > dt.timedelta(hours=hours)
+
+
+def basemap_due(path: Path, now: float, max_age_days: float = BASEMAP_MAX_AGE_DAYS) -> bool:
+    """The background map file is missing or older than a week and a day (the snapshot rebuilds it weekly)."""
+    try:
+        return now - path.stat().st_mtime > max_age_days * 86400
+    except FileNotFoundError:
+        return True
 
 
 def repo_name(env: dict[str, str] | None = None) -> str:
@@ -284,6 +296,29 @@ def migrate() -> None:
     sh([sys.executable, "-m", "db.migrate"], cwd=ROOT)
 
 
+def fetch_basemap() -> int:
+    """The map's background file (data/basemap/chicago.pmtiles): the copy on the data-snapshot release, else cut
+    fresh from the Protomaps build (jobs/build_basemap.py, about 5 minutes). Until it is there the map uses
+    OpenFreeMap's public basemap."""
+    BASEMAP.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        rel = github_json(f"https://api.github.com/repos/{repo_name()}/releases/tags/{SNAPSHOT_TAG}")
+        asset = next(a for a in rel.get("assets", []) if a["name"] == BASEMAP_ASSET)
+        log(f"Downloading the background map ({asset.get('size', 0) >> 20} MB).")
+        part = BASEMAP.with_suffix(".download")
+        download(asset["browser_download_url"], part, append=False)
+        os.replace(part, BASEMAP)
+        log("Background map ready.")
+        return 0
+    except Exception as e:  # noqa: BLE001 - no release copy yet, or GitHub unreachable: cut it here instead
+        log(
+            f"No background map on the release ({type(e).__name__}); cutting one from Protomaps (about 5 minutes)."
+        )
+    code = sh([sys.executable, "-m", "jobs.build_basemap"], cwd=ROOT)
+    log("Background map ready." if code == 0 else f"Could not build the background map (code {code}).")
+    return code
+
+
 def data_load(full: bool) -> int:
     args = [sys.executable, "-m", "jobs.nightly", "--year", str(dt.date.today().year)]
     if not full:
@@ -479,6 +514,10 @@ def _run(page: StartupPage) -> int:
     elif update_due(load_state(), now_utc()):
         save_state(phase="updating")
         loader = subprocess.Popen(["nice", "-n", "15", sys.executable, __file__, "update"], cwd=ROOT)
+
+    # The background map, once a week, beside the data (small: about 70 MB).
+    if basemap_due(BASEMAP, time.time()):
+        subprocess.Popen(["nice", "-n", "15", sys.executable, __file__, "basemap"], cwd=ROOT)
 
     # Keep the engine and the app running; restart either one if it stops.
     stopping = False
@@ -683,7 +722,18 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument(
         "command",
-        choices=["setup", "start", "run", "status", "check", "hello", "update", "full-reload", "restart"],
+        choices=[
+            "setup",
+            "start",
+            "run",
+            "status",
+            "check",
+            "hello",
+            "update",
+            "full-reload",
+            "restart",
+            "basemap",
+        ],
     )
     ap.add_argument(
         "--follow", action="store_true", help="with status: keep showing progress until the app is up"
@@ -703,6 +753,8 @@ def main(argv: list[str] | None = None) -> int:
         return hello()
     if a.command == "restart":
         return restart()
+    if a.command == "basemap":
+        return fetch_basemap()
     return data_load(full=a.command == "full-reload")
 
 

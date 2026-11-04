@@ -1,0 +1,12 @@
+{
+  "about": "The map's background (streets, water, parks, labels), copied once a week into a small local file so the map never waits on an outside tile server. jobs/build_basemap.py cuts it from the Protomaps daily build of OpenStreetMap.",
+  "source": "https://build.protomaps.com/{date}.pmtiles",
+  "source_docs": "https://docs.protomaps.com/basemaps/downloads",
+  "verified_on": "2026-11-04",
+  "license": "Map data: OpenStreetMap contributors, Open Database License (ODbL); this file is a Produced Work and needs the attribution below. Tile schema and style: Protomaps (BSD-3-Clause, style CC0). Fonts: Noto Sans (SIL Open Font License). Icons: Mapzen/tangrams (MIT).",
+  "attribution": "<a href=\"https://www.openstreetmap.org/copyright\">© OpenStreetMap contributors</a> · <a href=\"https://protomaps.com\">Protomaps</a>",
+  "areas": [
+    {"what": "Chicago and nearby suburbs, for the zoomed-out view", "bbox": [-88.4, 41.45, -87.3, 42.25], "zooms": [9, 12]},
+    {"what": "Chicago, street level", "bbox": [-87.96, 41.63, -87.5, 42.04], "zooms": [13, 15]}
+  ]
+}

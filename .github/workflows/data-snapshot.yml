@@ -78,6 +78,11 @@ jobs:
           printf '{"built_at": "%s", "sha256": "%s", "bytes": %s, "commit": "%s"}\n' \
             "$(date -u +%Y-%m-%dT%H:%M:%S+00:00)" "$sha" "$size" "${{ github.sha }}" > out/snapshot.json
           cat out/snapshot.json
+      - name: Background map for Chicago (about 70 MB, 5 minutes)
+        # The map's streets, water and labels, cut from the Protomaps build of OpenStreetMap (jobs/build_basemap.py,
+        # data/rules/basemap.json). A codespace downloads it so the map never waits on an outside tile server.
+        continue-on-error: true
+        run: python -m jobs.build_basemap --out out/chicago-basemap.pmtiles
       - name: Publish on the data-snapshot release
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
