@@ -232,9 +232,17 @@ from (
 """
 
 
+# The build runs on a private copy, then swaps the rows in at the end. Built in place, the opening truncate
+# locked parcel_site for the whole build (12 minutes on a 2-core codespace), and every map tile, list and
+# parcel page waited on it. Now the table is locked only for the final copy.
+STAGE = "parcel_site_build"
+
+
 def run(url: str | None = None) -> int:
     with connect(url) as conn:
-        conn.execute(SQL)
+        conn.execute(f"create temp table {STAGE} (like parcel_site including all) on commit drop")
+        conn.execute(SQL.replace("parcel_site", STAGE))
+        conn.execute(f"truncate parcel_site; insert into parcel_site select * from {STAGE}")
         return conn.execute("select count(*) from parcel_site").fetchone()[0]
 
 
