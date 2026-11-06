@@ -1,6 +1,7 @@
 # The 25x125 website on Hugging Face Spaces (docs/website.md). .github/workflows/website.yml copies this file and
 # README.md into the Space with REF set to the commit to run; the Space builds it and serves port 3000.
 # One container: PostgreSQL 16 + PostGIS, the engine (Python 3.12) and the web app (Node.js 22).
+# The snapshot also holds the unused tiger geocoder extension; pg_restore reports it missing and carries on.
 FROM python:3.12-slim-bookworm
 
 COPY --from=node:22-bookworm-slim /usr/local/bin/node /usr/local/bin/node
@@ -11,7 +12,7 @@ RUN ln -sf ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
 RUN apt-get update \
  && apt-get install -y --no-install-recommends ca-certificates curl git gnupg postgresql-common \
  && /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y \
- && apt-get install -y --no-install-recommends postgresql-16 postgresql-16-postgis-3 postgresql-16-postgis-3-scripts \
+ && apt-get install -y --no-install-recommends postgresql-16 postgresql-16-postgis-3 \
  && rm -rf /var/lib/apt/lists/*
 
 # Spaces run the container as user 1000.
