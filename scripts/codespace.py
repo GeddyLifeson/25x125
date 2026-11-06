@@ -54,6 +54,8 @@ BASEMAP_MAX_AGE_DAYS = 8
 def app_url(env: dict[str, str] | None = None) -> str:
     """The address the browser uses: the codespace's forwarded port, or localhost outside a codespace."""
     env = os.environ if env is None else env
+    if env.get("SPACE_HOST"):  # the public website on Hugging Face Spaces (scripts/space.py)
+        return f"https://{env['SPACE_HOST']}"
     name, domain = env.get("CODESPACE_NAME"), env.get("GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN")
     if name and domain:
         return f"https://{name}-{WEB_PORT}.{domain}"
@@ -145,6 +147,8 @@ def build_web() -> int:
 
 def pull_latest() -> bool:
     """On main with no local edits, bring in what was merged since. True when new commits came in."""
+    if os.environ.get("SPACE_ID"):
+        return False  # the website's image is rebuilt for each new commit (deploy/space)
     branch = subprocess.run(
         ["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=ROOT, capture_output=True, text=True, check=False
     ).stdout.strip()
@@ -440,7 +444,8 @@ class StartupPage:
             "pre{background:#f4f4f4;padding:12px;font-size:13px;white-space:pre-wrap}</style></head><body>"
             f"<h1>25x125 is starting</h1><p><b>{html.escape(what)}</b></p>"
             "<p>This page refreshes every 5 seconds and turns into the app when it is ready. "
-            "Keep the codespace tab open meanwhile.</p>"
+            + ("" if os.environ.get("SPACE_ID") else "Keep the codespace tab open meanwhile.")
+            + "</p>"
             f"<pre>{html.escape(chr(10).join(lines))}</pre></body></html>"
         )
 
@@ -527,11 +532,18 @@ def _run(page: StartupPage) -> int:
         stopping = True
 
     signal.signal(signal.SIGTERM, stop)
+    last_check = time.time()
     while not stopping:
         time.sleep(5)
         if loader is not None and loader.poll() is not None:
             loader = None
             save_state(phase="running")
+        # The website (Hugging Face Space) runs for days without a restart, so it pulls the daily update itself.
+        if os.environ.get("SPACE_ID") and loader is None and time.time() - last_check > 3600:
+            last_check = time.time()
+            if update_due(load_state(), now_utc()):
+                save_state(phase="updating")
+                loader = subprocess.Popen(["nice", "-n", "15", sys.executable, __file__, "update"], cwd=ROOT)
         if engine.poll() is not None:
             log(f"The engine stopped (code {engine.returncode}); starting it again.")
             engine = start_engine()
