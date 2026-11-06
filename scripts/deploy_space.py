@@ -61,11 +61,16 @@ def main(argv: list[str] | None = None) -> int:
     with tempfile.TemporaryDirectory() as tmp:
         t = Path(tmp)
         (t / "README.md").write_text((SPACE_DIR / "README.md").read_text(encoding="utf-8"), encoding="utf-8")
-        docker = pinned_dockerfile((SPACE_DIR / "Dockerfile").read_text(encoding="utf-8"), a.ref,
-                                   f"https://github.com/{a.repo}.git")
+        docker = pinned_dockerfile(
+            (SPACE_DIR / "Dockerfile").read_text(encoding="utf-8"), a.ref, f"https://github.com/{a.repo}.git"
+        )
         (t / "Dockerfile").write_text(docker, encoding="utf-8")
-        api.upload_folder(folder_path=tmp, repo_id=space_id, repo_type="space",
-                          commit_message=f"Build {a.repo}@{a.ref[:12]}")
+        api.upload_folder(
+            folder_path=tmp,
+            repo_id=space_id,
+            repo_type="space",
+            commit_message=f"Build {a.repo}@{a.ref[:12]}",
+        )
     print(f"Website: {site_url(space_id)}  (builds in about 10 minutes, then loads the data)")
     print(f"Build log: https://huggingface.co/spaces/{space_id}")
     return 0

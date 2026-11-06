@@ -11,7 +11,7 @@ RUN ln -sf ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
 RUN apt-get update \
  && apt-get install -y --no-install-recommends ca-certificates curl git gnupg postgresql-common \
  && /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y \
- && apt-get install -y --no-install-recommends postgresql-16 postgresql-16-postgis-3 \
+ && apt-get install -y --no-install-recommends postgresql-16 postgresql-16-postgis-3 postgresql-16-postgis-3-scripts \
  && rm -rf /var/lib/apt/lists/*
 
 # Spaces run the container as user 1000.

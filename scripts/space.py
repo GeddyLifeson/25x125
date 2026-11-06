@@ -22,7 +22,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import codespace as cs  # noqa: E402
+import codespace as cs
 
 PGDATA = Path(os.environ.get("PGDATA", Path.home() / "pgdata"))
 PGBIN = Path(os.environ.get("PGBIN", "/usr/lib/postgresql/16/bin"))
@@ -56,7 +56,18 @@ def start_postgres() -> None:
         pwfile = cs.STATE_DIR / "pw"
         pwfile.write_text("postgres")
         subprocess.run(
-            [PGBIN / "initdb", "-D", PGDATA, "-U", "postgres", "--pwfile", pwfile, "-E", "UTF8", "--locale=C.UTF-8"],
+            [
+                PGBIN / "initdb",
+                "-D",
+                PGDATA,
+                "-U",
+                "postgres",
+                "--pwfile",
+                pwfile,
+                "-E",
+                "UTF8",
+                "--locale=C.UTF-8",
+            ],
             check=True,
             stdout=subprocess.DEVNULL,
         )
@@ -139,7 +150,9 @@ def backup_loop() -> None:
             )
             last = digest
         except Exception as e:  # noqa: BLE001 - try again next round
-            cs.log(f"Could not save your work to {repo} ({type(e).__name__}: {e}); trying again in 5 minutes.")
+            cs.log(
+                f"Could not save your work to {repo} ({type(e).__name__}: {e}); trying again in 5 minutes."
+            )
 
 
 def main() -> int:
