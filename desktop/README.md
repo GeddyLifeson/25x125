@@ -42,6 +42,17 @@ On the first start the program creates its database and starts copying the publi
 - Downloads (CSV, PDF) ask where to save the file.
 - Links to sources and to city pages open in your normal browser.
 
+## Use it from anywhere (internet link)
+
+The program can share itself at a fixed web address, such as `https://your-pc.tail1234.ts.net`, so you can open 25x125 from a phone or another computer. It is free and uses [Tailscale Funnel](https://tailscale.com/kb/1223/funnel). The link works while this computer is on and 25x125 is open.
+
+1. Install Tailscale from https://tailscale.com/download/windows and sign in (a free personal account; you can sign in with GitHub).
+2. Set a site password: open `%APPDATA%\25x125\config.json` and add `"sitePassword": "<your password>"`. Without a password the program never shares itself.
+3. Restart 25x125. On the first share Tailscale may ask you to turn on Funnel for this computer; the status window shows that link. Open it, click to allow, and restart 25x125 once more.
+4. The status window shows the internet link, and **File > Copy the internet link** copies it.
+
+Every browser that opens the link asks for the password once and remembers it for 90 days. The program's own window doesn't ask. To stop sharing, remove `sitePassword` and run `tailscale funnel reset` in a terminal.
+
 ## Keeping the data fresh
 
 The data comes from the free public portals (Chicago Data Portal, Cook County data catalog, Census Bureau, FHFA, FRED). The program never reads them while you click around; it copies them into its own database.
