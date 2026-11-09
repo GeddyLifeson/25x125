@@ -51,6 +51,8 @@ The program can share itself at a fixed web address, such as `https://your-pc.ta
 3. Restart 25x125. On the first share Tailscale may ask you to turn on Funnel for this computer; the status window shows that link. Open it, click to allow, and restart 25x125 once more.
 4. The status window shows the internet link, and **File > Copy the internet link** copies it.
 
+While it is shared, 25x125 keeps the computer from going to sleep and starts by itself when you sign in to Windows, so the link stays up. Set `"keepAwake": false` or `"startWithWindows": false` in config.json to turn either off.
+
 Every browser that opens the link asks for the password once and remembers it for 90 days. The program's own window doesn't ask. To stop sharing, remove `sitePassword` and run `tailscale funnel reset` in a terminal.
 
 ## Keeping the data fresh

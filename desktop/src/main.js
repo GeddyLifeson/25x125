@@ -9,7 +9,7 @@
 //   web/      the Next.js standalone server (web/server.js) with its static files
 // Everything the program writes goes to the user data folder (%APPDATA%\25x125): pgdata, logs, config.json.
 
-const { app, BrowserWindow, Menu, clipboard, dialog, ipcMain, session, shell } = require("electron");
+const { app, BrowserWindow, Menu, clipboard, dialog, ipcMain, powerSaveBlocker, session, shell } = require("electron");
 const { spawn, spawnSync } = require("node:child_process");
 const crypto = require("node:crypto");
 const fs = require("node:fs");
@@ -346,6 +346,11 @@ function startFunnel() {
   if (r.status === 0) {
     share.url = `https://${share.host}`;
     share.note = `Shared at ${share.url} (asks for the site password).`;
+    // While shared: keep Windows from sleeping (the link dies when the PC sleeps) and start with Windows, so the
+    // link comes back by itself after a restart. "keepAwake": false / "startWithWindows": false in config.json
+    // turn these off.
+    if (config.keepAwake !== false) powerSaveBlocker.start("prevent-app-suspension");
+    if (app.isPackaged) app.setLoginItemSettings({ openAtLogin: config.startWithWindows !== false });
   } else {
     const link = out.match(/https:\/\/login\.tailscale\.com\S+/);
     share.note = link
