@@ -9,7 +9,7 @@
 //   web/      the Next.js standalone server (web/server.js) with its static files
 // Everything the program writes goes to the user data folder (%APPDATA%\25x125): pgdata, logs, config.json.
 
-const { app, BrowserWindow, Menu, dialog, ipcMain, shell } = require("electron");
+const { app, BrowserWindow, Menu, clipboard, dialog, ipcMain, session, shell } = require("electron");
 const { spawn, spawnSync } = require("node:child_process");
 const crypto = require("node:crypto");
 const fs = require("node:fs");
@@ -43,6 +43,9 @@ const R = {
 };
 const appUrl = () => `http://127.0.0.1:${ports.web}`;
 let appReady = false;
+// Sharing over the internet (desktop/README.md, "Use it from anywhere"): with a site password in config.json
+// and Tailscale signed in on this computer, Tailscale Funnel serves the app at https://<computer>.<tailnet>.ts.net.
+let share = { host: null, url: null, note: "" };
 
 let userData, logsDir, pgData, configFile, config;
 let ports = { pg: 0, engine: 0, web: 0 };
@@ -292,6 +295,76 @@ async function startEngine() {
   await waitFor(`http://127.0.0.1:${ports.engine}/health`, "The engine", 120);
 }
 
+// ---------- sharing over the internet (Tailscale Funnel) ----------
+
+function tailscaleExe() {
+  if (WIN) {
+    for (const dir of [process.env.ProgramFiles, process.env["ProgramFiles(x86)"]]) {
+      const p = dir && path.join(dir, "Tailscale", "tailscale.exe");
+      if (p && fs.existsSync(p)) return p;
+    }
+  }
+  const r = spawnSync(WIN ? "where" : "which", ["tailscale"], { encoding: "utf8", windowsHide: true });
+  return r.status === 0 ? r.stdout.split(/\r?\n/)[0].trim() : null;
+}
+
+/** Before the web app starts: this computer's Tailscale name, so the app accepts requests sent to it. */
+function findShareHost() {
+  if (!config.sitePassword) {
+    share.note = "Not shared over the internet (no site password set).";
+    return;
+  }
+  const exe = tailscaleExe();
+  if (!exe) {
+    share.note = "Not shared: Tailscale is not installed (https://tailscale.com/download/windows).";
+    return;
+  }
+  const r = spawnSync(exe, ["status", "--json"], { encoding: "utf8", timeout: 15000, windowsHide: true });
+  let st = {};
+  try {
+    st = JSON.parse(r.stdout || "{}");
+  } catch {
+    // not running
+  }
+  const name = st.Self && st.Self.DNSName ? st.Self.DNSName.replace(/\.$/, "") : "";
+  if (st.BackendState !== "Running" || !name) {
+    share.note = "Not shared: Tailscale is installed but not signed in. Open Tailscale and sign in, then restart 25x125.";
+    return;
+  }
+  share.host = name;
+  share.exe = exe;
+}
+
+/** After the web app is up: point Tailscale Funnel's public address at it. */
+function startFunnel() {
+  if (!share.host) {
+    if (share.note) log(share.note);
+    return;
+  }
+  const r = spawnSync(share.exe, ["funnel", "--bg", String(ports.web)], { encoding: "utf8", timeout: 30000, windowsHide: true });
+  const out = `${r.stdout || ""}${r.stderr || ""}`.trim();
+  if (r.status === 0) {
+    share.url = `https://${share.host}`;
+    share.note = `Shared at ${share.url} (asks for the site password).`;
+  } else {
+    const link = out.match(/https:\/\/login\.tailscale\.com\S+/);
+    share.note = link
+      ? `Not shared yet: turn on Funnel for this computer at ${link[0]} and restart 25x125.`
+      : `Not shared: tailscale funnel failed (${out.slice(0, 300) || `code ${r.status}`}).`;
+  }
+  log(share.note);
+}
+
+/** The program's own window skips the password page: it gets the same cookie the page would set. */
+async function unlockOwnWindow() {
+  if (!config.sitePassword) return;
+  const value = crypto.createHash("sha256").update(`x25-gate:${config.sitePassword}`).digest("hex");
+  await session.defaultSession.cookies.set({
+    url: appUrl(), name: "x25_gate", value, httpOnly: true, sameSite: "lax",
+    expirationDate: Math.floor(Date.now() / 1000) + 365 * 86400,
+  });
+}
+
 async function startWeb() {
   setStatus("Starting the app...");
   const useNode = fs.existsSync(R.node);
@@ -302,6 +375,8 @@ async function startWeb() {
     HOSTNAME: "127.0.0.1",
     ENGINE_URL: `http://127.0.0.1:${ports.engine}`,
     TILES_URL: `http://127.0.0.1:${ports.engine}/tiles`,
+    ...(config.sitePassword ? { SITE_PASSWORD: config.sitePassword } : {}),
+    ...(share.host ? { APP_ORIGINS: share.host } : {}),
   });
   await waitFor(`http://127.0.0.1:${ports.web}/`, "The app", 120);
 }
@@ -450,6 +525,10 @@ function updateMenu() {
         { label: "Open data folder", click: () => shell.openPath(userData) },
         { label: "Open logs folder", click: () => shell.openPath(logsDir) },
         { type: "separator" },
+        share.url
+          ? { label: "Copy the internet link", click: () => clipboard.writeText(share.url) }
+          : { label: "Sharing over the internet: off (see Help)", enabled: false },
+        { type: "separator" },
         { role: "quit", label: "Quit 25x125" },
       ],
     },
@@ -594,7 +673,9 @@ async function start() {
   ports.pg = await freePort(config.pgPort || 54325);
   config.pgPort = ports.pg;
   ports.engine = await freePort(0);
-  ports.web = await freePort(0);
+  // The web app keeps a fixed port too (54326), so the internet link always points at the right place.
+  ports.web = await freePort(config.webPort || 54326);
+  config.webPort = ports.web;
   saveConfig();
   log(`25x125 desktop ${app.getVersion()} starting. Data folder: ${userData}`);
 
@@ -608,7 +689,13 @@ async function start() {
     }
     await startDatabase();
     await startEngine();
+    if (!SELF_TEST) findShareHost();
     await startWeb();
+    if (!SELF_TEST) {
+      await unlockOwnWindow();
+      startFunnel();
+      updateMenu();
+    }
   } catch (e) {
     log(`Start-up failed: ${e.message}`);
     if (SELF_TEST) {
@@ -622,7 +709,11 @@ async function start() {
     setStatus(`25x125 could not start: ${e.message} Logs: ${logsDir}`);
     return;
   }
-  setStatus(`Ready. App at http://127.0.0.1:${ports.web} (this computer only).`);
+  setStatus(
+    share.url
+      ? `Ready. App at http://127.0.0.1:${ports.web}. Internet link: ${share.url} (password needed).`
+      : `Ready. App at http://127.0.0.1:${ports.web} (this computer only). ${share.note}`,
+  );
 
   if (SELF_TEST) return shutdown((await selfTest()) ? 0 : 1);
 
