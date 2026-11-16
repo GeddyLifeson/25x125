@@ -15,7 +15,7 @@ create table tax_sale_list (
   listed_through date,               -- the date the Treasurer's amounts run to
   source_url text,
   source_pull_id bigint references source_pull (id),
-  primary key (sale_date, pin)
+  primary key (sale_date, pin, tax_type, tax_year)   -- a PIN can owe several years or a special assessment
 );
 create index on tax_sale_list (pin10);
 

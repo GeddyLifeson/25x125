@@ -10,9 +10,22 @@ LINE = (
     "     13-25-303-023-0000     00        2023              $13,346.78            $14,925.59 WEST          Chicago"
     "        Residential                1             8            39            20                     Yes"
 )
+HEADER = (
+    "Taxpayer Name".ljust(26)
+    + "Property Address".ljust(28)
+    + "Current Mailing Address".ljust(46)
+    + "Volume   PIN"
+)
+NO_NAME = " " * 26 + LINE[26:].replace("13-25-303-023-0000", "13-25-303-024-0000")
 REPORT = (
-    "Properties Currently Eligible for 2023 Annual Tax Sale in Ward 1\nTotal Delinquent PINs: 1\n"
-    "Total amount due, including late interest, through Tuesday, December 1, 2026.\n\n" + LINE + "\n"
+    "Properties Currently Eligible for 2023 Annual Tax Sale in Ward 1\nTotal Delinquent PINs: 2\n"
+    "Total amount due, including late interest, through Tuesday, December 1, 2026.\n\n"
+    + HEADER
+    + "\n"
+    + LINE
+    + "\n"
+    + NO_NAME
+    + "\n"
 )
 PAGE = (
     "<p>the Tax Year 2023 Annual Tax Sale that is scheduled for December 15, 2026.</p>"
@@ -24,14 +37,15 @@ PAGE = (
 def test_report_rows_drop_owner_and_check_the_total():
     rows, through = rows_from_report(REPORT)
     assert through == "2026-12-01"
-    assert rows == [{
+    assert rows[1]["property_address"] == "2744 N SACRAMENTO AVE" and rows[1]["pin"] == "13253030240000"
+    assert rows[:1] == [{
         "pin": "13253030230000", "pin10": "1325303023", "ward": 1, "property_address": "2744 N SACRAMENTO AVE",
         "volume": "529", "tax_type": "00", "tax_year": 2023, "total_tax_due": 13346.78, "total_due": 14925.59,
         "classification": "Residential",
     }]  # fmt: skip
-    assert "MARIA" not in str(rows)
+    assert "MARIA" not in str(rows) and "CHICAGO IL" not in str(rows)
     with pytest.raises(ParseError):
-        rows_from_report(REPORT.replace("PINs: 1", "PINs: 2"))
+        rows_from_report(REPORT.replace("PINs: 2", "PINs: 3"))
 
 
 def test_index_reads_sale_date_and_ward_links():
@@ -52,11 +66,11 @@ def test_run_replaces_the_sale_and_keeps_no_owner_fields(db_url, monkeypatch):
     monkeypatch.setattr(load_tax_sale, "pdf_text", lambda data: REPORT)
     monkeypatch.setattr(load_tax_sale, "INDEX", "https://www.cookcountytreasurer.com/delinquenttaxes.aspx")
     # every ward returns the same PIN; the key keeps one row
-    assert load_tax_sale.run(db_url, pause=0) == 50
-    assert load_tax_sale.run(db_url, pause=0) == 50
+    assert load_tax_sale.run(db_url, pause=0) == 100
+    assert load_tax_sale.run(db_url, pause=0) == 100
     with psycopg.connect(db_url) as conn:
         assert conn.execute("select count(*), max(sale_date)::text from tax_sale_list").fetchone() == (
-            1,
+            2,
             "2026-12-15",
         )
         cols = {r[0] for r in conn.execute(

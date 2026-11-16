@@ -93,15 +93,21 @@ def rows_from_report(text: str) -> tuple[list[dict], str | None]:
     total = TOTAL.search(text)
     through = THROUGH.search(text)
     out = []
+    cols = None  # start of the property address and mailing address columns, from the last header line
     for line in text.splitlines():
+        if "Property Address" in line and "Current Mailing Address" in line:
+            cols = (line.index("Property Address"), line.index("Current Mailing Address"))
+            continue
         m = ROW.match(line)
         if not m:
             continue
-        parts = re.split(r"\s{2,}", m["pre"].strip())
+        if cols is None:
+            raise ParseError("row before any header line")
+        address = line[cols[0] : cols[1]].strip() or None  # never the mailing address (owner data)
         pin = m["pin"].replace("-", "")
         out.append({
             "pin": pin, "pin10": pin[:10], "ward": int(m["ward"]),
-            "property_address": parts[1] if len(parts) > 1 else None, "volume": m["vol"], "tax_type": m["tt"],
+            "property_address": address, "volume": m["vol"], "tax_type": m["tt"],
             "tax_year": int(m["ty"]), "total_tax_due": float(m["tax"].replace(",", "")),
             "total_due": float(m["due"].replace(",", "")), "classification": m["cls"].strip() or None,
         })  # fmt: skip
@@ -129,7 +135,11 @@ def run(url: str | None = None, opener: Callable = urllib.request.urlopen, pause
                 time.sleep(pause)
             conn.execute("delete from tax_sale_list where sale_date = %s", (sale_date,))
             n = upsert(
-                conn, "tax_sale_list", COLUMNS, "sale_date, pin", ([r[c] for c in COLUMNS] for r in rows)
+                conn,
+                "tax_sale_list",
+                COLUMNS,
+                "sale_date, pin, tax_type, tax_year",
+                ([r[c] for c in COLUMNS] for r in rows),
             )
             finish_pull(conn, pull_id, n)
         except Exception as e:
