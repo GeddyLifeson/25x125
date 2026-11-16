@@ -161,6 +161,13 @@ from (
   where pin10 is not null and kind = 'foreclosure_auction' order by pin10, signal_date desc nulls last
 ) x where ps.pin10 = x.pin10;
 
+update parcel_site ps set tax_sale_date = x.sale_date, tax_sale_due = x.due, tax_sale_pins = x.pins
+from (
+  select pin10, sale_date, sum(total_due) as due, count(distinct pin) as pins from tax_sale_list
+  where sale_date = (select min(sale_date) from tax_sale_list where sale_date >= current_date)
+  group by pin10, sale_date
+) x where ps.pin10 = x.pin10;
+
 update parcel_site ps set last_rezoning_date = x.signal_date, last_rezoning_status = x.status
 from (
   select distinct on (pin10) pin10, signal_date, status from parcel_signal
