@@ -1,0 +1,40 @@
+{
+  "extends": true,
+  "sale_comps": {
+    "method": {
+      "size_elasticity": {
+        "building": 0.6,
+        "condo": 0.5
+      }
+    }
+  },
+  "calibration": {
+    "region": "dallas",
+    "computed_on": "2026-11-17",
+    "comps": 13066,
+    "sales_from": "2026-01-01",
+    "sales_to": "2026-01-01",
+    "size_elasticity": 0.6,
+    "leave_one_out": {
+      "n": 800,
+      "median_abs_error": 0.0577,
+      "within_15pct": 0.784
+    },
+    "test_set": {
+      "n": 35,
+      "median_abs_error": 0.064,
+      "within_15pct": 0.686
+    },
+    "test_set_inside_range": 0.971,
+    "appraiser_land": null,
+    "implied_construction_cost": {
+      "sales": 10170,
+      "per_sqft_p25": 97,
+      "per_sqft_median": 116,
+      "per_sqft_p75": 144,
+      "median_house_sqft": 1853
+    },
+    "range_widened_by": 0.1,
+    "basis": "appraisal district values"
+  }
+}
