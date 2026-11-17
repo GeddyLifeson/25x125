@@ -127,12 +127,34 @@ appraiser's land value against vacant-lot sales, and draws a 35-sale test set in
 | `parcel_loader` | Covers | Source |
 |---|---|---|
 | `fl_dor` | every Florida county | Department of Revenue NAL tax roll file and parcel map (`jobs/load_fl_dor.py`) |
+| `arcgis_parcels` | Houston, San Antonio, Atlanta | a public parcel map layer named in `parcel_layer` (`jobs/load_arcgis_parcels.py`) |
+| `dcad` | Dallas | Dallas Central Appraisal District yearly CSV export plus its parcel map layer (`jobs/load_dcad.py --dir`) |
+| `tcad` | Austin | Travis Central Appraisal District fixed-width export plus its parcel map layer (`jobs/load_tcad.py --zip`) |
 
 Florida county entries carry `dor_name`, `dor_county_no`, `shape_name`, `shape_epsg` (the State Plane zone of
 the county's parcel map) and `tax_auth_codes` or `tax_auth_prefixes` (the city's taxing authority codes, read
 from the NAL file). The roll holds each parcel's two latest sales, from January of the year before the roll, so
 the comp pool starts at about 20 months of sales and grows as each year's roll is added. Sale dates are known
 to the month.
+
+`parcel_layer` holds the layer `url`, an optional `where` filter, the `fields` map (id, address, zip, use_code,
+market_value, land_value, year_built, living_sqft, units, land_sqft or land_acres, nbhd) and `use_groups`, which
+maps the layer's use codes (longest prefix wins) to vacant, single, condo, multi or other.
+
+### Texas and Georgia: appraised values, not sale prices
+
+Texas does not publish sale prices (Government Code 552.148). A region with `"price_basis"` set to appraisal
+values builds its comp pool from the appraisal district's market value of 1 to 6 unit buildings built 2019 or
+later, dated January 1 of the roll year and stored with `comp.basis = 'appraisal'`. Screens label these as
+appraised values. `jobs.check_region` widens the fitted range by 10 points on each side
+(`appraisal_basis.extra_range` in the shared defaults; an assumption until sale prices can be checked).
+No MLS data is used.
+
+### What the site reads
+
+`GET /region` returns the region's name, state, parcel number label, price basis, sources and map bounds. The
+web app uses it for the city name in the header, the search help text, the parcel page header and the map's
+starting view. Chicago is unchanged.
 
 ### Rules shared by the new regions
 
