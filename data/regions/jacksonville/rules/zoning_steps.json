@@ -1,0 +1,259 @@
+{
+  "verified_on": "2026-11-17",
+  "steps": [
+    {
+      "id": "adu",
+      "rule": "+1 accessory dwelling unit on a lot with a conforming single-family house. It must sit behind the house and outside required yards. Footprint is capped at 25% of the house's gross floor area or 750 sq ft, whichever is less. The property must have a homestead exemption (or a pending application), so the owner must live there. Attached units cannot have an inside door to the house. Deed restrictions and HOA rules can still bar it.",
+      "params": {
+        "units": 1,
+        "by_district": [
+          "RR-Acre",
+          "RLD-120",
+          "RLD-100A",
+          "RLD-100B",
+          "RLD-90",
+          "RLD-80",
+          "RLD-70",
+          "RLD-60",
+          "RLD-50",
+          "RLD-40",
+          "RMD-A",
+          "RMD-B",
+          "RMD-C",
+          "RMD-D",
+          "CRO",
+          "RO"
+        ],
+        "max_sqft": 750,
+        "max_share_of_principal_floor_area": 0.25,
+        "owner_occupancy": true,
+        "approval": "permit only",
+        "max_height": "15 ft within 5 ft of a lot line; taller units meet the house's setbacks and cannot be taller than the house (Sec. 656.403(d))"
+      },
+      "section": "Sec. 656.403(g)(1)-(8), added by Ord. 2022-448-E",
+      "source_url": "https://www.zoneomics.com/code/jacksonville-FL/chapter_4",
+      "note": "The code allows accessory uses in all districts and ties the ADU to a conforming single-family dwelling. by_district lists the covered districts that permit single-family dwellings; the code itself gives no district list. The 750 sq ft cap is on footprint, not total floor area."
+    },
+    {
+      "id": "multifamily_minimums",
+      "rule": "Two or more units on one lot (the code calls any building with more than one unit multiple-family) need 6,000 sq ft for the first two units, then the added area per unit. RMD-B, RMD-C and RMD-D also need 60 ft of width; CRO and RO need 50 ft. RMD-A does not permit multiple-family.",
+      "params": {
+        "first_two_units_sqft": 6000,
+        "added_unit_sqft": {
+          "RMD-B": 2900,
+          "RMD-C": 2100,
+          "RMD-D": 1340,
+          "CRO": 2100,
+          "RO": 2100
+        },
+        "max_units_per_acre": {
+          "RMD-B": 15,
+          "RMD-C": 20,
+          "RMD-D": 30,
+          "RHD-A": 32,
+          "RHD-B": 60
+        },
+        "min_lot_width_ft": {
+          "RMD-B": 60,
+          "RMD-C": 60,
+          "RMD-D": 60,
+          "CRO": 50,
+          "RO": 50
+        }
+      },
+      "section": "Sec. 656.306 A.II (d)(3); Sec. 656.311 A.III (e), A.IV (e); Sec. 656.1601 (Dwelling, multiple-family)",
+      "source_url": "https://www.zoneomics.com/code/jacksonville-FL/chapter_3"
+    },
+    {
+      "id": "townhomes",
+      "rule": "Townhomes sold on their own lots: 1,500 sq ft lot, 15 ft wide (25 ft for end units, 20 ft in a two-unit building), 70% coverage, 35 ft height. Overall density follows the district's multiple-family rule. Permitted in RLD-TNH and RMD-A to RMD-D.",
+      "params": {
+        "min_lot_area_sqft": 1500,
+        "min_lot_width_ft": 15,
+        "end_unit_width_ft": 25,
+        "max_lot_coverage": 0.7,
+        "max_height_ft": 35,
+        "by_district": [
+          "RLD-TNH",
+          "RMD-A",
+          "RMD-B",
+          "RMD-C",
+          "RMD-D"
+        ]
+      },
+      "section": "Sec. 656.414(a); Sec. 656.305 A.II (a)(2); Sec. 656.306 A.II (a)(3)",
+      "source_url": "https://www.zoneomics.com/code/jacksonville-FL/chapter_4"
+    },
+    {
+      "id": "cottages",
+      "rule": "Cottages (RMD-A to RMD-D): 1,500 sq ft lot, 25 ft wide, 70% coverage, 80% impervious surface, up to the units the district density allows. Outside the Urban Priority Area and urban area, AGR, RR and RLD land cannot be rezoned to permit cottages.",
+      "params": {
+        "min_lot_area_sqft": 1500,
+        "min_lot_width_ft": 25,
+        "max_lot_coverage": 0.7,
+        "by_district": [
+          "RMD-A",
+          "RMD-B",
+          "RMD-C",
+          "RMD-D"
+        ]
+      },
+      "section": "Sec. 656.306 A.II (a)(14), (d)(2), (e)(1), (g)(6), Ord. 2024-870-E; Sec. 656.1601 (Cottage)",
+      "source_url": "https://www.zoneomics.com/code/jacksonville-FL/chapter_3"
+    },
+    {
+      "id": "parking",
+      "rule": "Single-family house: 2 spaces. Multiple-family: 1.5 spaces for a studio or one-bedroom of 500 sq ft or less, 1.75 for a larger one-bedroom, 2 for a two-bedroom, plus 0.25 per bedroom over two. Dens and studies count as bedrooms. Townhome, cottage or condominium: 2 spaces per unit plus 1 guest space per 3 units. Housing for the elderly: 1 space per 2 units.",
+      "params": {
+        "spaces_per_unit": {
+          "default": 2,
+          "single_family": 2,
+          "multifamily_1br_500sqft_or_less": 1.5,
+          "multifamily_1br_over_500sqft": 1.75,
+          "multifamily_2br": 2,
+          "multifamily_each_bedroom_over_2": 0.25,
+          "townhome_cottage_condo": 2
+        },
+        "guest_spaces_per_unit": {
+          "townhome_cottage_condo": 0.3333
+        }
+      },
+      "section": "Sec. 656.604(a)(1),(2),(6), last amended by Ord. 2025-448-E (10-28-25)",
+      "source_url": "https://www.zoneomics.com/code/jacksonville-FL/chapter_6"
+    },
+    {
+      "id": "rezoning",
+      "rule": "Ask for the next district up. The new district must fit the parcel's land use category in the 2045 Comprehensive Plan: RMD-A and RMD-B are secondary districts in Low Density Residential (up to 7 units per acre in the category text); RMD-C, RMD-D and RHD need a Medium or High Density Residential category, which is a separate land use amendment.",
+      "approval": "rezoning (City Council ordinance)",
+      "targets": {
+        "RR-Acre": [
+          "RLD-120",
+          "RLD-100A"
+        ],
+        "RLD-120": [
+          "RLD-100A",
+          "RLD-100B"
+        ],
+        "RLD-100A": [
+          "RLD-100B",
+          "RLD-90"
+        ],
+        "RLD-100B": [
+          "RLD-90",
+          "RLD-80"
+        ],
+        "RLD-90": [
+          "RLD-80",
+          "RLD-70"
+        ],
+        "RLD-80": [
+          "RLD-70",
+          "RLD-60"
+        ],
+        "RLD-70": [
+          "RLD-60",
+          "RLD-50"
+        ],
+        "RLD-60": [
+          "RLD-50",
+          "RLD-40",
+          "RMD-A"
+        ],
+        "RLD-50": [
+          "RLD-40",
+          "RMD-A",
+          "RMD-B"
+        ],
+        "RLD-40": [
+          "RLD-TNH",
+          "RMD-A",
+          "RMD-B"
+        ],
+        "RLD-TNH": [
+          "RMD-A",
+          "RMD-B"
+        ],
+        "RMD-A": [
+          "RMD-B",
+          "RMD-C"
+        ],
+        "RMD-B": [
+          "RMD-C",
+          "RMD-D"
+        ],
+        "RMD-C": [
+          "RMD-D"
+        ],
+        "RMD-D": [
+          "RHD-A"
+        ],
+        "RHD-A": [
+          "RHD-B"
+        ],
+        "RO": [
+          "CRO"
+        ]
+      },
+      "section": "Sec. 656.304 B, 656.305 A and B, 656.306 A and B, 656.307 A (primary and secondary districts by land use category)",
+      "source_url": "https://www.zoneomics.com/code/jacksonville-FL/chapter_3"
+    },
+    {
+      "id": "state_overrides",
+      "rule": "state laws that change what the city code allows on this lot",
+      "items": [
+        {
+          "id": "fl_live_local",
+          "applies_to": [
+            "CO",
+            "CRO",
+            "RO",
+            "CN",
+            "CCG-1",
+            "CCG-2",
+            "CCBD",
+            "IBP",
+            "IL",
+            "IH"
+          ],
+          "text": "Florida Live Local Act. On land zoned commercial, industrial or mixed use, the city must allow multifamily or mixed-use rental housing if at least 40% of the units are affordable rentals for at least 30 years (mixed-use projects: at least 65% of floor area residential). The city cannot hold density below the highest density it allows anywhere, FAR below 150% of its highest, or height below the tallest allowed within 1 mile or 3 stories, whichever is higher. Approval is administrative. Height can be limited next to single-family neighborhoods. Excluded: airport-impacted areas and working waterfront in industrial zones. Expires October 1, 2033. Affordable is defined in s. 420.0004 (not read here).",
+          "section": "s. 166.04151(7), Florida Statutes",
+          "source_url": "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0100-0199/0166/Sections/0166.04151.html"
+        }
+      ]
+    },
+    {
+      "id": "flags",
+      "rule": "local conditions to flag",
+      "items": [
+        {
+          "id": "flood",
+          "text": "Much of Jacksonville sits on the St. Johns River, its creeks and the coast. Check the FEMA flood zone (the parcel layer carries FLD_ZONE; FEMA NFHL layer 28 has the polygons). Zones A, AE and VE mean elevation rules and flood insurance."
+        },
+        {
+          "id": "historic",
+          "text": "Riverside, Avondale, Springfield and other historic districts need a Certificate of Appropriateness before building or demolition. Springfield has its own zoning districts (RMD-S, CRO-S, CN-S, CCG-S), which this file does not cover."
+        },
+        {
+          "id": "no_state_adu_mandate",
+          "text": "Florida has no statewide ADU mandate. The city rule (Sec. 656.403(g)) applies, and it needs a homestead exemption on the property."
+        },
+        {
+          "id": "land_use_category",
+          "text": "Gross density cannot exceed the Comprehensive Plan land use category density, even where the zoning lot size would allow more (Sec. 656.305 A.II (h))."
+        },
+        {
+          "id": "impervious_surface",
+          "text": "Lot coverage is also limited by the impervious surface ratios in Sec. 654.129 (subdivision code), which were not read for this file."
+        },
+        {
+          "id": "deed_restrictions",
+          "text": "ADU permit applications must certify that deed restrictions or HOA rules allow the unit (Sec. 656.403(g)(8))."
+        },
+        {
+          "id": "other_municipalities",
+          "text": "Jacksonville Beach, Atlantic Beach, Neptune Beach and Baldwin are in Duval County but have their own zoning codes. They are filtered out by city."
+        }
+      ]
+    }
+  ]
+}

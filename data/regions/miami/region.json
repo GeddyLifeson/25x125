@@ -1,0 +1,156 @@
+{
+  "id": "miami",
+  "name": "Miami",
+  "state": "FL",
+  "counties": [
+    {
+      "id": "miami_dade",
+      "name": "Miami-Dade",
+      "fips": "12086",
+      "dor_county_no": 23,
+      "dor_name": "Dade",
+      "shape_name": "miamidade",
+      "shape_epsg": 2881,
+      "tax_auth_prefixes": [
+        "01"
+      ]
+    }
+  ],
+  "city_filter": {
+    "field": "PHY_CITY",
+    "values": [
+      "MIAMI"
+    ]
+  },
+  "center": {
+    "lat": 25.775,
+    "lon": -80.21,
+    "zoom": 11
+  },
+  "fhfa_metro": "33124",
+  "parcel_id_label": "Folio",
+  "price_basis": "recorded sales",
+  "zoning_layer": {
+    "url": "https://services1.arcgis.com/CvuPhqcTQpZPT9qY/arcgis/rest/services/M21_Zoning/FeatureServer/0",
+    "zone_field": "M21_ZONE",
+    "tested_on": "2026-11-17",
+    "note": "Miami 21 transect zones, published by the City of Miami Planning Department on the City's ArcGIS Online open data hub. 1,130 polygons; data last edited 2026-05-07. 36 distinct values: CI, CI-HD, CS, D1, D2, D3, T1, T3-L, T3-O, T3-R, T4-L, T4-O, T4-R, T5-L, T5-O, T5-R, T6-8-L, T6-8-O, T6-8-R, T6-8A-O, T6-8B-O, T6-12-L, T6-12-O, T6-12-R, T6-24-O, T6-24A-O, T6-24A-R, T6-24B-O, T6-36A-L, T6-36A-O, T6-36B-L, T6-36B-O, T6-48A-O, T6-48B-O, T6-60A-O, T6-80-O. The same data is on the City server at https://gis.miami.gov/gis/rest/services/Zoning/ZoningMiami21/MapServer/5 (field M21_ZONE)."
+  },
+  "overlay_layers": [
+    {
+      "kind": "historic",
+      "url": "https://services1.arcgis.com/CvuPhqcTQpZPT9qY/arcgis/rest/services/Historic_Districts/FeatureServer/0",
+      "name_field": "HD_NAME",
+      "note": "12 City historic districts; layer last edited 2021-02"
+    },
+    {
+      "kind": "historic",
+      "url": "https://services1.arcgis.com/CvuPhqcTQpZPT9qY/arcgis/rest/services/Historic_Resources/FeatureServer/0",
+      "name_field": "HS_NAME",
+      "note": "individually designated historic sites"
+    },
+    {
+      "kind": "flood",
+      "url": "https://services1.arcgis.com/CvuPhqcTQpZPT9qY/arcgis/rest/services/FEMA2021_FloodHazardAreas/FeatureServer/0",
+      "name_field": "FLD_ZONE",
+      "note": "FEMA 2021 flood hazard areas inside the City; values AE, AH, VE, X, OPEN WATER; 1,362 polygons"
+    },
+    {
+      "kind": "conservation_district",
+      "url": "https://gis.miami.gov/gis/rest/services/Zoning/ZoningMiami21/MapServer/1",
+      "name_field": "ASD_ID",
+      "note": "Area Specific Designations: NCD-1, NCD-2, NCD-3, NRD-1, NRD-2, SD-16.3, SD-27.1, SD-27.2. Description in ASD_Description"
+    },
+    {
+      "kind": "special_area_plan",
+      "url": "https://services1.arcgis.com/CvuPhqcTQpZPT9qY/arcgis/rest/services/Miami_21_Special_Area_Plan/FeatureServer/0",
+      "name_field": "SAP_AreaDe",
+      "note": "Special Area Plans; not covered by the rules here"
+    },
+    {
+      "kind": "transit_oriented_development",
+      "url": "https://services1.arcgis.com/CvuPhqcTQpZPT9qY/arcgis/rest/services/Transit_Oriented_Development_Areas/FeatureServer/0",
+      "name_field": "Id",
+      "note": "TOD areas (1 multipart polygon); affects ADU parking, cottage housing and parking reductions"
+    },
+    {
+      "kind": "transit_corridor",
+      "url": "https://gis.miami.gov/gis/rest/services/Zoning/ZoningMiami21/MapServer/8",
+      "name_field": "Id",
+      "note": "Transit Corridors Buffer polygons; affects ADU parking, cottage housing and parking reductions"
+    },
+    {
+      "kind": "coastal_high_hazard",
+      "url": "https://services1.arcgis.com/CvuPhqcTQpZPT9qY/arcgis/rest/services/Coastal_High_Hazard_Areas/FeatureServer/0",
+      "name_field": "Name",
+      "note": "Coastal High Hazard Area (1 polygon)"
+    }
+  ],
+  "permit_source": {
+    "kind": "arcgis",
+    "url": "https://services1.arcgis.com/CvuPhqcTQpZPT9qY/arcgis/rest/services/Building_Permits_Since_2014/FeatureServer/0",
+    "note": "City of Miami Building Department permits, point layer. 237,663 rows on 2026-11-17, issued dates 2012-03 to 2026-11-16, max 2,000 rows per request. Fields include PermitNumber, IssuedDate, FolioNumber, Miami21Zone, PropertyType, ScopeofWork, TotalCost, TotalSQFT, DeliveryAddress. ScopeofWork = 'NEW CONSTRUCTION' returns 52,656 rows. TotalCost is stored as text. No unit count field."
+  },
+  "disclaimer": "Estimates, not tax, legal, zoning or appraisal advice.",
+  "sources": [
+    {
+      "what": "zoning code (Miami 21, the City's linked codification; amendments through Ord. 14484, 2026-07-28)",
+      "url": "https://codehub.gridics.com/us/fl/miami",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "zoning code full text as JSON (same site, public endpoint)",
+      "url": "https://codehub.gridics.com/api/v1/codehub/45?_format=json",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "City page that names the official copy of Miami 21",
+      "url": "https://miami.gov/Planning-Zoning-Land-Use/View-City-of-Miami-Zoning-Code-Miami-21",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "zoning GIS layer",
+      "url": "https://services1.arcgis.com/CvuPhqcTQpZPT9qY/arcgis/rest/services/M21_Zoning/FeatureServer/0",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "City of Miami open data hub",
+      "url": "https://datahub-miamigis.opendata.arcgis.com/",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "building permits",
+      "url": "https://services1.arcgis.com/CvuPhqcTQpZPT9qY/arcgis/rest/services/Building_Permits_Since_2014/FeatureServer/0",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Live Local Act, Fla. Stat. 166.04151",
+      "url": "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0100-0199/0166/Sections/0166.04151.html",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "High-Velocity Hurricane Zone (Florida Building Commission wind flyer)",
+      "url": "https://www.floridabuilding.org/fbc/wind_2010/flyer_wind_january2012.pdf",
+      "checked_on": "2026-11-17"
+    }
+  ],
+  "roll": "2026F",
+  "min_units": 1,
+  "parcel_loader": "fl_dor",
+  "parcel_source": "Florida Department of Revenue Miami-Dade County tax roll (NAL 2026 final) and parcel map",
+  "value_source": "Miami-Dade County Property Appraiser just value, 2026 final tax roll (Florida Department of Revenue NAL file)",
+  "comps": {
+    "built_since": 2014,
+    "price_floor_per_unit": 100000,
+    "qualified_codes": [
+      "01",
+      "02"
+    ],
+    "land_qualified_codes": [
+      "01",
+      "02",
+      "03"
+    ],
+    "source": "Florida Department of Revenue Miami-Dade County tax roll: first qualified sale (codes 01, 02) of 1-6 unit buildings built 2014 or later; the roll carries each parcel's two latest sales, January 2025 on"
+  }
+}

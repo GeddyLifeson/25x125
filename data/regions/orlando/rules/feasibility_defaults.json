@@ -1,0 +1,48 @@
+{
+  "extends": true,
+  "sale_comps": {
+    "method": {
+      "size_elasticity": {
+        "building": 0.9,
+        "condo": 0.5
+      }
+    }
+  },
+  "calibration": {
+    "region": "orlando",
+    "computed_on": "2026-11-17",
+    "comps": 1645,
+    "sales_from": "2025-01-01",
+    "sales_to": "2026-09-01",
+    "size_elasticity": 0.9,
+    "leave_one_out": {
+      "n": 800,
+      "median_abs_error": 0.079,
+      "within_15pct": 0.748
+    },
+    "test_set": {
+      "n": 35,
+      "median_abs_error": 0.0853,
+      "within_15pct": 0.714
+    },
+    "test_set_inside_range": 0.743,
+    "appraiser_land": {
+      "sales": 61,
+      "appraiser_land_over_sale_price": 0.655
+    },
+    "implied_construction_cost": {
+      "sales": 1384,
+      "per_sqft_p25": 123,
+      "per_sqft_median": 140,
+      "per_sqft_p75": 161,
+      "median_house_sqft": 2058
+    }
+  },
+  "appraiser_land": {
+    "ratio_to_sale_price": 0.655,
+    "sales": 61,
+    "rule": "where no vacant-lot sales are nearby, land = the appraiser's land value / this ratio",
+    "source": "python -m jobs.check_region",
+    "verified_on": "2026-11-17"
+  }
+}

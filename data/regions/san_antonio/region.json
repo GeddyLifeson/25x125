@@ -1,0 +1,356 @@
+{
+  "id": "san_antonio",
+  "name": "San Antonio",
+  "state": "TX",
+  "counties": [
+    {
+      "id": "bexar",
+      "name": "Bexar",
+      "fips": "48029"
+    }
+  ],
+  "city_filter": {
+    "field": "Situs",
+    "values": [
+      "SAN ANTONIO"
+    ],
+    "note": "Bexar County parcel layer has no city column; Situs ends with the postal city, which also covers nearby suburbs. The exact test is the zoning layer: Base = 'OCL' means outside city limits."
+  },
+  "center": {
+    "lat": 29.4241,
+    "lon": -98.4936,
+    "zoom": 11
+  },
+  "fhfa_metro": "41700",
+  "parcel_id_label": "BCAD property ID",
+  "price_basis": "appraisal district values",
+  "zoning_layer": {
+    "url": "https://services.arcgis.com/g1fRTDLeMgspWrYp/arcgis/rest/services/COSA_Zoning/FeatureServer/12",
+    "zone_field": "Base",
+    "tested_on": "2026-11-17",
+    "note": "City of San Antonio GIS (CoSA Zoning), listed on data.sanantonio.gov as cosa-zoning1. 790,222 polygons, max 2,000 records per request, EPSG 2278 (ask for outSR=4326). Base holds the base district. SpecDistrict holds special districts (PUD, IDZ, NP-8...), SpecCondition holds CD / S, Zoning is the full label (for example 'R-4 CD'), CaseNo and OrdinanceKey point to the rezoning case. Overlays (H, NCD, AHOD, RIO) are separate layers. Treat any row with SpecDistrict filled as not covered.",
+    "other_fields": [
+      "SpecDistrict",
+      "SpecCondition",
+      "SpecConditionDetail",
+      "Zoning",
+      "ZoningDetail",
+      "BaseDescription",
+      "CaseNo",
+      "OrdinanceKey"
+    ],
+    "distinct_values": {
+      "R-6": 172738,
+      "R-4": 101075,
+      "R-5": 88166,
+      "C-2": 28379,
+      "RM-4": 24124,
+      "C-3": 22777,
+      "MF-33": 12847,
+      "I-1": 5705,
+      "C-3NA": 2281,
+      "C-3R": 1867,
+      "R-20": 1724,
+      "C-1": 1705,
+      "R-3": 1677,
+      "I-2": 1475,
+      "C-2NA": 1336,
+      "D": 1224,
+      "R-2": 1037,
+      "RE": 959,
+      "MF-18": 882,
+      "MF-25": 835,
+      "RP": 775,
+      "O-2": 769,
+      "RM-5": 476,
+      "L": 475,
+      "FR": 372,
+      "MH": 319,
+      "MI-1": 296,
+      "RM-6": 276,
+      "R-1": 247,
+      "O-1": 174,
+      "NC": 169,
+      "C-2P": 149,
+      "MF-40": 57,
+      "O-1.5": 49,
+      "UD": 46,
+      "DR ": 38,
+      "MF-50": 37,
+      "RD": 27,
+      "MI-2": 15,
+      "MF-65": 8,
+      "C-2PNA": 6,
+      "UNKNOWN": 6,
+      "OCL": 273815,
+      "UZROW": 14568,
+      "(null)": 24240
+    },
+    "downloads": {
+      "shapefile": "https://opendata-cosagis.opendata.arcgis.com/api/download/v1/items/5cdc1086f57541e892154eb8e6e86782/shapefile?layers=12",
+      "geojson": "https://opendata-cosagis.opendata.arcgis.com/api/download/v1/items/5cdc1086f57541e892154eb8e6e86782/geojson?layers=12",
+      "ckan_package": "https://data.sanantonio.gov/api/3/action/package_show?id=cosa-zoning1"
+    }
+  },
+  "overlay_layers": [
+    {
+      "kind": "historic",
+      "url": "https://services.arcgis.com/g1fRTDLeMgspWrYp/arcgis/rest/services/Historic_Districts/FeatureServer/0",
+      "name_field": "NAME",
+      "note": "32 local historic districts; tested 2026-11-17"
+    },
+    {
+      "kind": "historic_landmark",
+      "url": "https://services.arcgis.com/g1fRTDLeMgspWrYp/arcgis/rest/services/Historic_Landmark_Sites/FeatureServer/0",
+      "name_field": "LandMarkId",
+      "note": "1,459 landmark sites; HistoricDistrictName, Designation, YearBuilt"
+    },
+    {
+      "kind": "conservation",
+      "url": "https://services.arcgis.com/g1fRTDLeMgspWrYp/arcgis/rest/services/Neighborhood_Conservation_Districts/FeatureServer/0",
+      "name_field": "OverlayCode",
+      "note": "10 NCDs (NCD-1 to NCD-10); Name holds the neighborhood"
+    },
+    {
+      "kind": "river",
+      "url": "https://services.arcgis.com/g1fRTDLeMgspWrYp/arcgis/rest/services/River_Improvement_Overlay_Districts_RIO/FeatureServer/9",
+      "name_field": "OverlayCode",
+      "note": "11 polygons, RIO-1 to RIO-7"
+    },
+    {
+      "kind": "mission",
+      "url": "https://services.arcgis.com/g1fRTDLeMgspWrYp/arcgis/rest/services/Mission_Protection_Overlay_District_MPOD/FeatureServer/8",
+      "name_field": "MPOD",
+      "note": "4 polygons"
+    },
+    {
+      "kind": "airport",
+      "url": "https://services.arcgis.com/g1fRTDLeMgspWrYp/arcgis/rest/services/Airport_Hazard_Overlay_District_AHOD/FeatureServer/0",
+      "name_field": "Name",
+      "note": "1 polygon; height review only"
+    },
+    {
+      "kind": "military",
+      "url": "https://services.arcgis.com/g1fRTDLeMgspWrYp/arcgis/rest/services/Military_Airport_Overlay_Zone_MAOZ/FeatureServer/5",
+      "name_field": "UDCOverlay",
+      "note": "6 polygons, MAOZ-1 / MAOZ-2"
+    },
+    {
+      "kind": "aquifer",
+      "url": "https://services.arcgis.com/g1fRTDLeMgspWrYp/arcgis/rest/services/EAA_AquiferZones/FeatureServer/0",
+      "name_field": "Name",
+      "note": "Edwards Aquifer zones; last edited 2023-01"
+    },
+    {
+      "kind": "flood",
+      "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28",
+      "name_field": "FLD_ZONE",
+      "note": "FEMA National Flood Hazard Layer, flood hazard zones; Bexar is DFIRM_ID 48029C; SFHA_TF = 'T' marks the 1% floodplain; point query tested 2026-11-17"
+    }
+  ],
+  "permit_source": {
+    "kind": "ckan",
+    "url": "https://data.sanantonio.gov/api/3/action/datastore_search?resource_id=c21106f9-3ef5-4f3a-8604-f992b4db7512",
+    "note": "data.sanantonio.gov dataset building-permits (CC-BY). PERMITS ISSUED: 155,980 rows, issued 2025-01-01 to 2026-11-13, refreshed 2026-11-15. PERMITS ISSUED 2020-2024: 368,297 rows, 2020-07-20 to 2024-12-31. New houses and small buildings are PERMIT TYPE 'Res New Building Permit' (7,078 rows in the current file); 'Comm New Building Permit' covers apartments. No unit count column and DECLARED VALUATION is blank on most residential rows. Coordinates are mixed: some rows lon/lat, some Texas state plane feet. SQL works at /api/3/action/datastore_search_sql.",
+    "resources": [
+      {
+        "name": "PERMITS ISSUED",
+        "resource_id": "c21106f9-3ef5-4f3a-8604-f992b4db7512",
+        "csv": "https://data.sanantonio.gov/dataset/05012dcb-ba1b-4ade-b5f3-7403bc7f52eb/resource/c21106f9-3ef5-4f3a-8604-f992b4db7512/download/permits_issued.csv"
+      },
+      {
+        "name": "PERMITS ISSUED 2020-2024",
+        "resource_id": "c22b1ef2-dcf8-4d77-be1a-ee3638092aab",
+        "csv": "https://data.sanantonio.gov/dataset/05012dcb-ba1b-4ade-b5f3-7403bc7f52eb/resource/c22b1ef2-dcf8-4d77-be1a-ee3638092aab/download/permits_issued_ending_12312024.csv"
+      },
+      {
+        "name": "APPLICATIONS SUBMITTED",
+        "resource_id": "fbb7202e-c6c1-475b-849e-c5c2cfb65833",
+        "csv": "https://data.sanantonio.gov/dataset/05012dcb-ba1b-4ade-b5f3-7403bc7f52eb/resource/fbb7202e-c6c1-475b-849e-c5c2cfb65833/download/accelasubmitpermitsextract.csv"
+      },
+      {
+        "name": "DATA DICTIONARY",
+        "resource_id": "764f3297-2f73-41a3-8de5-5e3976baaf03",
+        "xlsx": "https://data.sanantonio.gov/dataset/05012dcb-ba1b-4ade-b5f3-7403bc7f52eb/resource/764f3297-2f73-41a3-8de5-5e3976baaf03/download/datadictionary-permits.xlsx"
+      }
+    ],
+    "fields": [
+      "PERMIT TYPE",
+      "PERMIT #",
+      "PROJECT NAME",
+      "WORK TYPE",
+      "ADDRESS",
+      "LOCATION",
+      "X_COORD",
+      "Y_COORD",
+      "DATE SUBMITTED",
+      "DATE ISSUED",
+      "DECLARED VALUATION",
+      "AREA (SF)",
+      "PRIMARY CONTACT",
+      "CD",
+      "NCD",
+      "HD"
+    ],
+    "arcgis_mirror": "https://services.arcgis.com/g1fRTDLeMgspWrYp/arcgis/rest/services/Permits_Issued/FeatureServer/0",
+    "tested_on": "2026-11-17"
+  },
+  "appraisal_source": {
+    "status": "no bulk export file; free parcel layer with values works",
+    "bulk_export": {
+      "found": false,
+      "note": "bcad.org posts no appraisal export zip or data download page (bcad.org/data-downloads/ returns 404). The home page links only property search (hgo.harrisgovern.com/bexar), map search and a Public Information Act request form. A records request is outside the free-sources rule. Dead end."
+    },
+    "url": "https://maps.bexar.org/arcgis/rest/services/Parcels/MapServer/0",
+    "format": "ArcGIS REST MapServer layer (Bexar County GIS, sourced from BCAD); JSON or GeoJSON by query, 1,000 records per request, paging supported",
+    "rows": 729183,
+    "fields": {
+      "property_id": "PropID",
+      "account": "AcctNumb",
+      "situs": "Situs",
+      "market_value": "TotVal",
+      "land_value": "LandVal",
+      "improvement_value": "ImprVal",
+      "year_built": "YrBlt (text)",
+      "living_area_sqft": "GBA (text; TOT_GBA is all buildings)",
+      "land_area": "Acres and LglAcres (multiply by 43,560; no sq ft column)",
+      "neighborhood": "Nbhd (BCAD neighborhood code)",
+      "state_class": "State_cd (A1 single-family, B multi-family)",
+      "use": "PropUse",
+      "stories": "Stories (mostly blank)"
+    },
+    "has": {
+      "market_value": true,
+      "year_built": true,
+      "living_area": true,
+      "land_sqft": "as acres"
+    },
+    "note": "TotVal > 0 on 712,196 of 729,183 parcels. YrBlt includes 12,132 parcels built 2025 and 23 built 2026, so the values are from a recent roll, but the layer does not say which tax year and its description still says 2019. YrBlt and GBA are text and cannot be filtered numerically on the server; pull and cast. TotVal is the appraised total; it is not labeled market vs. capped. Owner names are in the layer: do not display them.",
+    "alternate": {
+      "url": "https://services.arcgis.com/g1fRTDLeMgspWrYp/arcgis/rest/services/BCAD_Parcels/FeatureServer/0",
+      "note": "City copy of BCAD parcels, 728,815 rows, edited 2026-11. Has PropID, Geo_id, Situs, GBA_Living, LandSqft, neighborho, state_cd. No values and no year built. Use it for land sq ft and join to the county layer on PropID."
+    },
+    "tested_on": "2026-11-17"
+  },
+  "disclaimer": "Estimates, not tax, legal, zoning or appraisal advice. Prices are Bexar Appraisal District values, not sale prices.",
+  "sources": [
+    {
+      "what": "zoning code: UDC Chapter 35, official copy (blocks automated reads; not read directly)",
+      "url": "https://library.municode.com/tx/san_antonio/codes/unified_development_code",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "zoning code text read: UDC Art. III Div. 2, Sec. 35-310.01 to 35-310.19, Table 310-1 (third-party copy, history through Ord. 2025-09-04-0580)",
+      "url": "https://www.zoneomics.com/code/san-antonio-TX/chapter_2",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "zoning code text read: UDC Art. III Div. 7, Sec. 35-371 accessory dwellings, 35-373 attached dwellings (third-party copy)",
+      "url": "https://www.zoneomics.com/code/san-antonio-TX/chapter_7",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "city fact sheet on 2025 UDC amendments for SB 840, SB 15, HB 24 (Sec. 35-312, 35-398.03)",
+      "url": "https://docsonline.sanantonio.gov/DSDUploads/20250812FAQ_UDCoutofcycle.pdf",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "city explanation of zoning districts (cross-check of R-4, R-5, RM-4, MF densities, C-2 and C-3 heights)",
+      "url": "https://webapp1.sanantonio.gov/DSDUploads/ExplanationofZoningDistricts.pdf",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "city ADU permit page",
+      "url": "https://www.sa.gov/Directory/Departments/DSD/Constructing/Residential/ADU",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "city ADU information bulletin 402",
+      "url": "https://docsonline.sanantonio.gov/DSDUploads/IB402AccessoryDwellingUnits.pdf",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "parking table 526-3a (third-party copy, current through 2018 only)",
+      "url": "http://sanantonio-tx.elaws.us/code/udc_artv_div6_sec35-526",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Texas SB 840 enrolled text",
+      "url": "https://capitol.texas.gov/tlodocs/89R/billtext/html/SB00840F.htm",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Texas SB 15 enrolled text",
+      "url": "https://capitol.texas.gov/tlodocs/89R/billtext/html/SB00015F.htm",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "zoning GIS layer",
+      "url": "https://services.arcgis.com/g1fRTDLeMgspWrYp/arcgis/rest/services/COSA_Zoning/FeatureServer/12",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "building permits (CKAN)",
+      "url": "https://data.sanantonio.gov/dataset/building-permits",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Bexar County parcels with BCAD values",
+      "url": "https://maps.bexar.org/arcgis/rest/services/Parcels/MapServer/0",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "FEMA flood hazard layer",
+      "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28",
+      "checked_on": "2026-11-17"
+    }
+  ],
+  "parcel_layer": {
+    "url": "https://maps.bexar.org/arcgis/rest/services/Parcels/MapServer/0",
+    "where": "Situs LIKE '%SAN ANTONIO%'",
+    "page_size": 1000,
+    "tax_year": 2026,
+    "address_strip_city": true,
+    "fields": {
+      "id": "PropID",
+      "address": "Situs",
+      "zip": "Zip",
+      "use_code": "State_cd",
+      "market_value": "TotVal",
+      "land_value": "LandVal",
+      "year_built": "YrBlt",
+      "living_sqft": "GBA",
+      "land_acres": "Acres",
+      "nbhd": "Nbhd"
+    },
+    "use_groups": {
+      "A1": "single",
+      "A2": "single",
+      "A3": "single",
+      "A4": "single",
+      "A": "single",
+      "B1": "multi",
+      "B2": "multi",
+      "B3": "multi",
+      "B4": "multi",
+      "B": "multi",
+      "C1": "vacant"
+    },
+    "units_by_use": {
+      "B2": 2,
+      "B3": 3,
+      "B4": 4
+    },
+    "note": "Bexar County GIS parcel layer, sourced from the Bexar Appraisal District. The layer does not state its tax year; 2026 is assumed from the pull date. Zip is the owner's mailing ZIP when Situs has none.",
+    "tested_on": "2026-11-17"
+  },
+  "parcel_loader": "arcgis_parcels",
+  "min_units": 1,
+  "parcel_source": "Bexar County parcel layer (Bexar Appraisal District roll)",
+  "value_source": "Bexar Appraisal District market value, 2026 roll",
+  "comps": {
+    "built_since": 2019,
+    "price_floor_per_unit": 100000,
+    "source": "Bexar Appraisal District appraised market value of 1-6 unit buildings built 2019 or later, 2026 roll. Texas does not publish sale prices (Government Code 552.148), so these are appraisals, not sales"
+  }
+}

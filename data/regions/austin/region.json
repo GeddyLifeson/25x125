@@ -1,0 +1,274 @@
+{
+  "id": "austin",
+  "name": "Austin",
+  "state": "TX",
+  "counties": [
+    {
+      "id": "travis",
+      "name": "Travis",
+      "fips": "48453"
+    }
+  ],
+  "city_filter": {
+    "field": "JURISDICTION_TYPE",
+    "values": [
+      "FULL",
+      "LTD"
+    ],
+    "note": "Filter parcels by the City of Austin jurisdiction polygons, not by an appraisal field: https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/BOUNDARIES_jurisdictions/FeatureServer/0 where CITY_NAME = 'CITY OF AUSTIN'. JURISDICTION_TYPE values for Austin: FULL (full purpose), LTD (limited purpose, zoning applies), 2MILE, 2MILE_AG and 5MIL (ETJ, no zoning). The TCAD export has a situs city, which is a mailing city. Austin also reaches into Williamson and Hays counties; only Travis is loaded."
+  },
+  "center": {
+    "lat": 30.27,
+    "lon": -97.74,
+    "zoom": 11
+  },
+  "fhfa_metro": "12420",
+  "parcel_id_label": "TCAD ID",
+  "price_basis": "appraisal district values",
+  "zoning_layer": {
+    "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/PLANNINGCADASTRE_zoning_small_map_scale/FeatureServer/0",
+    "zone_field": "ZONING_ZTYPE",
+    "base_field": "ZONING_BASE",
+    "tested_on": "2026-11-17",
+    "note": "City of Austin zoning polygons (Geospatial Services, Data Development), hosted on the city's ArcGIS Online org. 22,502 polygons, 558 distinct ZONING_ZTYPE strings on 2026-11-17. ZONING_ZTYPE is the full string with combining districts (SF-3-NP, CS-MU-V-CO-NP, I-SF-2); the match column lists every string seen for each base district. ZONING_BASE is too coarse to use (SF, MF, CS). A twin layer PLANNINGCADASTRE_zoning_large_map_scale has the same strings. New strings appear as rezonings pass; re-pull the distinct list in the nightly job and map by the leading base district. Spatial reference is Texas Central state plane feet (wkid 2277); ask for outSR=4326. maxRecordCount 2000.",
+    "sample_values": [
+      "SF-3-NP",
+      "SF-2",
+      "SF-3",
+      "I-SF-2",
+      "SF-1",
+      "SF-2-NP",
+      "GR",
+      "SF-4A",
+      "CS",
+      "GR-CO",
+      "MF-3-NP",
+      "CS-MU-CO-NP",
+      "SF-3-CO-NP",
+      "MF-2-NP",
+      "SF-3-NCCD-NP",
+      "LR",
+      "MF-4-NP",
+      "MF-2",
+      "SF-6",
+      "MF-3",
+      "CS-MU-V-CO-NP",
+      "SF-3-HD-NCCD-NP",
+      "SF-3-H-NP",
+      "CS-1",
+      "MF-4-NCCD-ETOD-DBETOD-NP"
+    ]
+  },
+  "overlay_layers": [
+    {
+      "kind": "historic",
+      "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/PLANNINGCADASTRE_overlay_nat_reg_hist_districts/FeatureServer/0",
+      "name_field": "ZONING_OVERLAY_SUB_NAME",
+      "note": "National Register historic districts, 20 polygons. Local historic districts and landmarks are not a separate polygon layer: they are the -HD and -H tokens in ZONING_ZTYPE."
+    },
+    {
+      "kind": "historic_landmark",
+      "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/STRUCTURE_historical_landmarks/FeatureServer/0",
+      "name_field": "BUILDING_NAME",
+      "note": "City historic landmarks, 689 points, with CASE_NUMBER."
+    },
+    {
+      "kind": "flood",
+      "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/INLANDWATERS_austin_full_develop_floodplain/FeatureServer/0",
+      "name_field": "FLOOD_ZONE",
+      "note": "City of Austin fully developed floodplain, 12,042 polygons. This is the floodplain the city regulates. Values include 'City of Austin Fully Developed 100-Year Floodplain' and '25-Year'. FLOODWAY field."
+    },
+    {
+      "kind": "flood_fema",
+      "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/INLANDWATERS_greater_austin_fema_floodplain/FeatureServer/0",
+      "name_field": "FLOOD_ZONE",
+      "note": "FEMA floodplain for greater Austin, 9,315 polygons. Values: A, AE, AO, .2 PCT ANNUAL CHANCE FLOOD HAZARD, X PROTECTED BY LEVEE."
+    },
+    {
+      "kind": "nccd",
+      "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/PLANNINGCADASTRE_overlay_nccd/FeatureServer/0",
+      "name_field": "ZONING_OVERLAY_SUB_NAME",
+      "note": "Neighborhood conservation combining districts, 16 polygons. Their ordinances replace base district numbers."
+    },
+    {
+      "kind": "subchapter_f",
+      "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/PLANNINGCADASTRE_residential_design_standards/FeatureServer/0",
+      "name_field": "ZONING_OVERLAY_NAME",
+      "note": "Boundary of the Subchapter F (Residential Design and Compatibility Standards) area, 1 polygon. HOME floor area limits apply only inside it."
+    },
+    {
+      "kind": "etod",
+      "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/ETOD_Overlay_Subdistricts_WFL1/FeatureServer/0",
+      "name_field": "Zoning_Overlay_Sub_Name",
+      "value_field": "Max_Height",
+      "note": "ETOD density bonus subdistricts: Subdistrict 1 (120 ft), Subdistrict 2 (90 ft). Bonus path, not computed."
+    },
+    {
+      "kind": "waterfront",
+      "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/PLANNINGCADASTRE_overlay_waterfront/FeatureServer/0",
+      "name_field": "ZONING_OVERLAY_SUB_NAME",
+      "note": "Waterfront overlay subdistricts along Lady Bird Lake, 17 polygons; extra setbacks and limits."
+    },
+    {
+      "kind": "lake_austin",
+      "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/PLANNINGCADASTRE_overlay_lake_austin/FeatureServer/0",
+      "name_field": "ZONING_OVERLAY_NAME",
+      "note": "Lake Austin overlay, 1 polygon (25-2-647)."
+    },
+    {
+      "kind": "barton_springs_zone",
+      "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/PLANNINGCADASTRE_overlay_barton_springs_zone/FeatureServer/0",
+      "name_field": "ZONING_OVERLAY_NAME",
+      "note": "Barton Springs Zone, 1 polygon; lower impervious cover limits under the water quality rules."
+    },
+    {
+      "kind": "capitol_view_corridor",
+      "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/PLANNINGCADASTRE_overlay_capitol_view_corridors/FeatureServer/0",
+      "name_field": "ZONING_OVERLAY_SUB_NAME",
+      "note": "Capitol view corridors, 35 polygons; height limits by elevation."
+    },
+    {
+      "kind": "airport",
+      "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/PLANNINGCADASTRE_overlay_airport_zoning/FeatureServer/0",
+      "name_field": "ZONING_OVERLAY_SUB_NAME",
+      "note": "Airport overlay zones AO-1, AO-2, AO-3 and the controlled compatible land use area; residential use is limited in some. Not the same as the SB 840 3,000 ft airport distance."
+    },
+    {
+      "kind": "university_neighborhood",
+      "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/PLANNINGCADASTRE_overlay_univ_neighborhood/FeatureServer/0",
+      "name_field": "ZONING_OVERLAY_SUB_NAME",
+      "note": "University Neighborhood Overlay (West Campus), 21 polygons with a HEIGHT field; opt-in bonus rules."
+    },
+    {
+      "kind": "wildland_urban_interface",
+      "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/BOUNDARIES_wildland_urban_interface_code/FeatureServer/0",
+      "name_field": "PROXIMITY_CLASS",
+      "note": "Wildland-urban interface code areas, 79,263 polygons; adds building code requirements, not zoning limits."
+    },
+    {
+      "kind": "jurisdiction",
+      "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/BOUNDARIES_jurisdictions/FeatureServer/0",
+      "name_field": "JURISDICTION_LABEL",
+      "value_field": "JURISDICTION_TYPE",
+      "note": "City limits and ETJ for Austin and nearby cities, 388 polygons. Zoning applies in FULL and LTD only."
+    }
+  ],
+  "permit_source": {
+    "kind": "socrata",
+    "url": "https://data.austintexas.gov/resource/3syk-w9eu.json",
+    "tested_on": "2026-11-17",
+    "note": "Issued Construction Permits, City of Austin open data. 2,385,678 rows on 2026-11-17, no key needed. All permit types; filter permittype = 'BP' and work_class = 'New'. permit_class holds the Census class: 'R- 101 Single Family Houses', 'R- 103 Two Family Bldgs', 'C- 105 Five or More Family Bldgs'. Useful fields: permit_number, issue_date, tcad_id (10 digits, joins to TCAD geo_id), housing_units, total_new_add_sqft, total_job_valuation, number_of_floors, total_lot_sq_ft, latitude, longitude, jurisdiction, status_current, certificate_of_occupancy. Valuation is often 0 on residential permits."
+  },
+  "appraisal_source": {
+    "publisher": "Travis Central Appraisal District (TCAD)",
+    "page": "https://traviscad.org/publicinformation",
+    "url": "https://traviscad.org/wp-content/largefiles/2026%20Certified%20Appraisal%20Export%20Supp%200_07182026.zip",
+    "layout_url": "https://traviscad.org/wp-content/largefiles/Website_Legacy8.0.33-AppraisalExportLayout_06182026.zip",
+    "format": "zip (557 MB) of fixed-width text files, one record per line, no header; column positions are in the layout zip (PDF and XLSX, Legacy 8.0.33 Appraisal Export Layout). Files: PROP.TXT (4.9 GB, 9,922 bytes per record), IMP_DET.TXT (2.1 GB), IMP_INFO.TXT, IMP_ATR.TXT, LAND_DET.TXT, PROP_ENT.TXT (9.8 GB), plus small lookup files.",
+    "tested_on": "2026-11-17",
+    "export_date": "2026-07-18 (2026 certified roll); a later 2026 supplemental export is also posted",
+    "has_market_value": true,
+    "has_year_built": true,
+    "has_living_area": "derived",
+    "has_land_sqft": true,
+    "fields": {
+      "parcel_id": "PROP.TXT prop_id (cols 1-12) and geo_id (cols 547-596); geo_id is the 10-digit TCAD ID used in city permits",
+      "market_value": "PROP.TXT market_value (cols 4214-4227); appraised_val (cols 1916-1930); land and improvement values at cols 1796-1855",
+      "land_area": "PROP.TXT land_acres (cols 2772-2791, 4 implied decimals); LAND_DET.TXT has square feet per land segment",
+      "year_built": "IMP_DET.TXT, per improvement segment",
+      "living_area": "IMP_DET.TXT area per segment (1st Floor, 2nd Floor, garage, porch); living area is the sum of the living segments. There is no single living-area field in PROP.TXT",
+      "situs": "PROP.TXT situs_num (4460-4474), situs_street (1050-1099), situs_city (1110-1139), situs_zip (1140-1149)",
+      "use": "PROP.TXT imprv_state_cd and land_state_cd (cols 2732-2751): A1 house, B1 apartments, F1 commercial"
+    },
+    "note": "Free download, no sign-up. Read by HTTP range requests on 2026-11-17: the zip listing and the first rows of PROP.TXT, IMP_DET.TXT, LAND_DET.TXT and IMP_INFO.TXT were parsed against the layout. The exact column positions inside IMP_DET.TXT and LAND_DET.TXT were not mapped. No sale prices: Texas is a non-disclosure state. Parcel polygons: https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/EXTERNAL_tcad_parcel/FeatureServer/0 (386,682 polygons; PROP_ID and PID_10 join to the export)."
+  },
+  "disclaimer": "Estimates, not tax, legal, zoning or appraisal advice. Prices are appraisal district market values, not sale prices.",
+  "sources": [
+    {
+      "what": "zoning code: Land Development Code Chapter 25-2 (25-2-491, 25-2-492, 25-2-555 to 25-2-563, 25-2-771 to 25-2-779, Subchapter E 4.2 and 4.3, Subchapter F 2.1), third-party copy of the Municode text, current through Ord. 20260528-067",
+      "url": "https://www.zoneomics.com/code/austin-TX/chapter_2",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "official code (blocks automated requests; not opened)",
+      "url": "https://library.municode.com/tx/austin/codes/land_development_code",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "HOME Phase 1, Ordinance 20231207-001 (signed copy)",
+      "url": "https://services.austintexas.gov/edims/document.cfm?id=421611",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "HOME Phase 2, Ordinance 20240516-006 (signed copy)",
+      "url": "https://services.austintexas.gov/edims/document.cfm?id=430451",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "City HOME amendments page",
+      "url": "https://www.austintexas.gov/development-services/home-amendments",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "parking: 25-6-471 (third-party copy of Chapter 25-6)",
+      "url": "https://www.zoneomics.com/code/austin-TX/chapter_6",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "small lot subdivisions and flag lots: 25-4-232, 25-4-177 (third-party copy of Chapter 25-4)",
+      "url": "https://www.zoneomics.com/code/austin-TX/chapter_4",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "City of Austin Guide to Zoning, September 2016 (cross-check of the district table)",
+      "url": "https://austin.widen.net/view/pdf/gozkyvstro/zoning_guide.pdf",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Texas SB 840, enrolled text",
+      "url": "https://capitol.texas.gov/tlodocs/89R/billtext/pdf/SB00840F.pdf",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "City of Austin SB 840 page and information sheet",
+      "url": "https://speakupaustin.org/austinsb840",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Texas SB 15, enrolled text",
+      "url": "https://capitol.texas.gov/tlodocs/89R/billtext/pdf/SB00015F.pdf",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "zoning GIS layer",
+      "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/PLANNINGCADASTRE_zoning_small_map_scale/FeatureServer/0",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "building permits",
+      "url": "https://data.austintexas.gov/resource/3syk-w9eu.json",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Travis CAD appraisal roll exports",
+      "url": "https://traviscad.org/publicinformation",
+      "checked_on": "2026-11-17"
+    }
+  ],
+  "parcel_layer": {
+    "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/EXTERNAL_tcad_parcel/FeatureServer/0",
+    "id_field": "PROP_ID",
+    "page_size": 2000,
+    "tested_on": "2026-11-17",
+    "note": "City of Austin copy of the TCAD parcel polygons; PROP_ID joins to prop_id in the appraisal export."
+  },
+  "parcel_loader": "tcad",
+  "min_units": 1,
+  "parcel_source": "Travis Central Appraisal District 2026 certified appraisal export; lot shapes from the City of Austin TCAD parcel layer",
+  "value_source": "Travis Central Appraisal District market value, 2026 certified roll",
+  "comps": {
+    "built_since": 2019,
+    "price_floor_per_unit": 100000,
+    "source": "Travis Central Appraisal District appraised market value of 1-6 unit buildings built 2019 or later, 2026 roll. Texas does not publish sale prices (Government Code 552.148), so these are appraisals, not sales"
+  }
+}

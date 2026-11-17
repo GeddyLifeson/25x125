@@ -1,6 +1,7 @@
 """Load a region's zoning districts from the free ArcGIS layer named in its region.json (zoning_layer).
 
-zoning_layer: url (a layer, or a list of layers under `urls`), zone_field, optional `where` and `key`.
+zoning_layer: url (a layer, or a list of layers under `urls`), zone_field, optional `where`, `key` and
+`subdivide` (true cuts very large polygons, such as a city limit, into small parts).
 Replaces the whole layer each run. Run: python -m jobs.load_zoning_layer
 """
 
@@ -46,6 +47,21 @@ def run(url: str | None = None, client_for=ArcGIS, limit: int | None = None) -> 
                                     to_rows(page, field, key, f"{i}-" if len(urls) > 1 else "", pull_id), GEOM)  # fmt: skip
                     if limit and total >= limit:
                         break
+                if layer.get("subdivide"):
+                    # A few very large polygons (a city limit) make every lot test slow; cut them into parts.
+                    conn.execute(
+                        "create temp table zparts on commit drop as select objectid, zone_class,"
+                        " st_subdivide(geom, 256) as g from zoning_district_area where source_pull_id = %s",
+                        (pull_id,),
+                    )
+                    conn.execute("delete from zoning_district_area where source_pull_id = %s", (pull_id,))
+                    conn.execute(
+                        "insert into zoning_district_area (objectid, zone_class, geom, source_pull_id)"
+                        " select objectid || '.' || row_number() over (), zone_class,"
+                        " st_multi(st_collectionextract(g, 3)), %s from zparts where st_dimension(g) = 2",
+                        (pull_id,),
+                    )
+                    conn.execute("drop table zparts")
                 finish_pull(conn, pull_id, total)
             except Exception as e:
                 conn.rollback()

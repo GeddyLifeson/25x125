@@ -1,0 +1,239 @@
+{
+  "id": "atlanta",
+  "name": "Atlanta",
+  "state": "GA",
+  "counties": [
+    {
+      "id": "fulton",
+      "name": "Fulton",
+      "fips": "13121"
+    },
+    {
+      "id": "dekalb",
+      "name": "DeKalb",
+      "fips": "13089"
+    }
+  ],
+  "city_filter": {
+    "field": "TaxDist",
+    "values": [
+      "05",
+      "05A",
+      "05AA",
+      "05AD",
+      "05AZ",
+      "05B",
+      "05C",
+      "05CC",
+      "05E",
+      "05F",
+      "05H",
+      "05J",
+      "05J1",
+      "05J2",
+      "05J3",
+      "05JB",
+      "05K",
+      "05KK",
+      "05L",
+      "05LL",
+      "05N",
+      "05NN",
+      "05OO",
+      "05P",
+      "05PP",
+      "05Q",
+      "05R",
+      "05S",
+      "05SD",
+      "05ST",
+      "05STA",
+      "05STC",
+      "05STD",
+      "05STE",
+      "05STF",
+      "05STW",
+      "05STY",
+      "05STZ",
+      "05T",
+      "05TT",
+      "05V",
+      "05VV",
+      "05W",
+      "05WW",
+      "05Y",
+      "05YG",
+      "05Z",
+      "05ZG",
+      "05ZZ"
+    ],
+    "note": "Fulton County parcel layer: every TaxDist value starting with 05 is City of Atlanta (05 alone is 130,661 of the parcels; the suffixed codes are tax allocation and special districts inside the city). 49 values seen on 2026-11-17; a prefix test (TaxDist LIKE '05%') is safer than the list. The DeKalb part of Atlanta is not in this layer; the city's own parcel layer (parcel_layers.city) covers both counties."
+  },
+  "center": {
+    "lat": 33.749,
+    "lon": -84.388,
+    "zoom": 11
+  },
+  "fhfa_metro": "12060",
+  "parcel_id_label": "Parcel ID",
+  "price_basis": "appraisal district values",
+  "parcel_layers": {
+    "fulton": {
+      "url": "https://gismaps.fultoncountyga.gov/arcgispub/rest/services/OpenData/Tax_Parcels/MapServer/0",
+      "id_field": "ParcelID",
+      "tested_on": "2026-11-17",
+      "note": "Fulton County Tax Parcels. Fields include Address, Owner, TaxDist, LUCode, ClassCode, LivUnits, LandAcres, NbrHood. No sale or value fields. 2,000 rows per request."
+    },
+    "fulton_values": {
+      "url": "https://services1.arcgis.com/AQDHTHDrZzfsFsB5/arcgis/rest/services/Tax_Parcels_2025/FeatureServer/0",
+      "id_field": "ParcelID",
+      "tested_on": "2026-11-17",
+      "note": "Fulton County GIS yearly parcel snapshots (Tax_Parcels2015 to Tax_Parcels_2026 in the same folder) with TotAppr, LandAppr, ImprAppr, TotAssess. Fields checked on the 2025 layer; the 2026 layer exists but its fields were not checked."
+    },
+    "city": {
+      "url": "https://gis.atlantaga.gov/dpcd/rest/services/AdministrativeArea/TaxParcel/MapServer/0",
+      "id_field": "PARCELID",
+      "tested_on": "2026-11-17",
+      "note": "City of Atlanta Department of City Planning TaxParcel layer, 171,174 parcels, Fulton and DeKalb parts of the city. Has ZONING1, ZONING2, NPU, NEIGHBORHOOD, LIVUNITS, TOT_APPR. No sale fields."
+    }
+  },
+  "zoning_layer": {
+    "url": "https://gis.atlantaga.gov/dpcd/rest/services/LandUsePlanning/LandUsePlanning/MapServer/0",
+    "zone_field": "ZONECLASS",
+    "tested_on": "2026-11-17",
+    "note": "City of Atlanta Department of City Planning 'Zoning District' layer. No key needed. 2,992 polygons, all STATUS = Current, 245 distinct ZONECLASS values, 2,000 rows per request. A -C suffix means conditional zoning (R-4-C, MR-3-C). SPI districts carry the subarea in the code (SPI-3 SA2). ZONING is a near-duplicate field (6 polygons differ); ZONEDESC holds the Municode chapter link. The same layer is at OpenDataService1/MapServer/22."
+  },
+  "overlay_layers": [
+    {
+      "kind": "overlay",
+      "url": "https://gis.atlantaga.gov/dpcd/rest/services/LandUsePlanning/LandUsePlanning/MapServer/1",
+      "name_field": "ZONEDESC",
+      "note": "Zoning Overlay, 98 polygons. LABEL holds the short code. Includes the BeltLine overlay (LABEL 'BELTLINE'), Westside IZ Overlay, NW Atlanta AWH, Upper Westside, Campbellton Road, Marietta Street, Intown South, Buckhead and Emory parking overlays, sign overlays, and several HC-20 historic districts."
+    },
+    {
+      "kind": "inclusionary",
+      "url": "https://gis.atlantaga.gov/dpcd/rest/services/LandUsePlanning/LandUsePlanning/MapServer/2",
+      "name_field": "NAME",
+      "note": "Inclusionary Zoning areas, 17 polygons: BeltLine planning subareas plus 'Westside Overlay'. BPA_SEGMENT gives the BeltLine segment. 10 or more new rental units here trigger the affordable set-aside."
+    },
+    {
+      "kind": "historic",
+      "url": "https://gis.atlantaga.gov/dpcd/rest/services/LandUsePlanning/LandUsePlanning/MapServer/6",
+      "name_field": "DIST_1",
+      "note": "Historic and landmark districts, 19 polygons (Grant Park, Inman Park, West End, Adair Park, Cabbagetown, Collier Heights and others). ZONING holds the HC/LD code, DIST_2 the subarea."
+    },
+    {
+      "kind": "landmark",
+      "url": "https://gis.atlantaga.gov/dpcd/rest/services/LandUsePlanning/LandUsePlanning/MapServer/7",
+      "name_field": "",
+      "note": "Landmark Building Site; listed in the service, fields not tested."
+    },
+    {
+      "kind": "flood",
+      "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28",
+      "name_field": "FLD_ZONE",
+      "note": "FEMA National Flood Hazard Layer, Flood Hazard Zones. SFHA_TF marks the special flood hazard area. A point query in downtown Atlanta returned fields on 2026-11-17. The city also hosts a 2018 copy (services5.arcgis.com/5RxyIIJ9boPdptdo/.../FloodZoneHosted/FeatureServer/0, 3,679 polygons, last edited 2018-04-04); use FEMA."
+    },
+    {
+      "kind": "transit",
+      "url": "https://gis.atlantaga.gov/dpcd/rest/services/OpenDataService1/MapServer/28",
+      "name_field": "",
+      "note": "MARTA rail stations; listed in the service, fields not tested. Lots within 2,640 ft of a high-capacity transit stop need no parking (Sec. 16-28.014(14))."
+    }
+  ],
+  "permit_source": {
+    "kind": "arcgis",
+    "url": "https://services5.arcgis.com/5RxyIIJ9boPdptdo/arcgis/rest/services/building_permit_featureLayer/FeatureServer/0",
+    "tested_on": "2026-11-17",
+    "note": "City of Atlanta Department of City Planning ArcGIS Online layer behind the city's Building Permit Tracker. 38,953 points, opened 2022-09-20 to 2026-11-17, edited the day it was tested. Fields: RecordID, Name, OrigOpened, TypeCombo (for example 'Residential New' 2,233 rows, 'Multi Family New' 1,979), Use_, Subtype, Status_1, StatusDate, JOB_VALUE, PARCEL, Address, ACA_Link (Accela record). No unit count field. The item description calls it 'Test Official building permit data', so it could move. Older years: Building_Permits_2009_2014/FeatureServer/2 (21,545 rows) and Building_Permit_Tracker/FeatureServer/2 (22,778 rows, last edited 2024-11-20) in the same folder. The layer named in the brief (services5.arcgis.com/54falWtcpty3V47Z BldgPermitIssued_Archive) is City of Sacramento, California data (ZIP 95817), not Atlanta; do not use it."
+  },
+  "sales_source": {
+    "kind": "arcgis",
+    "status": "partial",
+    "url": "https://services1.arcgis.com/AQDHTHDrZzfsFsB5/arcgis/rest/services/Tyler_YearlySales/FeatureServer",
+    "layers": {
+      "2018": 2,
+      "2019": 3,
+      "2020": 4,
+      "2021": 5,
+      "2022": 6
+    },
+    "id_field": "ParID",
+    "price_field": "Price",
+    "year_field": "TaxYear",
+    "tested_on": "2026-11-17",
+    "note": "Fulton County GIS (owner Fulton_County_GIS, public, no key). One parcel polygon per sold parcel per year with Price. Rows: 2018 22,951; 2019 26,347; 2020 32,010; 2021 43,627; 2022 12,875 (partial year). Rows over $10,000 with an Atlanta-area parcel prefix (14 or 17): 9,098; 10,040; 12,903; 18,269; 5,691. Limits: last edited 2022-11-02, so nothing after 2022; no sale date, only the year; no deed type or validity code; Price is 0 or 10 on many rows (non-market transfers) and must be filtered; one row per parcel per year. No free bulk source was found for 2023 onward or for DeKalb. Appraised values for every parcel and year are in parcel_layers.fulton_values."
+  },
+  "disclaimer": "Estimates, not tax, legal, zoning or appraisal advice.",
+  "sources": [
+    {
+      "what": "zoning code (Part 16, Atlanta Code of Ordinances), read on a third-party mirror of the Municode text because library.municode.com and api.municode.com sit behind a browser check",
+      "url": "https://www.zoneomics.com/code/atlanta-GA/chapter_9",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "official code (not fetched; blocked)",
+      "url": "https://library.municode.com/ga/atlanta/codes/code_of_ordinances?nodeId=PTIIICOORANDECO_PT16ZO",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "zoning, overlay, inclusionary and historic layers",
+      "url": "https://gis.atlantaga.gov/dpcd/rest/services/LandUsePlanning/LandUsePlanning/MapServer",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Fulton County parcels",
+      "url": "https://gismaps.fultoncountyga.gov/arcgispub/rest/services/OpenData/Tax_Parcels/MapServer/0",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Fulton County yearly sales 2018-2022",
+      "url": "https://services1.arcgis.com/AQDHTHDrZzfsFsB5/arcgis/rest/services/Tyler_YearlySales/FeatureServer",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "building permits",
+      "url": "https://services5.arcgis.com/5RxyIIJ9boPdptdo/arcgis/rest/services/building_permit_featureLayer/FeatureServer/0",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "FEMA flood hazard zones",
+      "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28",
+      "checked_on": "2026-11-17"
+    }
+  ],
+  "parcel_layer": {
+    "url": "https://gis.atlantaga.gov/dpcd/rest/services/AdministrativeArea/TaxParcel/MapServer/0",
+    "where": "1=1",
+    "page_size": 2000,
+    "tax_year": 2025,
+    "use_from_units": true,
+    "residential_prefixes": [
+      "R"
+    ],
+    "fields": {
+      "id": "PARCELID",
+      "address": "SITEADDRESS",
+      "zip": "SITEZIP",
+      "use_code": "CLASSCD",
+      "market_value": "TOT_APPR",
+      "land_value": "LANDAPPR",
+      "units": "LIVUNITS",
+      "nbhd": "NEIGHBORHOOD",
+      "owner": "OWNERNME1",
+      "tax_year": "TAXYEAR"
+    },
+    "note": "City of Atlanta TaxParcel layer: 171,174 parcels in the Fulton and DeKalb parts of the city, with appraised total and land value and living units. It has no year built and no floor area, so new buildings cannot be picked out and there is no comp pool yet.",
+    "tested_on": "2026-11-17"
+  },
+  "parcel_loader": "arcgis_parcels",
+  "min_units": 1,
+  "parcel_source": "City of Atlanta tax parcel layer (Fulton and DeKalb county assessor rolls, 2025)",
+  "value_source": "county assessor appraised value, 2025 roll (City of Atlanta tax parcel layer)",
+  "comps": {
+    "built_since": 2019,
+    "price_floor_per_unit": 100000,
+    "source": "none yet: the free parcel layers have no year built or floor area, and Fulton's free sale file stops in 2022",
+    "status": "no comp pool; users enter a sale price"
+  }
+}

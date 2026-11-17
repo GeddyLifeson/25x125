@@ -1,0 +1,247 @@
+{
+  "verified_on": "2026-11-17",
+  "source": "Miami 21 Code as codified at codehub.gridics.com (the copy the City links to), amendments listed through Ord. 14484 of 2026-07-28; read 2026-11-17",
+  "district_tables": {
+    "districts": "data/regions/miami/rules/zoning_districts.csv",
+    "heights": "data/regions/miami/rules/zoning_heights.csv"
+  },
+  "steps": [
+    {
+      "id": "units_by_right",
+      "rule": "floor(lot_area / lot_area_per_unit), capped at max_units. Density is units per acre of Lot Area (Sec. 3.4.1, 3.4.2). T3-R and T3-L: one single-family house per lot. T3-O: 2 units may be built on any single lot. The code text read gives no rule for rounding fractions of a unit; rounding down is used here.",
+      "section": "Miami 21 Sec. 3.4.1, 3.4.2; Art. 4 Tables 3 and 4; Illustration 5.3 footnote",
+      "source_url": "https://codehub.gridics.com/us/fl/miami#/771f7344-f452-4dce-9310-503a1d60326f"
+    },
+    {
+      "id": "adu",
+      "rule": "One Ancillary Dwelling Unit (ADU) is allowed by right on a lot that holds a single-family house. It may be inside the house or in an ancillary building. It does not count toward density. Not allowed in T3-R. The house and the ADU must have the same owner, and the ADU may be rented only if the property has current homestead status. ADUs must be registered with the City and renewed each year. Largest size: 10% of lot area, up to 800 sq ft detached or 500 sq ft within or attached to the house; no waiver of the size cap. Smallest size: 275 sq ft efficiency, 450 sq ft one-bedroom, 550 sq ft two-bedroom. Ancillary buildings: 2 stories at most and no taller than the house.",
+      "params": {
+        "units": 1,
+        "by_district": [
+          "T3-L",
+          "T3-O",
+          "T4-R",
+          "T4-L",
+          "T4-O"
+        ],
+        "also_allowed_no_size_row": [
+          "T5-R",
+          "T5-L",
+          "T5-O",
+          "T6-8-R",
+          "T6-8-L",
+          "T6-8-O",
+          "T6-12-R",
+          "T6-12-L",
+          "T6-12-O"
+        ],
+        "max_sqft": 800,
+        "max_sqft_attached": 500,
+        "max_share_of_lot_area": 0.1,
+        "min_sqft": {
+          "efficiency": 275,
+          "one_bedroom": 450,
+          "two_bedroom": 550
+        },
+        "requires": "single-family house on the lot",
+        "counts_toward_density": false,
+        "owner_occupancy": true,
+        "owner_occupancy_note": "same ownership required; renting the ADU requires current homestead status on the property",
+        "approval": "by right (permit only), plus City registration and annual renewal",
+        "parking_spaces": 1,
+        "parking_spaces_in_tod_or_transit_corridor": 0
+      },
+      "section": "Miami 21 Sec. 3.18; Sec. 1.1 (definition); Art. 4 Table 3 (use table and footnote 7); Art. 4 Table 4 (T3, T4); Art. 6 Table 13 (T3, T4); Ord. 14375 (2025-10-01)",
+      "source_url": "https://codehub.gridics.com/us/fl/miami#/01d1faaf-db02-49b3-8bad-b686dec4def0"
+    },
+    {
+      "id": "parking",
+      "rule": "Minimum off-street parking per principal dwelling unit: 2 in T3, 1.5 in T4, T5 and T6. T5 and T6 also need 1 visitor space per 10 units. Units under 650 sq ft in the second layer of a podium liner above the first story need 1. An ADU needs 1 space, or none inside a TOD or Transit Corridor. In T4, T5 and T6 the ratio can be cut 30%, 50% or (for a structure of 10,000 sq ft floor area or less) 100% inside a TOD or Transit Corridor, by Exception with City Commission approval, but not within 500 ft of an ungated T3 zone.",
+      "params": {
+        "spaces_per_unit": {
+          "default": 1.5,
+          "T3-R": 2,
+          "T3-L": 2,
+          "T3-O": 2
+        },
+        "visitor_spaces_per_10_units": {
+          "T5-R": 1,
+          "T5-L": 1,
+          "T5-O": 1,
+          "T6-8-R": 1,
+          "T6-8-L": 1,
+          "T6-8-O": 1,
+          "T6-12-R": 1,
+          "T6-12-L": 1,
+          "T6-12-O": 1
+        },
+        "adu_spaces": 1,
+        "adu_spaces_in_tod_or_transit_corridor": 0
+      },
+      "section": "Miami 21 Art. 4 Table 4 (T3, T4, T5, T6), Residential rows",
+      "source_url": "https://codehub.gridics.com/us/fl/miami#/65be9c85-89a8-409b-ab54-049d2efbe1c9"
+    },
+    {
+      "id": "cottage_housing",
+      "rule": "Cottage Housing: one house on a small lot. The lot must be 2,500 to 5,000 sq ft and 25 to 35 ft wide, with a sewer connection available. It must be either in T3-O inside a TOD or Transit Corridor, or an existing T3 lot that met those lot sizes on 2026-05-01. Limit: 1 principal building with 1 dwelling unit per lot; lot coverage 50%; setbacks 20 ft front, 3 ft sides, 20 ft rear.",
+      "params": {
+        "districts": [
+          "T3-R",
+          "T3-L",
+          "T3-O"
+        ],
+        "min_lot_area_sqft": 2500,
+        "max_lot_area_sqft": 5000,
+        "min_lot_width_ft": 25,
+        "max_lot_width_ft": 35,
+        "max_units": 1,
+        "max_lot_coverage": 0.5
+      },
+      "section": "Miami 21 Sec. 5.3.8 and Illustration 5.3.8; Ord. 14484 (2026-07-28)",
+      "source_url": "https://codehub.gridics.com/us/fl/miami#/ffffd7f3-e85b-405e-bb3e-4ce222e7b406"
+    },
+    {
+      "id": "rezoning",
+      "rule": "Rezoning is successional: to another intensity (R, L, O) in the same transect, or to the next higher transect only (T3 to T4, T4 to T5, T5 to T6-8, T6-8 to T6-12). The land must be at least 40,000 sq ft or have 200 ft of frontage on one street, unless the request extends an existing transect boundary. Applications are taken only twice a year on dates the City Commission sets. Sites of 9 acres or more need a Special Area Plan. The targets below are the common asks; the code also allows other intensities within the same transect.",
+      "approval": "rezoning (Miami 21 Atlas amendment): Planning, Zoning and Appeals Board recommends, City Commission decides",
+      "params": {
+        "min_land_area_sqft": 40000,
+        "min_street_frontage_ft": 200,
+        "exempt_if": "extension of an existing transect boundary",
+        "application_windows_per_year": 2
+      },
+      "targets": {
+        "T3-R": [
+          "T3-L",
+          "T3-O",
+          "T4-R"
+        ],
+        "T3-L": [
+          "T3-O",
+          "T4-L"
+        ],
+        "T3-O": [
+          "T4-L",
+          "T4-O"
+        ],
+        "T4-R": [
+          "T4-L",
+          "T5-R"
+        ],
+        "T4-L": [
+          "T4-O",
+          "T5-L"
+        ],
+        "T4-O": [
+          "T5-O"
+        ],
+        "T5-R": [
+          "T5-L",
+          "T6-8-R"
+        ],
+        "T5-L": [
+          "T5-O",
+          "T6-8-L"
+        ],
+        "T5-O": [
+          "T6-8-O"
+        ],
+        "T6-8-R": [
+          "T6-8-L",
+          "T6-12-R"
+        ],
+        "T6-8-L": [
+          "T6-8-O",
+          "T6-12-L"
+        ],
+        "T6-8-O": [
+          "T6-12-O"
+        ]
+      },
+      "section": "Miami 21 Sec. 7.1.2.8(a) successional zoning table, 7.1.2.8(b), 7.1.2.8(c)",
+      "source_url": "https://codehub.gridics.com/us/fl/miami#/725a22e7-e4c4-49d0-aa5b-efcbf318f780"
+    },
+    {
+      "id": "state_overrides",
+      "rule": "state laws that change what the city code allows on this lot",
+      "items": [
+        {
+          "id": "fl_live_local",
+          "applies_to": [
+            "T4-L",
+            "T4-O",
+            "T5-L",
+            "T5-O",
+            "T6-8-L",
+            "T6-8-O",
+            "T6-12-L",
+            "T6-12-O"
+          ],
+          "text": "Live Local Act. In any area zoned commercial, industrial or mixed use, a city must allow multifamily and mixed-use residential if at least 40% of the units are rentals kept affordable for at least 30 years. The city may not require a rezoning, special exception, variance or plan amendment for the height, zoning and density the statute gives. Density: the highest the city allows anywhere residential is allowed. Floor area ratio (the statute counts floor lot ratio and lot coverage): 150% of the highest allowed. Height: the highest allowed for a commercial or residential building within 1 mile, or 3 stories, whichever is higher, with lower limits next to single-family areas and on some historic parcels. Mixed-use projects must be at least 65% residential by floor area. The districts listed are the Miami 21 zones whose use table allows commercial uses (L and O); the City's own list of qualifying zones was not confirmed.",
+          "section": "Fla. Stat. 166.04151(7)",
+          "source_url": "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0100-0199/0166/Sections/0166.04151.html"
+        }
+      ]
+    },
+    {
+      "id": "flags",
+      "rule": "local conditions to flag",
+      "items": [
+        {
+          "id": "hvhz",
+          "text": "All of Miami-Dade County is in the High-Velocity Hurricane Zone of the Florida Building Code. Roofing, windows, doors and cladding need HVHZ-approved products and testing, which raises cost against the rest of Florida.",
+          "source_url": "https://www.floridabuilding.org/fbc/wind_2010/flyer_wind_january2012.pdf"
+        },
+        {
+          "id": "flood",
+          "text": "Check the FEMA flood zone (AE, AH, VE). In a flood zone the first floor must sit at Base Flood Elevation plus 1 to 5 ft of freeboard, and building height is then measured from that level.",
+          "section": "Miami 21 Sec. 3.5.1, 5.3.2(e), 5.4.2, 5.5.2",
+          "source_url": "https://codehub.gridics.com/us/fl/miami#/4cb3cb1b-2d87-4009-a0d2-d0b361f1fe63"
+        },
+        {
+          "id": "historic",
+          "text": "Lots in a City historic district or holding a designated historic resource follow Chapter 23 of the City Code (Historic Preservation), which adds review and can limit height and demolition.",
+          "section": "Miami 21 Sec. 3.5.6, 3.10; City Code Ch. 23"
+        },
+        {
+          "id": "ncd",
+          "text": "Neighborhood Conservation Districts change the base rules: NCD-1 Coral Gate, NCD-2 Village West Island and Charles Avenue, NCD-3 Coconut Grove (Miami 21 Appendix A). The numbers in this file are the base transect rules and do not include NCD changes.",
+          "section": "Miami 21 Sec. 3.12.2; Appendix A",
+          "source_url": "https://codehub.gridics.com/us/fl/miami#/1594aa42-8eee-4c34-b97a-b122a9b47c8b"
+        },
+        {
+          "id": "special_areas",
+          "text": "Special Area Plans, the Wynwood districts (NRD-1, NRD-2) and the Midtown and Worldcenter special districts have their own rules and are not covered.",
+          "section": "Miami 21 Sec. 3.9, 3.12.3; Appendices"
+        },
+        {
+          "id": "nonconforming_lot",
+          "text": "A lot under 5,000 sq ft or 50 ft wide that was legal when recorded may still be used. In T3, adjoining substandard lots in one ownership are treated as one parcel for one house or duplex unless an exception applies (90% rule, 1,000 ft radius rule, or a single-family covenant), by Waiver.",
+          "section": "Miami 21 Sec. 7.2.7",
+          "source_url": "https://codehub.gridics.com/us/fl/miami#/8a2e48df-9b1f-4b3c-bf58-03e521a910bd"
+        },
+        {
+          "id": "t3_standards_in_t4_t5",
+          "text": "In T4 and T5, a single-family house may use the T3-L development standards and a duplex may use the T3-O standards. Sections for different transects may not be mixed.",
+          "section": "Miami 21 Sec. 5.4.1, 5.5.1(k); Ord. 14471 (2026-05-28)",
+          "source_url": "https://codehub.gridics.com/us/fl/miami#/22ca5e58-4b89-4ba1-b4d5-d738e582b4cd"
+        },
+        {
+          "id": "density_bonus",
+          "text": "Density can be higher than the base figure: Residential Density Increase Areas (Art. 4 Diagram 9), sites within 1/2 mile of a Metrorail, Brightline or Tri-Rail station where the Comprehensive Plan allows more (Sec. 3.4.5), the Resilience Fund Area (up to 100% more with a contribution), and the affordable and workforce housing programs (Sec. 3.15, 3.16). T6-O is listed at 150 to 1,000 units per acre. These are not modeled.",
+          "section": "Miami 21 Sec. 3.4.5; Art. 4 Table 4; Sec. 3.15, 3.16"
+        },
+        {
+          "id": "max_lot_area",
+          "text": "T4, T5 and T6-8 cap lot area at 40,000 sq ft and T6-12 at 70,000 sq ft, with exceptions for lots in one ownership or under a Unity of Title (Sec. 3.3.1). This rarely matters for 1 to 6 unit projects.",
+          "section": "Miami 21 Illustrations 5.4, 5.5, 5.6; Sec. 3.3.1"
+        },
+        {
+          "id": "airport_height",
+          "text": "Miami-Dade County airport height zoning (County Code Art. 37, Miami International Airport) can limit height below the transect limit.",
+          "section": "Miami 21 Sec. 3.5.4"
+        }
+      ]
+    }
+  ]
+}

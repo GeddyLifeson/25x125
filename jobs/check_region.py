@@ -120,6 +120,15 @@ def main(argv=None) -> int:
     params = replace(params, size_elasticity={**params.size_elasticity, "building": best})
     results = loo(pool, index, params, targets, as_of)
     band = fit_band(results)
+    extra = 0.0
+    if r.get("price_basis") == "appraisal district values":
+        # Appraised values are smoother than sale prices, so the fitted range is too narrow. Widen it.
+        extra = float(
+            (region.rules_json("feasibility_defaults.json").get("appraisal_basis") or {}).get(
+                "extra_range", 0.10
+            )
+        )
+        band = {k: [round(v[0] - extra, 3), round(v[1] + extra, 3), v[2]] for k, v in band.items()}
     params = replace(params, band={k: v[:2] for k, v in band.items()})
     test_results = loo(pool, index, params, test, as_of)
     inside = [e.low <= act <= e.high for _, e, act in test_results if e.low]
@@ -128,7 +137,8 @@ def main(argv=None) -> int:
         "sales_from": min(c.sale_date for c in pool).isoformat(), "sales_to": max(c.sale_date for c in pool).isoformat(),
         "size_elasticity": best, "leave_one_out": by_e[best], "test_set": summary(test_results),
         "test_set_inside_range": round(sum(inside) / len(inside), 3) if inside else None,
-        "appraiser_land": land, "implied_construction_cost": cost,
+        "appraiser_land": land, "implied_construction_cost": cost, "range_widened_by": extra,
+        "basis": r.get("price_basis"),
     }  # fmt: skip
     print(json.dumps(report, indent=2))
     if a.write:

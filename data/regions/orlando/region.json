@@ -1,0 +1,144 @@
+{
+  "id": "orlando",
+  "name": "Orlando",
+  "state": "FL",
+  "counties": [
+    {
+      "id": "orange",
+      "name": "Orange",
+      "fips": "12095",
+      "dor_county_no": 58,
+      "dor_name": "Orange",
+      "shape_name": "orange",
+      "shape_epsg": 2881,
+      "tax_auth_prefixes": [
+        "ORL"
+      ]
+    }
+  ],
+  "city_filter": {
+    "field": "PHY_CITY",
+    "values": [
+      "ORLANDO"
+    ]
+  },
+  "center": {
+    "lat": 28.54,
+    "lon": -81.38,
+    "zoom": 11
+  },
+  "fhfa_metro": "36740",
+  "parcel_id_label": "Parcel ID",
+  "price_basis": "recorded sales",
+  "zoning_layer": {
+    "url": "https://services5.arcgis.com/mMuoPCaIYD4wEgDl/arcgis/rest/services/OrlandoLUZoning/FeatureServer/0",
+    "zone_field": "Zoning",
+    "tested_on": "2026-11-17",
+    "note": "Orlando Zoning, published by the City of Orlando open data account (OpenData_Orlando) on ArcGIS Online. 325 distinct values. The field holds the base district plus overlay suffixes, for example R-2A/T/HP. The match column lists every stored value for each base district. Also has PD_NAME and OverlayA-D text fields. Values not covered: PD, C, P, H, UR, I-C, I-G, I-P, AC-3A, ASD-2, UNINCORPORATED, NO CITY ZONING, SUBJECT TO ORANGE COUNTY. Spatial reference 2236 (Florida East, feet); ask for outSR=4326."
+  },
+  "overlay_layers": [
+    {
+      "kind": "historic",
+      "url": "https://services5.arcgis.com/mMuoPCaIYD4wEgDl/arcgis/rest/services/OrlandoHistoricLocalDistricts/FeatureServer/0",
+      "name_field": "HistoricDistricts",
+      "note": "6 local historic districts; tested 2026-11-17"
+    },
+    {
+      "kind": "historic_national",
+      "url": "https://services5.arcgis.com/mMuoPCaIYD4wEgDl/arcgis/rest/services/OrlandoHistoricNationalDistricts/FeatureServer/0",
+      "name_field": "Historic_Name",
+      "note": "7 National Register districts; tested 2026-11-17"
+    },
+    {
+      "kind": "flood",
+      "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Flood_Hazard_Reduced_Set_gdb/FeatureServer/0",
+      "name_field": "FLD_ZONE",
+      "filter": "DFIRM_ID = '12095C'",
+      "note": "FEMA National Flood Hazard Layer, special flood hazard areas, hosted by Esri. 3,792 polygons for Orange County; tested 2026-11-17. FEMA's own server (hazards.fema.gov NFHL MapServer/28) reset the connection from this network. A full copy with zone X sits in the city's ArcGIS org at https://services5.arcgis.com/mMuoPCaIYD4wEgDl/arcgis/rest/services/Flood_Hazard_Zone_Parcels/FeatureServer/0 (5,086 polygons, zones A, AE, AH, X, D), published by a staff account, not the open data account."
+    },
+    {
+      "kind": "special_plan",
+      "url": "https://services5.arcgis.com/mMuoPCaIYD4wEgDl/arcgis/rest/services/OrlandoLUSpecialLDC62/FeatureServer/0",
+      "name_field": "SpecialPlanArea",
+      "note": "30 special plan areas under LDC Ch. 62; field LDC gives the section"
+    },
+    {
+      "kind": "future_land_use",
+      "url": "https://services5.arcgis.com/mMuoPCaIYD4wEgDl/arcgis/rest/services/OrlandoLUFutureLandUse/FeatureServer/0",
+      "name_field": "LanduseType",
+      "note": "Growth Management Plan future land use; a rezoning must fit it"
+    }
+  ],
+  "permit_source": {
+    "kind": "socrata",
+    "url": "https://data.cityoforlando.net/resource/ryhf-m453.json",
+    "note": "Permit Applications. 1,115,820 rows on 2026-11-17, newest processed_date 2026-11-17. Worked without a key. Fields include permit_number, application_type, worktype, parcel_number (15 digits), permit_address, estimated_cost, square_footage, processed_date, issue_permit_date, final_date, coo_date, application_status, neighborhood. Filter application_type = 'Building Permit' and worktype = 'New' (44,131 rows). No unit-count field."
+  },
+  "disclaimer": "Estimates, not tax, legal, zoning or appraisal advice.",
+  "sources": [
+    {
+      "what": "zoning code text read: Orlando Land Development Code Ch. 58 Part 1 (Figures 1 and 2 with footnotes), Zoneomics copy of the Municode text, ordinance history through Ord. 2025-12",
+      "url": "https://www.zoneomics.com/code/orlando-FL/chapter_1",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "LDC Ch. 58 Part 3 (ADU, townhome, duplex and tandem, multiplex), same copy",
+      "url": "https://www.zoneomics.com/code/orlando-FL/chapter_3",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "LDC Ch. 58 Part 7 (nonconforming lots), same copy",
+      "url": "https://www.zoneomics.com/code/orlando-FL/chapter_7",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "official code (Municode; blocks automated reads, so not read directly)",
+      "url": "https://library.municode.com/fl/orlando/codes/code_of_ordinances?nodeId=TITIICICO_CH58ZODIUS_PT1IN_1BZOTA",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "City residential development standards guide (links to the code parts)",
+      "url": "https://www.orlando.gov/residential-development-standards",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "City Duplex and Tandem guidebook, 2017 (parking)",
+      "url": "https://www.orlando.gov/files/sharedassets/public/v/1/departments/edv/city-planning/duplextandemdesignstandards.pdf",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Florida Live Local Act, s. 166.04151, 2025 Florida Statutes",
+      "url": "https://www.flsenate.gov/Laws/Statutes/2025/166.04151",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "zoning GIS layer",
+      "url": "https://services5.arcgis.com/mMuoPCaIYD4wEgDl/arcgis/rest/services/OrlandoLUZoning/FeatureServer/0",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "permit data",
+      "url": "https://data.cityoforlando.net/resource/ryhf-m453.json",
+      "checked_on": "2026-11-17"
+    }
+  ],
+  "roll": "2026F",
+  "min_units": 1,
+  "parcel_loader": "fl_dor",
+  "parcel_source": "Florida Department of Revenue Orange County tax roll (NAL 2026 final) and parcel map",
+  "value_source": "Orange County Property Appraiser just value, 2026 final tax roll (Florida Department of Revenue NAL file)",
+  "comps": {
+    "built_since": 2014,
+    "price_floor_per_unit": 100000,
+    "qualified_codes": [
+      "01",
+      "02"
+    ],
+    "land_qualified_codes": [
+      "01",
+      "02",
+      "03"
+    ],
+    "source": "Florida Department of Revenue Orange County tax roll: first qualified sale (codes 01, 02) of 1-6 unit buildings built 2014 or later; the roll carries each parcel's two latest sales, January 2025 on"
+  }
+}

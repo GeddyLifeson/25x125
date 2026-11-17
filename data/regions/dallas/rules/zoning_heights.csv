@@ -1,0 +1,33 @@
+district,frontage_from_ft,frontage_to_ft,ground_floor_commercial,max_height_ft,section,source_url,verified_on
+R-1ac(A),0,,any,36,Sec. 51A-4.112,https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/R1aca.aspx,2026-11-17
+R-1/2ac(A),0,,any,36,Sec. 51A-4.112,https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/R12ACA.aspx,2026-11-17
+R-16(A),0,,any,30,Sec. 51A-4.112,https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/R16A.aspx,2026-11-17
+R-13(A),0,,any,30,Sec. 51A-4.112,https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/R13A.aspx,2026-11-17
+R-10(A),0,,any,30,Sec. 51A-4.112,https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/R10A.aspx,2026-11-17
+R-7.5(A),0,,any,30,Sec. 51A-4.112,https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/R75A.aspx,2026-11-17
+R-5(A),0,,any,30,Sec. 51A-4.112,https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/R5A.aspx,2026-11-17
+D(A),0,,any,36,Sec. 51A-4.113,https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/Duplex.aspx,2026-11-17
+TH-1(A),0,,any,36,Sec. 51A-4.114,https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/TH1.aspx,2026-11-17
+TH-2(A),0,,any,36,Sec. 51A-4.114,https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/TH2A.aspx,2026-11-17
+TH-3(A),0,,any,36,Sec. 51A-4.114,https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/TH3A.aspx,2026-11-17
+CH,0,,any,36,"Sec. 51A-4.115; any part over 26 ft must stay under the residential proximity slope from R, D and TH districts",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/CH.aspx,2026-11-17
+MF-1(A),0,,any,36,"Sec. 51A-4.116; any part over 26 ft must stay under the residential proximity slope from R, D and TH districts",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/MF1andMF1SAH.aspx,2026-11-17
+MF-1(A)(SAH),0,,any,36,"Sec. 51A-4.116; any part over 26 ft must stay under the residential proximity slope from R, D and TH districts",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/MF1andMF1SAH.aspx,2026-11-17
+MF-2(A),0,,any,36,"Sec. 51A-4.116; any part over 26 ft must stay under the residential proximity slope from R, D and TH districts",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/MF2AandMF2sah.aspx,2026-11-17
+MF-2(A)(SAH),0,,any,36,"Sec. 51A-4.116; any part over 26 ft must stay under the residential proximity slope from R, D and TH districts",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/MF2AandMF2sah.aspx,2026-11-17
+MF-3(A),0,,any,90,"Sec. 51A-4.116; any part over 26 ft must stay under the residential proximity slope from R, D and TH districts",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/MF3A.aspx,2026-11-17
+MF-4(A),0,,any,240,"Sec. 51A-4.116; any part over 26 ft must stay under the residential proximity slope from R, D and TH districts",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/MF4A.aspx,2026-11-17
+MU-1,0,,any,90,"Sec. 51A-4.125; any part over 26 ft must stay under the residential proximity slope from R, D and TH districts",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/MU1.aspx,2026-11-17
+MU-2,0,,any,135,"Sec. 51A-4.125; any part over 26 ft must stay under the residential proximity slope from R, D and TH districts",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/MU2.aspx,2026-11-17
+MU-3,0,,any,270,"Sec. 51A-4.125; any part over 26 ft must stay under the residential proximity slope from R, D and TH districts",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/MU3.aspx,2026-11-17
+NO(A),0,,any,45,Sec. 51A-4.121; district height 30 ft; Texas SB 840 sets a 45 ft floor for 3+ unit housing; residential proximity slope cannot cut height below 45 ft,https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/NOA.aspx,2026-11-17
+LO-1,0,,any,70,"Sec. 51A-4.121; district height 70 ft, which SB 840 also gives 3+ unit housing; residential proximity slope cannot cut height below 45 ft",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/lo1.aspx,2026-11-17
+LO-2,0,,any,95,"Sec. 51A-4.121; district height 95 ft, which SB 840 also gives 3+ unit housing; residential proximity slope cannot cut height below 45 ft",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/LO2.aspx,2026-11-17
+LO-3,0,,any,115,"Sec. 51A-4.121; district height 115 ft, which SB 840 also gives 3+ unit housing; residential proximity slope cannot cut height below 45 ft",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/lo3.aspx,2026-11-17
+MO-1,0,,any,135,"Sec. 51A-4.121; district height 135 ft, which SB 840 also gives 3+ unit housing; residential proximity slope cannot cut height below 45 ft",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/MO1.aspx,2026-11-17
+MO-2,0,,any,160,"Sec. 51A-4.121; district height 160 ft, which SB 840 also gives 3+ unit housing; residential proximity slope cannot cut height below 45 ft",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/MO2.aspx,2026-11-17
+GO(A),0,,any,270,"Sec. 51A-4.121; district height 270 ft, which SB 840 also gives 3+ unit housing; residential proximity slope cannot cut height below 45 ft",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/goadistrict.aspx,2026-11-17
+NS(A),0,,any,45,Sec. 51A-4.122; district height 30 ft; Texas SB 840 sets a 45 ft floor for 3+ unit housing; residential proximity slope cannot cut height below 45 ft,https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/NSA.aspx,2026-11-17
+CR,0,,any,54,"Sec. 51A-4.122; district height 54 ft, which SB 840 also gives 3+ unit housing; residential proximity slope cannot cut height below 45 ft",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/CR.aspx,2026-11-17
+RR,0,,any,70,"Sec. 51A-4.122; district height 70 ft, which SB 840 also gives 3+ unit housing; residential proximity slope cannot cut height below 45 ft",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/RR.aspx,2026-11-17
+CS,0,,any,45,"Sec. 51A-4.123; district height 45 ft, which SB 840 also gives 3+ unit housing; residential proximity slope cannot cut height below 45 ft",https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/CSDistrict.aspx,2026-11-17

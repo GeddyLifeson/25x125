@@ -100,6 +100,32 @@ def _pid(raw: str) -> str:
     return pid
 
 
+_REGION_BOUNDS: dict = {}
+
+
+@app.get("/region")
+def region_info() -> dict:
+    """Which market this install serves: name, parcel ID label, price basis and map bounds for the screens."""
+    r = region.current()
+    out = {"id": r["id"], "name": r["name"], "state": r.get("state", "IL"), "chicago": region.is_chicago(),
+           "parcel_id_label": r.get("parcel_id_label", "PIN"), "price_basis": r.get("price_basis", "recorded sales"),
+           "parcel_source": r.get("parcel_source"), "value_source": r.get("value_source"),
+           "zoning_source": (r.get("zoning_layer") or {}).get("url"), "center": r.get("center"),
+           "comps_source": (r.get("comps") or {}).get("source")}  # fmt: skip
+    if r["id"] not in _REGION_BOUNDS:
+        try:
+            with connect() as conn:
+                b = conn.execute(
+                    "select st_xmin(e), st_ymin(e), st_xmax(e), st_ymax(e) from (select st_extent(geom) e from"
+                    " (select geom from parcel where geom is not null limit 200000) p) x"
+                ).fetchone()
+            _REGION_BOUNDS[r["id"]] = [float(v) for v in b] if b and b[0] is not None else None
+        except Exception:  # noqa: BLE001 - no database yet: the screens fall back to the center
+            _REGION_BOUNDS[r["id"]] = None
+    out["bounds"] = _REGION_BOUNDS[r["id"]]
+    return out
+
+
 @app.get("/parcels/{pin}/zoning")
 def parcel_zoning(pin: str, target: str | None = None) -> dict:
     """Zoning capacity paths and flags for a PIN (14 digits) or lot (10 digits), from the stored rules.

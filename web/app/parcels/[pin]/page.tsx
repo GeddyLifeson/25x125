@@ -2,8 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SaveDeal } from "../../../components/SaveDeal";
 import { Source } from "../../../components/Source";
+import { getRegion, showParcelId } from "../../../lib/region";
 import { getParcel, getSaleValue, getZoning, postFeasibility, settle } from "../../../lib/engine";
-import { day, feet, formatPin, num, pct, sqft, titleCase, usd } from "../../../lib/format";
+import { day, feet, num, pct, sqft, titleCase, usd } from "../../../lib/format";
 import type { Feasibility, Incentive, Parcel } from "../../../lib/types";
 
 export const dynamic = "force-dynamic";
@@ -64,6 +65,7 @@ function checks(p: Parcel, f: Feasibility | null): string[] {
 export default async function ParcelPage({ params, searchParams }: Props) {
   const { pin } = await params;
   const { target } = await searchParams;
+  const region = await getRegion();
   const parcelR = await settle(getParcel(pin));
   if (!parcelR.ok) {
     if (parcelR.status === 404 || parcelR.status === 400) notFound();
@@ -109,7 +111,7 @@ export default async function ParcelPage({ params, searchParams }: Props) {
   }
   const incList = [...inc.values()].sort((x, y) => Number(y.i.applies) - Number(x.i.applies) || y.i.value - x.i.value);
 
-  const overlays: { name: string; value: string; good?: boolean; src: string }[] = [
+  const overlayRows: { name: string; value: string; good?: boolean; src: string }[] = [
     {
       name: "Transit-served location",
       value: p.transit_served ?? "No",
@@ -157,7 +159,12 @@ export default async function ParcelPage({ params, searchParams }: Props) {
     })),
   ].sort((x, y) => (y.date > x.date ? 1 : -1));
 
-  const address = titleCase(p.address) || `PIN ${formatPin(p.pin)}`;
+  // The overlay rows below are Chicago map layers; other regions list their zoning source until theirs load.
+  const overlays = region.chicago
+    ? overlayRows
+    : [{ name: "Overlays", value: "Not loaded yet for this city", src: `Flood, historic and overlay layers are recorded for ${region.name} and not loaded yet. Zoning: ${region.zoning_source ?? "city zoning map"}; pulled ${pulled}` }];
+  const idLabel = region.parcel_id_label;
+  const address = titleCase(p.address) || `${idLabel} ${showParcelId(region, p.pin)}`;
   const tq = target ? `?target=${encodeURIComponent(target)}` : "";
 
   return (
@@ -169,8 +176,9 @@ export default async function ParcelPage({ params, searchParams }: Props) {
           </Link>
           <h1>{address}</h1>
           <span className="muted">
-            {titleCase(p.community_area)} · Ward {p.ward ?? "n/a"} · PIN {formatPin(p.pin)} · ZIP {p.zip ?? "n/a"} · Assessor
-            neighborhood {p.nbhd_code ?? "n/a"}
+            {region.chicago
+              ? `${titleCase(p.community_area)} · Ward ${p.ward ?? "n/a"} · PIN ${showParcelId(region, p.pin)} · ZIP ${p.zip ?? "n/a"} · Assessor neighborhood ${p.nbhd_code ?? "n/a"}`
+              : `${region.name} · ${idLabel} ${p.pin} · ZIP ${p.zip ?? "n/a"} · appraiser neighborhood ${p.nbhd_code ?? "n/a"}`}
           </span>
         </div>
         <div className="btns">
@@ -202,7 +210,7 @@ export default async function ParcelPage({ params, searchParams }: Props) {
               ? `0 units · the city's building map still shows ${p.stories} ${p.stories === 1 ? "story" : "stories"}; it may lag a demolition`
               : `${p.units_now ?? 0} unit(s)${p.stories ? ` · ${p.stories} ${p.stories === 1 ? "story" : "stories"}` : ""}`
           }
-          src={`Cook County Assessor building characteristics, summed over building cards; stories from the City of Chicago building footprints; pulled ${pulled}`}
+          src={region.chicago ? `Cook County Assessor building characteristics, summed over building cards; stories from the City of Chicago building footprints; pulled ${pulled}` : `${region.parcel_source ?? "county tax roll"}; pulled ${pulled}`}
         />
         <Fact
           label="Buildable by right"
@@ -241,8 +249,8 @@ export default async function ParcelPage({ params, searchParams }: Props) {
         <Fact
           label="Last recorded sale"
           value={lastSale ? usd(lastSale.price) : "None on file"}
-          note={lastSale ? `${lastSale.date}${lastSale.deed_type ? ` · ${lastSale.deed_type.toLowerCase()} deed` : ""}` : "No sale in the Assessor file"}
-          src={`Cook County Assessor parcel sales (wvhk-k5uv); pulled ${pulled}`}
+          note={lastSale ? `${lastSale.date}${lastSale.deed_type ? ` · ${lastSale.deed_type.toLowerCase()} deed` : ""}` : region.price_basis === "recorded sales" ? "No sale in the Assessor file" : "This state does not publish sale prices"}
+          src={region.chicago ? `Cook County Assessor parcel sales (wvhk-k5uv); pulled ${pulled}` : `${region.parcel_source ?? "county tax roll"}; pulled ${pulled}`}
         />
       </section>
 
@@ -251,8 +259,8 @@ export default async function ParcelPage({ params, searchParams }: Props) {
           <section className="card">
             <h2>What zoning allows</h2>
             <p className="sub">
-              {z?.zone_class ?? p.zone_class} · {sqft(z?.lot_sqft ?? p.lot_sqft)} lot · Chicago Zoning Ordinance, rules
-              verified 2026-10-30
+              {z?.zone_class ?? p.zone_class} · {sqft(z?.lot_sqft ?? p.lot_sqft)} lot ·{" "}
+              {region.chicago ? "Chicago Zoning Ordinance, rules verified 2026-10-30" : `${region.name} zoning rules, read 2026-11-17; check the notes for what is not confirmed`}
               {targets.length > 1 && (
                 <>
                   {" "}
@@ -348,7 +356,7 @@ export default async function ParcelPage({ params, searchParams }: Props) {
                     {sv.comp_list.slice(0, 12).map((c) => (
                       <tr key={c.pin + c.sale_date}>
                         <td className="mono">
-                          <Link href={`/parcels/${c.pin}`}>{formatPin(c.pin)}</Link>
+                          <Link href={`/parcels/${c.pin}`}>{showParcelId(region, c.pin)}</Link>
                         </td>
                         <td>{c.kind === "condo" ? "Condo unit" : "Whole building"}</td>
                         <td>{c.sale_date}</td>
@@ -373,7 +381,7 @@ export default async function ParcelPage({ params, searchParams }: Props) {
           <section className="card">
             <h2>Violation, 311 and sale history</h2>
             <div className="sub">
-              Last 25 records matched to this lot <Source>{p.sources.signals}; Cook County Assessor sales; pulled {pulled}</Source>
+              Last 25 records matched to this lot <Source>{region.chicago ? `${p.sources.signals}; Cook County Assessor sales` : (region.parcel_source ?? "county tax roll")}; pulled {pulled}</Source>
             </div>
             {history.length === 0 ? (
               <p className="muted">No violations, 311 reports, demolition notices, city land records or sales on file.</p>

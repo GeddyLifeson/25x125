@@ -180,7 +180,18 @@ function readFilters(sp: URLSearchParams): Filters {
   return f;
 }
 
-export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial: Record<string, string> }) {
+export function MapScreen({
+  areas,
+  initial,
+  bounds,
+  regionName = "Chicago",
+}: {
+  areas: CommunityArea[];
+  initial: Record<string, string>;
+  bounds?: [number, number, number, number];
+  regionName?: string;
+}) {
+  const HOME = bounds ?? CHICAGO;
   const [filters, setFilters] = useState<Filters>(() => readFilters(new URLSearchParams(initial)));
   const [lots, setLots] = useState<Lot[]>([]);
   const [more, setMore] = useState(false);
@@ -285,7 +296,7 @@ export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial:
       const map = new maplibregl.Map({
         container: mapDiv.current,
         style,
-        bounds: CHICAGO,
+        bounds: HOME,
         // The same padding as the fit below, so the first view is final and its tiles load once.
         fitBoundsOptions: { padding: 30 },
         minZoom: 9,
@@ -380,7 +391,7 @@ export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial:
     const map = mapRef.current;
     if (!map || !ready) return;
     const a = areas.find((x) => String(x.num) === filters.community_area);
-    map.fitBounds(a ? a.bounds : CHICAGO, { padding: 30, duration: 0 });
+    map.fitBounds(a ? a.bounds : HOME, { padding: 30, duration: 0 });
   }, [filters.community_area, areas, ready]);
 
   // Layer toggles.
@@ -449,7 +460,7 @@ export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial:
           <label className="fl grow">
             Area
             <select value={filters.community_area} onChange={(e) => set("community_area", e.target.value)} data-testid="area">
-              <option value="">All of Chicago</option>
+              <option value="">All of {regionName}</option>
               {areas.map((a) => (
                 <option key={a.num} value={a.num}>
                   {a.name} (community area {a.num})
@@ -536,7 +547,7 @@ export function MapScreen({ areas, initial }: { areas: CommunityArea[]; initial:
           <div className="rhead">
             <span>
               <b data-testid="count">{loading && lots.length === 0 ? "Loading" : `${lots.length}${more ? "+" : ""} parcels`}</b>
-              <span className="small muted"> {areaName ? `in ${areaName}` : "in Chicago"}</span>
+              <span className="small muted"> {areaName ? `in ${areaName}` : `in ${regionName}`}</span>
             </span>
             <a className="small" href={`/api/lots?${lotsQuery(filters, 0, "csv")}`} data-testid="csv">
               CSV

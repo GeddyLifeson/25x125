@@ -123,3 +123,77 @@ def test_rules_json_layers(tmp_path, monkeypatch):
     assert region.rules_json("f.json", "chicago") == {"a": {"x": 1, "y": 2}, "b": 1}
     out = region.rules_json("f.json", "z")
     assert out["a"] == {"x": 1, "y": 3} and out["b"] == 9
+
+
+def test_arcgis_parcel_rows():
+    from jobs import load_arcgis_parcels as lap
+
+    layer = {"tax_year": 2026, "use_groups": {"A1": "single", "B": "multi", "C1": "vacant"}, "units_by_use": {"B2": 2},
+             "fields": {"id": "TAX_ID", "address": "ADDR", "zip": "ZIP", "use_code": "CLS", "market_value": "MKT",
+                        "land_value": "LAND", "year_built": "YR", "living_sqft": "SQFT", "land_acres": "AC"}}  # fmt: skip
+    square = {"type": "Polygon", "coordinates": [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]}
+    page = [
+        {"properties": {"TAX_ID": "001", "ADDR": "12 main st", "ZIP": "77002", "CLS": "B2", "MKT": 500000.0,
+                        "LAND": 90000, "YR": "2021", "SQFT": "2400", "AC": 0.1}, "geometry": square},
+        {"properties": {"TAX_ID": 2.0, "ADDR": "14 MAIN ST", "CLS": "C1", "MKT": 80000, "LAND": 80000}, "geometry": None},
+        {"properties": {"TAX_ID": None}, "geometry": square},
+    ]  # fmt: skip
+    rows = lap.rows_of(page, layer, {"id": "houston"}, 7)
+    assert [p[0] for p in rows["parcel"]] == ["001", "2"]
+    assert rows["parcel"][0][9] == "multi" and rows["parcel"][1][9] == "vacant"
+    assert rows["building"] == [("001", "001", 2026, 1, "B2", 2, 2400, 4356, 2021, 7)]
+    assert rows["value"][0][6:8] == (500000.0, 90000.0) and len(rows["shape"]) == 1
+    assert lap.group_for("a3", {"A": "single", "A3": "condo"}) == "condo"
+    units = {**layer, "use_from_units": True, "fields": {**layer["fields"], "units": "U"}}
+    out = lap.rows_of([{"properties": {"TAX_ID": "9", "CLS": "R3", "U": 0}, "geometry": None},
+                       {"properties": {"TAX_ID": "8", "CLS": "R3", "U": 3}, "geometry": None},
+                       {"properties": {"TAX_ID": "7", "CLS": "C4", "U": 0}, "geometry": None}], units, {"id": "atlanta"}, 1)  # fmt: skip
+    assert [p[9] for p in out["parcel"]] == ["vacant", "multi", "other"]
+
+
+def test_dcad_files(tmp_path):
+    from jobs import load_dcad
+
+    files = {
+        "ACCOUNT_APPRL_YEAR.CSV": 'ACCOUNT_NUM,APPRAISAL_YR,LAND_VAL,TOT_VAL,CITY_JURIS_DESC,SPTD_CODE\n'
+                                  '"A1","2026","50000.00","400000.00","DALLAS","A11"\n"A2","2026","1","2","IRVING","A11"\n',
+        "ACCOUNT_INFO.CSV": "ACCOUNT_NUM,STREET_NUM,FULL_STREET_NAME,UNIT_ID,PROPERTY_ZIPCODE,NBHD_CD\n"
+                            '"A1","12","elm st","","752011234","1DSA"\n',
+        "RES_DETAIL.CSV": "ACCOUNT_NUM,YR_BUILT,TOT_LIVING_AREA_SF,NUM_UNITS\n"
+                          '"A1","2020","1500","1"\n"A1","2022","600","1"\n',
+        "LAND.CSV": 'ACCOUNT_NUM,AREA_SIZE,AREA_UOM_DESC\n"A1","7000.000","SQUARE FEET"\n"A1","0.1","ACRE"\n',
+    }  # fmt: skip
+    for name, body in files.items():
+        (tmp_path / name).write_text(body)
+    acct = load_dcad.read(tmp_path, {"DALLAS"})
+    assert list(acct) == ["A1"]
+    a = acct["A1"]
+    assert (a["market"], a["land"], a["living"], a["units"], a["built"]) == (400000.0, 50000.0, 2100, 2, 2022)
+    assert a["address"] == "12 ELM ST" and a["zip"] == "75201" and round(a["land_sqft"]) == 11356
+
+
+def test_tcad_fixed_width_row():
+    from jobs import load_tcad
+
+    line = [" "] * 5000
+
+    def put(start, text):
+        line[start - 1 : start - 1 + len(text)] = text
+
+    put(1, "000000100022")
+    put(13, "R")
+    put(18, "02026")
+    put(1050, "LAMAR")
+    put(1100, "BLVD")
+    put(1140, "78704")
+    put(1686, "SC")
+    put(1811, "000000001687500")
+    put(2732, "A1")
+    put(4214, "00000001703397")
+    put(4460, "1105")
+    pid, row = load_tcad.prop_row("".join(line))
+    assert pid == "100022" and row["year"] == 2026 and row["use"] == "A1"
+    assert row["market"] == 1703397.0 and row["land"] == 1687500.0
+    assert row["address"] == "1105 LAMAR BLVD" and row["zip"] == "78704" and row["nbhd"] == "SC"
+    put(13, "P")
+    assert load_tcad.prop_row("".join(line)) is None

@@ -1,0 +1,22 @@
+district,frontage_from_ft,frontage_to_ft,ground_floor_commercial,max_height_ft,section,source_url,verified_on
+R-1AA,0,,any,30,"LDC Ch. 58 Fig. 1 (FG-1A.LDC), Max. Bldg. Height; 30 ft inside Traditional City (/T), 35 ft outside; the lower figure is used",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+R-1A,0,,any,30,"LDC Ch. 58 Fig. 1 (FG-1A.LDC), Max. Bldg. Height; 30 ft inside Traditional City (/T), 35 ft outside; the lower figure is used",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+R-1,0,,any,30,"LDC Ch. 58 Fig. 1 (FG-1A.LDC), Max. Bldg. Height; 30 ft inside Traditional City (/T), 35 ft outside; the lower figure is used",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+R-1N,0,,any,30,"LDC Ch. 58 Fig. 1 (FG-1A.LDC), Max. Bldg. Height; 30 ft inside Traditional City (/T), 35 ft outside; the lower figure is used",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+R-2A,0,,any,30,"LDC Ch. 58 Fig. 1 (FG-1A.LDC), Max. Bldg. Height; 30 ft inside Traditional City (/T), 35 ft outside; the lower figure is used",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+R-2B,0,,any,30,"LDC Ch. 58 Fig. 1 (FG-1A.LDC; Sec. 58.562.B), Max. Bldg. Height; 30 ft inside Traditional City (/T), 35 ft outside; the lower figure is used; multiplex (3-8 units) limited to district height or 3 stories, whichever is less (Sec. 58.562.I)",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+R-3A,0,,any,35,"LDC Ch. 58 Fig. 1 (FG-1A.LDC), Max. Bldg. Height; multiplex (3-8 units) limited to district height or 3 stories, whichever is less (Sec. 58.562.I)",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+R-3B,0,,any,40,"LDC Ch. 58 Fig. 1 (FG-1A.LDC), Max. Bldg. Height; multiplex (3-8 units) limited to district height or 3 stories, whichever is less (Sec. 58.562.I)",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+R-3C,0,,any,45,"LDC Ch. 58 Fig. 1 (FG-1A.LDC), Max. Bldg. Height",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+R-3D,0,,any,55,"LDC Ch. 58 Fig. 1 (FG-1A.LDC), Max. Bldg. Height",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+MXD-1,0,,any,35,"LDC Ch. 58 Fig. 1 (FG-1B.LDC), Max. Bldg. Height",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+MXD-2,0,,any,55,"LDC Ch. 58 Fig. 1 (FG-1B.LDC), Max. Bldg. Height; 55 ft, or 40 ft for a 100% office building",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+O-1,0,,any,30,"LDC Ch. 58 Fig. 1 (FG-1B.LDC), Max. Bldg. Height; 30 ft inside Traditional City (/T), 35 ft outside; the lower figure is used; multiplex (3-8 units) limited to district height or 3 stories, whichever is less (Sec. 58.562.I)",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+O-2,0,,any,75,"LDC Ch. 58 Fig. 1 (FG-1B.LDC), Max. Bldg. Height; multiplex (3-8 units) limited to district height or 3 stories, whichever is less (Sec. 58.562.I)",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+O-3,0,,any,75,"LDC Ch. 58 Fig. 1 (FG-1B.LDC), Max. Bldg. Height",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+MU-1,0,,any,35,"LDC Ch. 58 Fig. 1 (FG-1B.LDC), Max. Bldg. Height",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+MU-2,0,,any,100,"LDC Ch. 58 Fig. 1 (FG-1B.LDC), Max. Bldg. Height",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+AC-N,0,,any,35,"LDC Ch. 58 Fig. 1 (FG-1C.LDC), Max. Bldg. Height",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+AC-1,0,,any,75,"LDC Ch. 58 Fig. 1 (FG-1C.LDC), Max. Bldg. Height",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+AC-2,0,,any,100,"LDC Ch. 58 Fig. 1 (FG-1C.LDC), Max. Bldg. Height",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17
+AC-3,0,,any,200,"LDC Ch. 58 Fig. 1 (FG-1C.LDC), Max. Bldg. Height",https://www.zoneomics.com/code/orlando-FL/chapter_1,2026-11-17

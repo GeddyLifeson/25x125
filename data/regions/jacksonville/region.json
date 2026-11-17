@@ -1,0 +1,153 @@
+{
+  "id": "jacksonville",
+  "name": "Jacksonville",
+  "state": "FL",
+  "counties": [
+    {
+      "id": "duval",
+      "name": "Duval",
+      "fips": "12031",
+      "dor_county_no": 26,
+      "dor_name": "Duval",
+      "shape_name": "duval",
+      "shape_epsg": 2881,
+      "tax_auth_prefixes": [
+        "GS",
+        "USD1"
+      ]
+    }
+  ],
+  "city_filter": {
+    "field": "PHY_CITY",
+    "values": [
+      "JACKSONVILLE"
+    ]
+  },
+  "center": {
+    "lat": 30.33,
+    "lon": -81.66,
+    "zoom": 10
+  },
+  "fhfa_metro": "27260",
+  "parcel_id_label": "RE number",
+  "price_basis": "recorded sales",
+  "zoning_layer": {
+    "url": "https://maps.coj.net/coj/rest/services/CityBiz/Parcels/MapServer/0",
+    "zone_field": "ZON_LABEL",
+    "tested_on": "2026-11-17",
+    "note": "City of Jacksonville 'Duval County Parcels' map service (CityBiz/Parcels). It is a parcel layer, 409,714 rows, with the zoning code on each parcel in ZON_LABEL and the RE number in RE. No token needed. Max 2,000 records per request. The city's zoning polygon services (BaseLine, DuvalMaps folders) need a token, so this parcel layer is the free source. 48 distinct ZON_LABEL values on 2026-11-17, including RLD100A and RLD100B (no hyphen), RR-Acre, PUD and a blank."
+  },
+  "overlay_layers": [
+    {
+      "kind": "flood",
+      "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28",
+      "name_field": "FLD_ZONE",
+      "note": "FEMA National Flood Hazard Layer, flood hazard zones. Duval is DFIRM_ID 12031C. Tested with a point query. The server dropped 2 of 4 requests during testing; retry on failure."
+    },
+    {
+      "kind": "flood",
+      "url": "https://maps.coj.net/coj/rest/services/CityBiz/Parcels/MapServer/0",
+      "name_field": "FLD_ZONE",
+      "note": "Same city parcel layer. FLD_ZONE lists every FEMA zone touching the parcel, comma separated."
+    },
+    {
+      "kind": "historic",
+      "url": "https://mapservices.nps.gov/arcgis/rest/services/cultural_resources/nrhp_locations/MapServer/1",
+      "name_field": "RESNAME",
+      "note": "National Park Service, National Register of Historic Places polygons. Tested: returns Riverside, Avondale, Springfield, Old Ortega, Durkee Gardens, Eastside and Downtown Jacksonville districts. These are National Register boundaries; the city's local historic district boundaries were not found as a free layer."
+    },
+    {
+      "kind": "airport_military",
+      "url": "https://maps.coj.net/coj/rest/services/CityBiz/Parcels/MapServer/0",
+      "name_field": "APZ",
+      "note": "Same city parcel layer. Fields APZ, AICUZ, CVLSCHZ, MLTSCHZ and the notice fields mark airport and military zones (Part 10 of the Zoning Code). Field meanings not confirmed."
+    }
+  ],
+  "permit_source": {
+    "kind": "none",
+    "url": "https://jaxepics.coj.net/",
+    "note": "Jacksonville issues permits through JaxEPICS. It has search screens and daily, monthly and annual statistical reports, but no bulk download or documented public API was found. Its API host returned 403 and its report server could not be reached on 2026-11-17. Older data is by records request only, which is out of scope. Fallback for new construction: year built in the Florida DOR parcel roll."
+  },
+  "disclaimer": "Estimates, not tax, legal, zoning or appraisal advice.",
+  "sources": [
+    {
+      "what": "zoning code, Chapter 656 Part 3 (district regulations), text read from a mirror of the Municode code",
+      "url": "https://www.zoneomics.com/code/jacksonville-FL/chapter_3",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "zoning code, Chapter 656 Part 4 (accessory dwelling units Sec. 656.403, townhouses Sec. 656.414)",
+      "url": "https://www.zoneomics.com/code/jacksonville-FL/chapter_4",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "zoning code, Chapter 656 Part 6 (parking, Sec. 656.604)",
+      "url": "https://www.zoneomics.com/code/jacksonville-FL/chapter_6",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "zoning code, Chapter 656 Part 16 (definitions)",
+      "url": "https://www.zoneomics.com/code/jacksonville-FL/chapter_16",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "official code on Municode (blocks automated requests; not read directly)",
+      "url": "https://library.municode.com/fl/jacksonville/codes/code_of_ordinances?nodeId=TITXVIILAUS_CH656ZOCO",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "city zoning district summary for RLD districts, dated 01.31.2022 (cross-check)",
+      "url": "https://www.jacksonville.gov/getattachment/Departments/Planning-and-Development/Current-Planning-Division/Zoning-District-Summaries/RLDs.pdf.aspx?lang=en-US",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "city zoning district summary for RMD districts, dated 01.31.2022 (older densities; superseded)",
+      "url": "https://www.jacksonville.gov/getattachment/Departments/Planning-and-Development/Current-Planning-Division/Zoning-District-Summaries/RMDs.pdf.aspx?lang=en-US",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "city parcel layer with zoning",
+      "url": "https://maps.coj.net/coj/rest/services/CityBiz/Parcels/MapServer/0",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Florida Live Local Act, s. 166.04151(7)",
+      "url": "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0100-0199/0166/Sections/0166.04151.html",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "missing-middle bills 2024-0868 and 2024-0869 withdrawn 2025-04-08",
+      "url": "https://www.jaxdailyrecord.com/news/2025/apr/08/council-takes-final-action-to-sink-missing-middle-housing-measures/",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Ordinance 2026-0311 (target growth areas), status as of 2026-06-16",
+      "url": "https://jaxdailyrecord.com/news/2026/jun/16/jacksonville-city-council-committee-endorses-legislation-to-encourage-density-affordable-housing/",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "building permit reports page",
+      "url": "https://www.jacksonville.gov/departments/public-works/building-inspection-division/statistical-reports-and-daily-permits-issued",
+      "checked_on": "2026-11-17"
+    }
+  ],
+  "roll": "2026F",
+  "min_units": 1,
+  "parcel_loader": "fl_dor",
+  "parcel_source": "Florida Department of Revenue Duval County tax roll (NAL 2026 final) and parcel map",
+  "value_source": "Duval County Property Appraiser just value, 2026 final tax roll (Florida Department of Revenue NAL file)",
+  "comps": {
+    "built_since": 2014,
+    "price_floor_per_unit": 100000,
+    "qualified_codes": [
+      "01",
+      "02"
+    ],
+    "land_qualified_codes": [
+      "01",
+      "02",
+      "03"
+    ],
+    "source": "Florida Department of Revenue Duval County tax roll: first qualified sale (codes 01, 02) of 1-6 unit buildings built 2014 or later; the roll carries each parcel's two latest sales, January 2025 on"
+  }
+}

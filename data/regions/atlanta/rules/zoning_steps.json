@@ -1,0 +1,246 @@
+{
+  "verified_on": "2026-11-17",
+  "steps": [
+    {
+      "id": "adu",
+      "rule": "+1 detached accessory dwelling unit in R-4, R-4A and R-5, where the lot ends up with no more than 2 dwelling units in total (so not on an R-5 lot that already holds a duplex or two-family building). Floor area 750 sq ft or less. Height 20 ft. The accessory building may not cover more than 25% of the rear yard or hold more than 30% of the main house's floor area. No parking is required for the ADU. In R-5 the ADU's floor area counts toward the lot's floor area ratio, side and rear yards for the ADU are 4 ft, and an ADU cannot be split off onto its own lot. Not allowed in R-1 to R-3A or R-4B. No owner-occupancy rule for a long-term rental; the owner must live on site to use the ADU as a short-term rental.",
+      "params": {
+        "units": 1,
+        "by_district": [
+          "R-4",
+          "R-4A",
+          "R-5"
+        ],
+        "max_sqft": 750,
+        "max_height_ft": 20,
+        "detached_only": true,
+        "max_total_units_on_lot": 2,
+        "max_share_of_main_floor_area": 0.3,
+        "max_rear_yard_coverage": 0.25,
+        "parking_spaces": 0,
+        "owner_occupancy": false,
+        "approval": "permit only"
+      },
+      "section": "Sec. 16-06.004(12), 16-06.010(6); 16-06A.004(11), 16-06A.010(6); 16-07.004(12), 16-07.007(3), 16-07.008(2),(3),(5), 16-07.010; 16-28.004(3); 16-29.001 (Dwelling: Accessory; Short-term rental)",
+      "source_url": "https://www.zoneomics.com/code/atlanta-GA/chapter_90",
+      "sources": [
+        "https://www.zoneomics.com/code/atlanta-GA/chapter_9",
+        "https://www.zoneomics.com/code/atlanta-GA/chapter_10",
+        "https://www.zoneomics.com/code/atlanta-GA/chapter_13",
+        "https://www.zoneomics.com/code/atlanta-GA/chapter_87",
+        "https://www.zoneomics.com/code/atlanta-GA/chapter_90"
+      ]
+    },
+    {
+      "id": "parking",
+      "rule": "R-1 to R-3A: 2 spaces per house. R-4, R-4A, R-4B: 1 space per house. R-5: 1 space per dwelling; in a two-family building where both units are over 750 sq ft, add 1 space for each bedroom above three. RG, R-LC, MR and MRC: spaces per unit come from Table I (Land Use Intensity Ratios) and fall as FAR rises; the figures here are the Table I value at each district's maximum residential FAR, so a project built below the maximum FAR needs more (up to 2.2 per unit at FAR 0.10). Accessory dwelling units: none. Any lot within 2,640 ft of a high-capacity transit stop needs no parking (except in the Buckhead Parking Overlay, SPI districts and historic or landmark districts with parking maximums) and has maximums of 1.25 spaces per one-bedroom unit and 2 per larger unit outside R-1 to R-5. Buildings built before 1965: no parking required for residential uses.",
+      "params": {
+        "spaces_per_unit": {
+          "default": 1,
+          "R-1": 2,
+          "R-2": 2,
+          "R-2A": 2,
+          "R-2B": 2,
+          "R-3": 2,
+          "R-3A": 2,
+          "R-4": 1,
+          "R-4A": 1,
+          "R-4B": 1,
+          "R-5": 1,
+          "RG-1": 1.8,
+          "RG-2": 1.3,
+          "RG-3": 0.99,
+          "RG-4": 0.73,
+          "RG-5": 0.54,
+          "R-LC": 1.3,
+          "MR-1": 1.8,
+          "MR-2": 1.3,
+          "MR-3": 0.99,
+          "MR-4A": 0.73,
+          "MR-4B": 0.73,
+          "MRC-1": 0.99,
+          "MRC-2": 0.73,
+          "MRC-3": 0.54
+        },
+        "transit_exemption": {
+          "distance_ft": 2640,
+          "min_spaces": 0,
+          "max_spaces_one_bedroom": 1.25,
+          "max_spaces_two_plus_bedroom": 2.0,
+          "stops_layer": "https://gis.atlantaga.gov/dpcd/rest/services/OpenDataService1/MapServer/28"
+        }
+      },
+      "section": "Sec. 16-03.010 to 16-05A.010 (2 per dwelling); 16-06.010(1), 16-06A.010(1), 16-06B.010(1); 16-07.010(1)-(2); 16-08.010(4) and Table I; 16-09 (sector 2 of Table I); 16-35.021(5); 16-34.021; 16-28.014 (pre-1965 buildings; (14) high capacity transit)",
+      "source_url": "https://www.zoneomics.com/code/atlanta-GA/chapter_14",
+      "sources": [
+        "https://www.zoneomics.com/code/atlanta-GA/chapter_3",
+        "https://www.zoneomics.com/code/atlanta-GA/chapter_9",
+        "https://www.zoneomics.com/code/atlanta-GA/chapter_13",
+        "https://www.zoneomics.com/code/atlanta-GA/chapter_14",
+        "https://www.zoneomics.com/code/atlanta-GA/chapter_110",
+        "https://www.zoneomics.com/code/atlanta-GA/chapter_109",
+        "https://www.zoneomics.com/code/atlanta-GA/chapter_87"
+      ]
+    },
+    {
+      "id": "rezoning",
+      "rule": "Rezoning to a district with smaller lots or more floor area. The application goes to the Neighborhood Planning Unit, then a public hearing at the Zoning Review Board, then City Council decides by ordinance. The targets listed are a judgment about what a small developer would ask for; the code does not rank them. A rezoning should fit the parcel's future land use designation in the Comprehensive Development Plan, or the land use map must be amended too. Many rezonings are approved with conditions (the -C suffix on the zoning map). RG, MR and MRC targets have no lot area per unit in the code, so the engine cannot count units for them yet.",
+      "approval": "rezoning (City Council, after NPU review and a Zoning Review Board hearing)",
+      "section": "Part 16 Chapter 27 (Sec. 16-27.001 to 16-27.014; 16-27.006 Zoning Review Board hearing; 16-27.010 actions by council)",
+      "source_url": "https://www.zoneomics.com/code/atlanta-GA/chapter_86",
+      "targets": {
+        "R-1": [
+          "R-2"
+        ],
+        "R-2": [
+          "R-2A",
+          "R-3"
+        ],
+        "R-2A": [
+          "R-3"
+        ],
+        "R-2B": [
+          "R-3"
+        ],
+        "R-3": [
+          "R-3A",
+          "R-4"
+        ],
+        "R-3A": [
+          "R-4"
+        ],
+        "R-4": [
+          "R-4A",
+          "R-5",
+          "R-4B",
+          "MR-1",
+          "MR-2"
+        ],
+        "R-4A": [
+          "R-5",
+          "R-4B",
+          "MR-2",
+          "RG-2"
+        ],
+        "R-4B": [
+          "R-5",
+          "MR-2",
+          "MR-3"
+        ],
+        "R-5": [
+          "RG-2",
+          "MR-2",
+          "MR-3",
+          "RG-3"
+        ],
+        "RG-1": [
+          "RG-2",
+          "MR-2"
+        ],
+        "RG-2": [
+          "RG-3",
+          "MR-3"
+        ],
+        "RG-3": [
+          "RG-4",
+          "MR-4A",
+          "MRC-1"
+        ],
+        "RG-4": [
+          "RG-5",
+          "MRC-2"
+        ],
+        "R-LC": [
+          "MR-3",
+          "MRC-1"
+        ],
+        "MR-1": [
+          "MR-2"
+        ],
+        "MR-2": [
+          "MR-3"
+        ],
+        "MR-3": [
+          "MR-4A",
+          "MR-4B",
+          "MRC-1"
+        ],
+        "MR-4A": [
+          "MRC-2"
+        ],
+        "MR-4B": [
+          "MRC-2"
+        ],
+        "MRC-1": [
+          "MRC-2"
+        ],
+        "MRC-2": [
+          "MRC-3"
+        ]
+      }
+    },
+    {
+      "id": "flags",
+      "rule": "local conditions to flag",
+      "items": [
+        {
+          "id": "beltline_inclusionary",
+          "text": "BeltLine Overlay: a project with 10 or more new rental units at one location must set aside 15% of units at 80% of area median income or 10% at 60%, for at least 20 years, or pay the in-lieu fee (16-36A.007). For-sale units and projects under 10 rental units are not covered. The overlay's other rules (special administrative permit before a building permit, design rules) do not apply to existing lots of record zoned R-1 to R-5 that are not next to the BeltLine corridor (16-36.001).",
+          "section": "Sec. 16-36A.001, 16-36A.004, 16-36A.007 (Ord. 2017-72); 16-36.001, 16-36.004",
+          "source_url": "https://www.zoneomics.com/code/atlanta-GA/chapter_112",
+          "layer": "https://gis.atlantaga.gov/dpcd/rest/services/LandUsePlanning/LandUsePlanning/MapServer/2"
+        },
+        {
+          "id": "westside_inclusionary",
+          "text": "Westside Affordable Workforce Housing Overlay (English Avenue, Vine City, Ashview Heights, Atlanta University Center area): same rule as the BeltLine, 10 or more new rental units must set aside 15% at 80% AMI or 10% at 60% AMI for at least 20 years. Publicly subsidized projects follow City Code Sec. 54-1(c) instead.",
+          "section": "Sec. 16-37.001, 16-37.004 (Ord. 2017-73)",
+          "source_url": "https://www.zoneomics.com/code/atlanta-GA/chapter_113",
+          "layer": "https://gis.atlantaga.gov/dpcd/rest/services/LandUsePlanning/LandUsePlanning/MapServer/2"
+        },
+        {
+          "id": "spi_and_overlays",
+          "text": "SPI districts (SPI-1 to SPI-26), Neighborhood Commercial (NC), Planned Development (PD), Live Work, O-I and C districts are not covered. Overlays on the zoning overlay layer (BeltLine, Upper Westside, Campbellton Road, Marietta Street, Intown South, NW Atlanta workforce housing, parking overlays) add rules on top of the base district that are not modeled.",
+          "source_url": "https://gis.atlantaga.gov/dpcd/rest/services/LandUsePlanning/LandUsePlanning/MapServer/1"
+        },
+        {
+          "id": "conditional_zoning",
+          "text": "A zoning code ending in -C was rezoned with conditions (site plan, unit count, use limits). The conditions are in the rezoning ordinance, not in this table; read the ordinance before relying on the base district numbers.",
+          "source_url": "https://gis.atlantaga.gov/dpcd/rest/services/LandUsePlanning/LandUsePlanning/MapServer/0"
+        },
+        {
+          "id": "historic",
+          "text": "Historic and landmark districts (Part 16 Chapter 20: Grant Park, Inman Park, West End, Adair Park, Cabbagetown, Collier Heights, Poncey-Highland and others) have their own chapter of rules on top of or in place of the base district. Those rules were not read and are not modeled; check the district chapter before relying on these numbers.",
+          "section": "Part 16 Chapter 20",
+          "source_url": "https://gis.atlantaga.gov/dpcd/rest/services/LandUsePlanning/LandUsePlanning/MapServer/6"
+        },
+        {
+          "id": "flood",
+          "text": "Check the FEMA flood hazard zone. Building in a special flood hazard area needs added elevation and review.",
+          "source_url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28"
+        },
+        {
+          "id": "r5_lot_of_record",
+          "text": "R-5: a lot of record smaller than 7,500 sq ft or narrower than 50 ft may still hold a single-family, two-family or duplex building. The unit count shown for such a lot (1) can understate what is allowed; confirm the lot of record status with the Office of Zoning and Development.",
+          "section": "Sec. 16-07.007(4)",
+          "source_url": "https://www.zoneomics.com/code/atlanta-GA/chapter_13"
+        },
+        {
+          "id": "small_lot_floor_area",
+          "text": "R-4A and R-5 lots under 7,500 sq ft: floor area is the lesser of 3,750 sq ft or FAR 0.65. R-4B lots under 2,800 sq ft: the lesser of 2,100 sq ft or FAR 0.90. The floor area shown uses the standard FAR and can understate these lots.",
+          "section": "Sec. 16-06A.008(5)b; 16-06B.008(5)b; 16-07.008(5)b",
+          "source_url": "https://www.zoneomics.com/code/atlanta-GA/chapter_10"
+        },
+        {
+          "id": "far_only_districts",
+          "text": "RG, R-LC, MR and MRC districts limit floor area, not units per lot. The unit count depends on unit size, open space ratios and parking.",
+          "section": "Sec. 16-08.007(3) Table I; 16-35.010; 16-34.010",
+          "source_url": "https://www.zoneomics.com/code/atlanta-GA/chapter_14"
+        },
+        {
+          "id": "zoning_rewrite",
+          "text": "These rules are the current Part 16 zoning ordinance. The city's rewrite (ATL Zoning 2.0) was not adopted as of 2026-11-17 and is not reflected here."
+        }
+      ]
+    }
+  ]
+}

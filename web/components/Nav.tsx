@@ -4,9 +4,9 @@ import { usePathname } from "next/navigation";
 
 export type NavAccount = { email: string; plan: string; isAdmin?: boolean; local?: boolean } | null;
 
-export function Nav({ account }: { account?: NavAccount }) {
+export function Nav({ account, regionName = "Chicago" }: { account?: NavAccount; regionName?: string }) {
   const path = usePathname() ?? "/";
-  const m = path.match(/^\/parcels\/(\d+)/);
+  const m = path.match(/^\/parcels\/([^/]+)/);
   const pin = m?.[1];
   const onFeas = path.endsWith("/feasibility");
   const onSearch = path === "/" || path === "/map" || path === "/search";
@@ -14,7 +14,7 @@ export function Nav({ account }: { account?: NavAccount }) {
     <header className="top">
       <Link href="/" className="brand">
         <b>25x125</b>
-        <span>Chicago development pipeline</span>
+        <span>{regionName} development pipeline</span>
       </Link>
       <nav aria-label="Screens">
         <Link href="/" className={onSearch ? "on" : undefined}>

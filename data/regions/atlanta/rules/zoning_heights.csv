@@ -1,0 +1,20 @@
+district,frontage_from_ft,frontage_to_ft,ground_floor_commercial,max_height_ft,section,source_url,verified_on
+R-1,0,,any,35,Sec. 16-03.009,https://www.zoneomics.com/code/atlanta-GA/chapter_3,2026-11-17
+R-2,0,,any,35,Sec. 16-04.009,https://www.zoneomics.com/code/atlanta-GA/chapter_4,2026-11-17
+R-2A,0,,any,35,Sec. 16-04A.009,https://www.zoneomics.com/code/atlanta-GA/chapter_5,2026-11-17
+R-2B,0,,any,35,Sec. 16-04B.009,https://www.zoneomics.com/code/atlanta-GA/chapter_6,2026-11-17
+R-3,0,,any,35,Sec. 16-05.009,https://www.zoneomics.com/code/atlanta-GA/chapter_7,2026-11-17
+R-3A,0,,any,35,Sec. 16-05A.009,https://www.zoneomics.com/code/atlanta-GA/chapter_8,2026-11-17
+R-4,0,,any,35,"Sec. 16-06.009; accessory buildings, including accessory dwelling units, 20 ft (16-28.004(3))",https://www.zoneomics.com/code/atlanta-GA/chapter_9,2026-11-17
+R-4A,0,,any,35,"Sec. 16-06A.009; accessory buildings, including accessory dwelling units, 20 ft (16-28.004(3))",https://www.zoneomics.com/code/atlanta-GA/chapter_10,2026-11-17
+R-4B,0,,any,35,Sec. 16-06B.009,https://www.zoneomics.com/code/atlanta-GA/chapter_11,2026-11-17
+R-5,0,,any,35,"Sec. 16-07.009; accessory buildings, including accessory dwelling units, 20 ft (16-28.004(3))",https://www.zoneomics.com/code/atlanta-GA/chapter_13,2026-11-17
+R-LC,0,,any,35,Sec. 16-09.010,https://www.zoneomics.com/code/atlanta-GA/chapter_15,2026-11-17
+MR-1,0,,any,35,Sec. 16-35.011(1)a,https://www.zoneomics.com/code/atlanta-GA/chapter_110,2026-11-17
+MR-2,0,,any,35,Sec. 16-35.011(1)a,https://www.zoneomics.com/code/atlanta-GA/chapter_110,2026-11-17
+MR-3,0,,any,80,Sec. 16-35.011(1)b,https://www.zoneomics.com/code/atlanta-GA/chapter_110,2026-11-17
+MR-4A,0,,any,80,Sec. 16-35.011(1)b,https://www.zoneomics.com/code/atlanta-GA/chapter_110,2026-11-17
+MR-4B,0,,any,52,Sec. 16-35.011(1)c,https://www.zoneomics.com/code/atlanta-GA/chapter_110,2026-11-17
+MRC-1,0,,any,35,"Sec. 16-34.026(2)b: 35 ft within 150 ft of an R-1 to R-5, RG-1, RG-2, MR-1, MR-2 or PD-H district; 52 ft from 150 to 300 ft away; 225 ft beyond 300 ft. The lowest tier is recorded here. Minimum facade height 24 ft.",https://www.zoneomics.com/code/atlanta-GA/chapter_109,2026-11-17
+MRC-2,0,,any,52,"Sec. 16-34.027(2)b: 52 ft within 150 ft of an R-1 to R-5, RG-1, RG-2, MR-1, MR-2 or PD-H district; 225 ft beyond 150 ft. The lower tier is recorded here. Minimum facade height 24 ft.",https://www.zoneomics.com/code/atlanta-GA/chapter_109,2026-11-17
+MRC-3,0,,any,225,Sec. 16-34.028(2)b (as amended by Ord. 2025-15). Minimum facade height 24 ft.,https://www.zoneomics.com/code/atlanta-GA/chapter_109,2026-11-17

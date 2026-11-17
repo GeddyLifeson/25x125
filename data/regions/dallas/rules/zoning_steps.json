@@ -1,0 +1,288 @@
+{
+  "verified_on": "2026-11-17",
+  "source": "City of Dallas zoning district pages (dallascityhall.com), adopted ordinances from the City Secretary, city SB 840 and SB 15 information sheets. The American Legal code library blocked automated reading on 2026-11-17; see notes.md.",
+  "district_tables": {
+    "districts": "data/regions/dallas/rules/zoning_districts.csv",
+    "heights": "data/regions/dallas/rules/zoning_heights.csv"
+  },
+  "steps": [
+    {
+      "id": "units_by_right",
+      "rule": "floor(lot_area / lot_area_per_unit), capped at max_units; a lot under the district minimum gets one house if it is a lot of record",
+      "section": "Div. 51A-4.110 and 51A-4.120 (district yard, lot and space regulations)",
+      "source_url": "https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/zoning-districts.aspx"
+    },
+    {
+      "id": "adu",
+      "rule": "+1 accessory dwelling unit on a lot with a single family use. Not by right. Two routes: (1) the lot is inside an Accessory Dwelling Unit Overlay, which a neighborhood creates by petition (more than 50% of owners) and City Council vote; (2) a Board of Adjustment special exception, available in any district. Overlay rules: detached unit 200 sq ft minimum, maximum the greater of 700 sq ft or 25% of the main structure; one story; not in front of the main structure; no separate sale; 1 parking space, none within 1,200 ft of a DART stop. Both routes: the owner must live on the lot if a unit is rented, and the rental must be registered with the city. A non-rentable 'additional dwelling unit' is also possible by special exception with a deed restriction.",
+      "params": {
+        "units": 1,
+        "by_district": [
+          "R-1ac(A)",
+          "R-1/2ac(A)",
+          "R-16(A)",
+          "R-13(A)",
+          "R-10(A)",
+          "R-7.5(A)",
+          "R-5(A)",
+          "D(A)",
+          "TH-1(A)",
+          "TH-2(A)",
+          "TH-3(A)"
+        ],
+        "max_sqft": 700,
+        "max_sqft_note": "greater of 700 sq ft or 25% of the main structure (overlay route)",
+        "min_sqft_detached": 200,
+        "owner_occupancy": true,
+        "approval": "Board of Adjustment special exception, or permit only inside an ADU overlay",
+        "parking_spaces": 1,
+        "parking_exempt_within_ft_of_dart_stop": 1200,
+        "max_stories": 1
+      },
+      "section": "Sec. 51A-4.510 (overlay, Ord. 30931); Sec. 51A-4.209(b)(6)(E) (special exception, Ord. 30930); both passed 2018-06-27",
+      "source_url": "https://dallascityhall.com/departments/sustainabledevelopment/planning/DCH%20Documents/code%20amendments/ADUs/30931_ADU%20overlay.pdf",
+      "sources": [
+        "https://dallascityhall.com/departments/sustainabledevelopment/planning/DCH%20Documents/code%20amendments/ADUs/30931_ADU%20overlay.pdf",
+        "https://dallascityhall.com/departments/sustainabledevelopment/planning/DCH%20Documents/code%20amendments/ADUs/30930_BDA_ADU_Ord.PDF",
+        "https://dallascityhall.com/departments/pnv/Pages/Accessory_Dwelling_Units.aspx"
+      ]
+    },
+    {
+      "id": "parking",
+      "rule": "After the May 14, 2025 parking ordinance: single family, 1 space per unit in R, D and TH districts, none elsewhere. Duplex, 1 space per unit in D and TH districts, none elsewhere. Multifamily: none for 20 units or fewer; 0.5 per unit for 21 to 199 units; 1 per unit for 200 or more. No parking is required for any use on a lot within 2,640 ft of a light rail or streetcar station, in a central area district, or in a local historic district or on a landmark.",
+      "params": {
+        "spaces_per_unit": {
+          "default": 0,
+          "R-1ac(A)": 1,
+          "R-1/2ac(A)": 1,
+          "R-16(A)": 1,
+          "R-13(A)": 1,
+          "R-10(A)": 1,
+          "R-7.5(A)": 1,
+          "R-5(A)": 1,
+          "D(A)": 1,
+          "TH-1(A)": 1,
+          "TH-2(A)": 1,
+          "TH-3(A)": 1
+        },
+        "no_minimum_within_ft_of_rail_station": 2640,
+        "multifamily_tiers": [
+          {
+            "max_units": 20,
+            "spaces_per_unit": 0
+          },
+          {
+            "max_units": 199,
+            "spaces_per_unit": 0.5
+          },
+          {
+            "min_units": 200,
+            "spaces_per_unit": 1
+          }
+        ]
+      },
+      "section": "Sec. 51A-4.209(b)(2)(C), (5)(C), (6)(C); Sec. 51A-4.301(a)(2)(B); ordinance file 25-0763 (DCA190-002), passed 2025-05-14",
+      "source_url": "https://citysecretary2.dallascityhall.com/resolutions/2025/05-14-25/25-0763.pdf"
+    },
+    {
+      "id": "rezoning",
+      "rule": "A zoning change to the next district up. These are the districts a small developer would plausibly ask for; the list is a judgment, not a code rule. Many Dallas rezonings end up as a planned development (PD) with its own conditions.",
+      "approval": "zoning change (City Plan Commission hearing, then City Council vote)",
+      "section": "Sec. 51A-4.701",
+      "targets": {
+        "R-1ac(A)": [
+          "R-1/2ac(A)"
+        ],
+        "R-1/2ac(A)": [
+          "R-16(A)"
+        ],
+        "R-16(A)": [
+          "R-13(A)",
+          "R-10(A)"
+        ],
+        "R-13(A)": [
+          "R-10(A)",
+          "R-7.5(A)"
+        ],
+        "R-10(A)": [
+          "R-7.5(A)",
+          "R-5(A)"
+        ],
+        "R-7.5(A)": [
+          "D(A)",
+          "TH-3(A)",
+          "R-5(A)"
+        ],
+        "R-5(A)": [
+          "TH-3(A)",
+          "D(A)",
+          "MF-1(A)"
+        ],
+        "D(A)": [
+          "MF-1(A)",
+          "TH-3(A)",
+          "MF-2(A)"
+        ],
+        "TH-1(A)": [
+          "TH-2(A)",
+          "TH-3(A)"
+        ],
+        "TH-2(A)": [
+          "TH-3(A)",
+          "MF-1(A)"
+        ],
+        "TH-3(A)": [
+          "MF-1(A)",
+          "MF-2(A)"
+        ],
+        "CH": [
+          "MF-2(A)"
+        ],
+        "MF-1(A)": [
+          "MF-2(A)"
+        ],
+        "MF-2(A)": [
+          "MF-3(A)",
+          "MU-1"
+        ]
+      }
+    },
+    {
+      "id": "state_overrides",
+      "rule": "state laws that change what the city code allows on this lot",
+      "items": [
+        {
+          "id": "tx_sb840",
+          "name": "Texas SB 840 (3+ units by state law)",
+          "applies_to": [
+            "CH",
+            "MF-1(A)",
+            "MF-1(A)(SAH)",
+            "MF-2(A)",
+            "MF-2(A)(SAH)",
+            "MF-3(A)",
+            "MF-4(A)",
+            "MU-1",
+            "MU-2",
+            "MU-3",
+            "NO(A)",
+            "LO-1",
+            "LO-2",
+            "LO-3",
+            "MO-1",
+            "MO-2",
+            "GO(A)",
+            "NS(A)",
+            "CR",
+            "RR",
+            "CS"
+          ],
+          "text": "Texas SB 840 (Local Government Code Ch. 218, in effect 2025-09-01): a building of 3 or more units, or a mixed-use building that is at least 65% residential, is allowed by right in any district that allows office, commercial, retail or warehouse use. The city may not cap density below 36 units per acre (Dallas applies no density cap and does not enforce its per-bedroom lot area minimums), may not limit height below 45 ft or below the height an office or retail building could reach on the lot, may not require a setback over 25 ft, may not apply a floor area ratio, and may not require more than 1 parking space per unit. Does not apply in IR and IM districts, within 1,000 ft of a heavy industrial use, within 3,000 ft of an airport or military base, or in a clear zone. Historic rules, building code and stormwater rules still apply. The city says each lot needs a case-by-case check.",
+          "path": {
+            "units_per_acre": 36,
+            "min_units": 3,
+            "min_height_ft": 45,
+            "parking_per_unit": 1,
+            "approval": "none (permit only, by state law)"
+          },
+          "effective": "2025-09-01",
+          "source_url": "https://dallascityhall.com/departments/pnv/Documents/AH%20Memos/SB%20840%20Info%20Sheet_final_Aug_26_2025v8.pdf",
+          "sources": [
+            "https://dallascityhall.com/departments/pnv/Documents/AH%20Memos/SB%20840%20Info%20Sheet_final_Aug_26_2025v8.pdf",
+            "https://capitol.texas.gov/tlodocs/89R/billtext/html/SB00840F.htm"
+          ]
+        },
+        {
+          "id": "tx_sb840_commercial_only",
+          "applies_to": [
+            "NO(A)",
+            "LO-1",
+            "LO-2",
+            "LO-3",
+            "MO-1",
+            "MO-2",
+            "GO(A)",
+            "NS(A)",
+            "CR",
+            "RR",
+            "CS"
+          ],
+          "text": "The Dallas code does not allow housing in this office, retail or commercial district on its own (GO(A) allows it only as up to 5% of a building's floor area). Housing here rests on Texas SB 840, which covers only buildings of 3 or more units. A house or duplex is not allowed. The unit count shown uses the state floor of 36 units per acre.",
+          "source_url": "https://dallascityhall.com/departments/pnv/Documents/AH%20Memos/SB%20840%20Info%20Sheet_final_Aug_26_2025v8.pdf"
+        },
+        {
+          "id": "tx_sb15",
+          "applies_to": [
+            "R-1ac(A)",
+            "R-1/2ac(A)",
+            "R-16(A)",
+            "R-13(A)",
+            "R-10(A)",
+            "R-7.5(A)",
+            "R-5(A)",
+            "D(A)",
+            "TH-1(A)",
+            "TH-2(A)",
+            "TH-3(A)",
+            "CH",
+            "MF-1(A)",
+            "MF-1(A)(SAH)",
+            "MF-2(A)",
+            "MF-2(A)(SAH)",
+            "MU-1",
+            "GO(A)"
+          ],
+          "text": "Texas SB 15 (Local Government Code Ch. 211, Subch. D, in effect 2025-09-01) applies only to an unplatted tract of 5 acres or more in a district that allows single family homes. On such a tract the city may not require lots larger than 3,000 sq ft, wider than 30 ft or deeper than 75 ft, and the TH density caps do not apply. Lots of 4,000 sq ft or less made this way get setbacks of at most 15 ft front, 10 ft back and 5 ft side, at most 1 parking space, at most 30% open space and at least 3 stories. It does not change what can be built on an existing platted lot. Not within 3,000 ft of an airport or military base.",
+          "effective": "2025-09-01",
+          "source_url": "https://dallascityhall.com/departments/pnv/Documents/AH%20Memos/SB%2015%20Public%20Info%20Sheet.pdf",
+          "sources": [
+            "https://dallascityhall.com/departments/pnv/Documents/AH%20Memos/SB%2015%20Public%20Info%20Sheet.pdf",
+            "https://capitol.texas.gov/tlodocs/89R/billtext/html/SB00015F.htm"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flags",
+      "rule": "local conditions to flag",
+      "items": [
+        {
+          "id": "flood",
+          "text": "In a FEMA special flood hazard area (zone A or AE). Building here needs a floodplain permit from the city; check the FEMA map and the city floodplain office."
+        },
+        {
+          "id": "historic",
+          "text": "In a Dallas historic overlay district or on a landmark (H/ number). New buildings, exterior changes and demolition need a certificate from the Landmark Commission. No off-street parking is required here under Sec. 51A-4.301(a)(2)(B)."
+        },
+        {
+          "id": "conservation_district",
+          "text": "In a conservation district (CD). Each CD has its own ordinance for lot size, height, setbacks and architecture, and it replaces the base district rules. Not covered; read the CD ordinance."
+        },
+        {
+          "id": "nso",
+          "text": "In a Neighborhood Stabilization Overlay (NSO). The overlay sets its own front and side setbacks, garage placement and a lower height for single family lots."
+        },
+        {
+          "id": "planned_development",
+          "text": "Zoned PD (planned development). Each PD has its own ordinance; the PD number is in LONG_ZONE_DIST. Not covered. SB 840 and SB 15 can still apply inside a PD; the city decides case by case."
+        },
+        {
+          "id": "deed_restrictions",
+          "text": "The city zoning map shows deed restrictions on file for this lot (zoning case restrictions). Private deed restrictions and HOA covenants are not on the map and state law does not override them. Check the plat and deed."
+        },
+        {
+          "id": "residential_proximity_slope",
+          "text": "In CH, MF, MU and non-residential districts, any part of a building over 26 ft must stay under a residential proximity slope measured from nearby R, D and TH lots. The table height may not be reachable on a lot next to houses. Under SB 840 the slope cannot cut a 3+ unit building below 45 ft."
+        },
+        {
+          "id": "demolition_delay",
+          "text": "In a demolition delay overlay. A demolition permit for an older building waits for a review period."
+        },
+        {
+          "id": "values_not_sales",
+          "text": "Texas does not make sale prices public. Prices shown are Dallas Central Appraisal District market values, not recorded sales."
+        }
+      ]
+    }
+  ]
+}

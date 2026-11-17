@@ -21,8 +21,16 @@
       "source_url": "https://www.nahb.org/-/media/NAHB/news-and-economics/docs/housing-economics-plus/special-studies/2025/special-study-cost-of-constructing-a-home-2024-january-2025.pdf",
       "verified_on": "2026-11-17"
     },
-    "standard": {"1": 200, "2-3": 200, "4-6": 215},
-    "high": {"1": 250, "2-3": 250, "4-6": 265},
+    "standard": {
+      "1": 200,
+      "2-3": 200,
+      "4-6": 215
+    },
+    "high": {
+      "1": 250,
+      "2-3": 250,
+      "4-6": 265
+    },
     "status": "national survey figure; replace with local job costs when available",
     "escalation": {
       "base_month": "2024 average",
@@ -34,9 +42,15 @@
   "sprinklers_note": "the International Building Code treats 3 or more units in one building as R-2 and requires sprinklers; townhouses and 1-2 unit homes fall under the residential code. Check the state's adopted code.",
   "soft_cost_pct_of_hard": 0.15,
   "soft_cost_note": "the NAHB construction figure already carries site work and builder-paid fees; 15% covers design, overhead and general expenses (NAHB 2024: overhead 5.7% and financing 1.5% of price, on top of construction)",
-  "impact_fees": {"per_unit": 0, "basis": "not loaded for this city: enter the fee"},
+  "impact_fees": {
+    "per_unit": 0,
+    "basis": "not loaded for this city: enter the fee"
+  },
   "margins_by_stage": {
-    "feasibility": {"low": -0.25, "high": 0.45},
+    "feasibility": {
+      "low": -0.25,
+      "high": 0.45
+    },
     "why_wider": "the cost base is a national survey figure with no local calibration yet"
   },
   "hold": {
@@ -48,10 +62,20 @@
   "sale_comps": {
     "pool": "1-6 unit buildings built 2014 or later; first qualified arm's-length sale after construction, or the appraisal district's market value where sale prices are not public",
     "method": {
-      "size_elasticity": {"building": 0.6, "condo": 0.5},
+      "size_elasticity": {
+        "building": 0.6,
+        "condo": 0.5
+      },
       "condo_to_building": 1.0,
       "elasticity_note": "price per unit moves with size: x (target sq ft / comp sq ft) ^ elasticity; each region refits it with python -m jobs.check_region --write"
     }
   },
-  "region_flags": []
+  "region_flags": [],
+  "appraisal_basis": {
+    "extra_range": 0.1,
+    "rule": "where comps are appraised values (Texas, Atlanta), the fitted 80% range is widened by 10 points on each side",
+    "why": "an appraisal district's values track each other more closely than sale prices do, so leave-one-out errors between appraisals understate the error against a real sale. 10 points is an assumption until it can be checked against sale prices (the Texas Comptroller's Property Value Study reports each district's ratio spread).",
+    "verified_on": "2026-11-17",
+    "status": "assumption"
+  }
 }

@@ -1,0 +1,339 @@
+{
+  "source": "City of Austin Land Development Code Title 25, Chapter 25-2, read on 2026-11-17 from the Zoneomics copy of the Municode text (library.municode.com blocks automated requests) and checked against the signed HOME ordinances 20231207-001 and 20240516-006 on services.austintexas.gov",
+  "verified_on": "2026-11-17",
+  "district_tables": {
+    "districts": "data/regions/austin/rules/zoning_districts.csv",
+    "heights": "data/regions/austin/rules/zoning_heights.csv"
+  },
+  "steps": [
+    {
+      "id": "units_by_right",
+      "rule": "floor(lot area / lot area per unit), capped at the district's units per lot. SF-1, SF-2, SF-3: up to 3 units on a lot of 5,750 sq ft or more (HOME Phase 1). Under 5,750 sq ft: one house (HOME Phase 2 small lot, 1,800 sq ft or more). MF and -MU districts: site area per unit depends on bedrooms; the table uses the two-or-more-bedroom figure, so efficiencies and one-bedrooms can fit more units.",
+      "section": "25-2-492(D); 25-2-773; 25-2-779; 25-2-560 to 25-2-563; Subchapter E 4.2.1.D.6",
+      "source_url": "https://www.zoneomics.com/code/austin-TX/chapter_2"
+    },
+    {
+      "id": "home_two_and_three_units",
+      "rule": "SF-1, SF-2, SF-3: a duplex, two-unit or three-unit use needs a 5,750 sq ft lot. Building cover 40%, impervious cover 45%, front setback 15 ft. Inside the Subchapter F area, floor area for two units is the greater of 0.55 FAR or 3,200 sq ft, and for three units the greater of 0.65 FAR or 4,350 sq ft; no new unit may exceed the greater of 0.4 FAR or 2,300 sq ft. Keeping a house at least 20 years old lets the kept floor area be left out of the count. Applies to applications filed on or after 2024-02-05.",
+      "params": {
+        "districts": [
+          "SF-1",
+          "SF-2",
+          "SF-3"
+        ],
+        "max_units": 3,
+        "min_lot_sqft": 5750,
+        "max_building_coverage": 0.4,
+        "max_impervious_cover": 0.45,
+        "front_setback_ft": 15,
+        "two_unit_far": 0.55,
+        "two_unit_min_floor_area_sqft": 3200,
+        "three_unit_far": 0.65,
+        "three_unit_min_floor_area_sqft": 4350,
+        "max_unit_far": 0.4,
+        "max_unit_floor_area_sqft": 2300,
+        "tiny_home_max_sqft": 400
+      },
+      "approval": "building permit",
+      "section": "25-2-773; 25-2-492(D); Ord. 20231207-001",
+      "source_url": "https://services.austintexas.gov/edims/document.cfm?id=421611"
+    },
+    {
+      "id": "small_lot",
+      "rule": "SF-1, SF-2, SF-3: a lot of at least 1,800 sq ft and under 5,750 sq ft may hold one house (small lot single-family residential use). Lot width 15 ft (20 ft for a flag lot, not counting the pole). No building cover limit; impervious cover stays at the base district limit (40% SF-1, 45% SF-2 and SF-3). Setbacks: front 10 ft, side 5 ft, rear 5 ft, 0 ft against another small lot split on or after 2024-08-16. Inside the Subchapter F area floor area is the greater of 1,650 sq ft or 0.55 FAR and a unit may not exceed 2,300 sq ft. Driveway: lots under 20 ft wide take access only from an alley or side street; 20 to under 30 ft also by a shared driveway; 30 ft or more may have their own. Splitting a standard lot needs a subdivision (resubdivision or replat); an existing lot already under 5,750 sq ft needs only a building permit. Not eligible for the preservation bonus.",
+      "params": {
+        "districts": [
+          "SF-1",
+          "SF-2",
+          "SF-3"
+        ],
+        "units": 1,
+        "min_lot_sqft": 1800,
+        "max_lot_sqft": 5749,
+        "min_lot_width_ft": 15,
+        "flag_lot_min_width_ft": 20,
+        "max_building_coverage": null,
+        "max_impervious_cover": {
+          "SF-1": 0.4,
+          "SF-2": 0.45,
+          "SF-3": 0.45
+        },
+        "front_setback_ft": 10,
+        "side_setback_ft": 5,
+        "rear_setback_ft": 5,
+        "max_floor_area_far": 0.55,
+        "min_floor_area_allowance_sqft": 1650,
+        "max_unit_sqft": 2300,
+        "front_yard_driveway_impervious_max": 0.5,
+        "own_driveway_min_lot_width_ft": 30,
+        "shared_driveway_min_lot_width_ft": 20,
+        "lots_per_standard_lot": {
+          "lot_sqft": 5750,
+          "lots": 3
+        }
+      },
+      "approval": "subdivision (resubdivision or replat) to create the lots, then building permit",
+      "section": "25-2-779(C), (E)-(L); 25-4-177; Ord. 20240516-006",
+      "source_url": "https://services.austintexas.gov/edims/document.cfm?id=430451"
+    },
+    {
+      "id": "site_area_by_unit_type",
+      "rule": "Minimum site area per dwelling unit in multifamily districts and in -MU combining districts, by unit type. MF-6 has no site area rule.",
+      "params": {
+        "sqft_per_unit": {
+          "MF-1": {
+            "efficiency": 2500,
+            "one_bedroom": 3000,
+            "two_plus_bedroom": 3500
+          },
+          "MF-2": {
+            "efficiency": 1600,
+            "one_bedroom": 2000,
+            "two_plus_bedroom": 2400
+          },
+          "MF-3": {
+            "efficiency": 1200,
+            "one_bedroom": 1500,
+            "two_plus_bedroom": 1800
+          },
+          "MF-4": {
+            "efficiency": 800,
+            "one_bedroom": 1000,
+            "two_plus_bedroom": 1200
+          },
+          "MF-5": {
+            "efficiency": 800,
+            "one_bedroom": 1000,
+            "two_plus_bedroom": 1200
+          },
+          "NO": {
+            "efficiency": 3600,
+            "one_bedroom": 4000,
+            "two_plus_bedroom": 4400
+          },
+          "LO": {
+            "efficiency": 1600,
+            "one_bedroom": 2000,
+            "two_plus_bedroom": 2400
+          },
+          "LR": {
+            "efficiency": 1600,
+            "one_bedroom": 2000,
+            "two_plus_bedroom": 2400
+          },
+          "GO": {
+            "efficiency": 800,
+            "one_bedroom": 1000,
+            "two_plus_bedroom": 1200
+          },
+          "GR": {
+            "efficiency": 800,
+            "one_bedroom": 1000,
+            "two_plus_bedroom": 1200
+          },
+          "CS": {
+            "efficiency": 800,
+            "one_bedroom": 1000,
+            "two_plus_bedroom": 1200
+          },
+          "CS-1": {
+            "efficiency": 800,
+            "one_bedroom": 1000,
+            "two_plus_bedroom": 1200
+          }
+        }
+      },
+      "section": "25-2-560; 25-2-561; 25-2-562; 25-2-563; Subchapter E 4.2.1.D.6",
+      "source_url": "https://www.zoneomics.com/code/austin-TX/chapter_2"
+    },
+    {
+      "id": "mixed_use_combining",
+      "rule": "Office and commercial base districts (NO, LO, GO, LR, GR, CS, CS-1) allow housing under the city code only with -MU (mixed use combining district) or as a vertical mixed use building (-V, or the VMU overlay on core transit corridors). -MU allows townhouse, multifamily, condominium, single-family, duplex and two-unit uses. A zoning string shows these as tokens, for example CS-MU-V-CO-NP. Since 2025-09-01 Texas SB 840 allows 3 or more units in the plain districts too.",
+      "params": {
+        "base_districts": [
+          "NO",
+          "LO",
+          "GO",
+          "LR",
+          "GR",
+          "CS",
+          "CS-1"
+        ],
+        "mu_token": "MU",
+        "vmu_token": "V"
+      },
+      "section": "Subchapter E 4.2.1, 4.2.2, 4.3; 25-2-491(C) table",
+      "source_url": "https://www.zoneomics.com/code/austin-TX/chapter_2"
+    },
+    {
+      "id": "parking",
+      "rule": "No off-street car parking is required for any use, citywide. One accessible space is still required, counted from the old Appendix A ratios; it may be on the street or off site within 250 ft when the project has no other parking. A planned unit development with its own parking rules keeps them.",
+      "params": {
+        "spaces_per_unit": {
+          "default": 0
+        }
+      },
+      "section": "25-6-471(A)-(D); Ord. 20231102-028",
+      "source_url": "https://www.zoneomics.com/code/austin-TX/chapter_6"
+    },
+    {
+      "id": "rezoning",
+      "rule": "recompute at a target district the user picks; default is the first target listed. Targets are the next districts up that small infill builders ask for; they are a judgment, not a list from the code. A multifamily target needs an 8,000 sq ft lot.",
+      "approval": "zoning map amendment (rezoning): Planning Commission or Zoning and Platting Commission hearing, then City Council; a neighborhood plan amendment may also be needed in -NP areas",
+      "targets": {
+        "SF-1": [
+          "SF-6",
+          "MF-1"
+        ],
+        "SF-2": [
+          "SF-6",
+          "MF-2"
+        ],
+        "SF-3": [
+          "MF-2",
+          "MF-3"
+        ],
+        "SF-4A": [
+          "SF-6"
+        ],
+        "SF-5": [
+          "SF-6",
+          "MF-2"
+        ],
+        "SF-6": [
+          "MF-2",
+          "MF-3"
+        ],
+        "MF-1": [
+          "MF-2",
+          "MF-3"
+        ],
+        "MF-2": [
+          "MF-3",
+          "MF-4"
+        ],
+        "MF-3": [
+          "MF-4"
+        ],
+        "MF-4": [
+          "MF-5"
+        ],
+        "NO": [
+          "LO"
+        ],
+        "LO": [
+          "GO"
+        ],
+        "LR": [
+          "GR"
+        ],
+        "GR": [
+          "CS"
+        ]
+      }
+    },
+    {
+      "id": "state_overrides",
+      "rule": "state laws that change what the city code allows on this lot",
+      "items": [
+        {
+          "id": "tx_sb840",
+          "name": "Texas SB 840",
+          "applies_to": [
+            "NO",
+            "LO",
+            "GO",
+            "LR",
+            "GR",
+            "CS",
+            "CS-1"
+          ],
+          "path": {
+            "units_per_acre": 54,
+            "min_units": 3,
+            "min_height_ft": 45,
+            "parking_per_unit": 1,
+            "approval": "none (administrative approval, by state law)"
+          },
+          "text": "Texas SB 840 (Local Government Code ch. 218, effective 2025-09-01): multifamily (3 or more units) and mixed-use residential (at least 65% residential floor area) are allowed by right in any zoning classification that allows office, commercial, retail, warehouse or mixed use. No rezoning, -MU, conditional use permit or variance is needed. The city may not hold density below the greater of 36 units per acre or its highest residential density; Austin's information sheet gives 54 units per acre. Height: the greater of 45 ft or the height allowed for commercial uses on the site. Setbacks: the lesser of 25 ft or the commercial setback. No FAR limit. No more than 1 parking space per unit (Austin requires none). Does not apply within 1,000 ft of a heavy industrial use, within 3,000 ft of an airport or military base, or in a district that allows heavy industrial use. Historic landmark and historic district rules, water quality and stormwater rules still apply. Impervious cover and building cover limits are not mentioned in the bill; the district numbers are kept here.",
+          "section": "Tex. Local Gov't Code 218.101, 218.102",
+          "source_url": "https://capitol.texas.gov/tlodocs/89R/billtext/pdf/SB00840F.pdf",
+          "sources": [
+            "https://capitol.texas.gov/tlodocs/89R/billtext/pdf/SB00840F.pdf",
+            "https://publicinput.com/Customer/File/Full/68d17d9f-bc5e-4ed2-bca2-c7e0cc946c73",
+            "https://speakupaustin.org/austinsb840"
+          ]
+        },
+        {
+          "id": "tx_sb15",
+          "applies_to": [],
+          "text": "Texas SB 15 (Local Government Code ch. 211 subch. D, 2025): only for a tract of 5 acres or more with no recorded plat that will be platted in an area zoned for single-family homes. There the city may not require a lot larger than 3,000 sq ft, wider than 30 ft or deeper than 75 ft. It does not change infill on platted lots, where Austin's own small lot rule (1,800 sq ft) is already smaller. Not within 3,000 ft of an airport or military base. Deed restrictions and HOA rules stay in force.",
+          "section": "Tex. Local Gov't Code 211.052, 211.054",
+          "source_url": "https://capitol.texas.gov/tlodocs/89R/billtext/pdf/SB00015F.pdf"
+        }
+      ]
+    },
+    {
+      "id": "flags",
+      "rule": "local conditions to flag",
+      "items": [
+        {
+          "id": "flood",
+          "text": "Austin regulates the city's fully developed 100-year floodplain, which is wider than the FEMA floodplain. Check both layers. Building in either needs floodplain review and can cut the buildable area."
+        },
+        {
+          "id": "historic",
+          "text": "-H in the zoning string is a city historic landmark; -HD is a local historic district. Demolition and new construction need a certificate of appropriateness from the Historic Landmark Commission. National Register districts are a separate layer and trigger review of demolitions. SB 840 does not override historic rules."
+        },
+        {
+          "id": "conditional_overlay",
+          "text": "-CO in the zoning string is a conditional overlay set by the rezoning ordinance for that site. It can cut units, height, FAR or uses below the district numbers shown here. Read the ordinance (zoning ordinance layer or the property profile) before relying on the numbers."
+        },
+        {
+          "id": "nccd",
+          "text": "-NCCD in the zoning string is a neighborhood conservation combining district (Hyde Park, North Hyde Park, North University, Fairview Park, East 11th and 12th). Its own ordinance replaces lot size, height, setback and FAR numbers."
+        },
+        {
+          "id": "neighborhood_plan",
+          "text": "-NP in the zoning string is a neighborhood plan combining district. It can add infill options (small lot amnesty, secondary apartment, cottage lot, urban home) or design rules (front porch, garage placement, parking placement). Small lot amnesty covers one house only and cannot be combined with the HOME small lot use."
+        },
+        {
+          "id": "subchapter_f",
+          "text": "Inside the Subchapter F (Residential Design and Compatibility Standards, 'McMansion') area a single house is limited to the greater of 0.4 FAR or 2,300 sq ft. The HOME floor area limits for 2 and 3 units and for small lots also apply only inside this area. Outside it there is no FAR limit in SF districts; building cover, impervious cover and height govern."
+        },
+        {
+          "id": "impervious_cover",
+          "text": "Impervious cover limits (45% in SF-2 and SF-3, 40% in SF-1, 55% to 80% in MF) often bind before unit count does. Watershed rules (Barton Springs Zone, water supply watersheds, Lake Austin) can set lower limits than zoning."
+        },
+        {
+          "id": "compatibility",
+          "text": "Compatibility standards limit height within 75 ft of a lot zoned SF-5 or more restrictive that holds 1 to 3 homes, and require a landscape buffer. This affects MF and commercial lots next to houses. The height steps were not read in the code text."
+        },
+        {
+          "id": "density_bonus",
+          "text": "-DB90, -ETOD/-DBETOD, -V and other density bonus tokens allow more height or units in return for income-restricted units or fees. Those bonus paths are not computed here."
+        },
+        {
+          "id": "sb840_exclusions",
+          "text": "SB 840 does not apply within 1,000 ft of a heavy industrial use or within 3,000 ft of an airport or military base. Check distance to industrial land and to Austin-Bergstrom airport before using the SB 840 path. The city has not published a map of excluded lots that was found."
+        },
+        {
+          "id": "interim_zoning",
+          "text": "A zoning string that starts with I- (for example I-SF-2) is interim zoning set at annexation. The district's rules apply until permanent zoning is adopted."
+        },
+        {
+          "id": "deed_restrictions",
+          "text": "Private deed restrictions and HOA rules can limit a lot to one house or set a larger lot size. The city does not enforce them and HOME does not remove them. Check the plat and deed records."
+        },
+        {
+          "id": "short_term_rental",
+          "text": "Short-term rental rules are separate from zoning capacity and have been changing since 2025; check the current city rules before assuming rental income."
+        },
+        {
+          "id": "prices_are_values",
+          "text": "Texas does not make sale prices public. Prices shown are Travis Central Appraisal District market values, not recorded sales, and carry a wider range."
+        }
+      ]
+    }
+  ]
+}
