@@ -129,7 +129,10 @@ def load_shapes(conn, layer: dict, wanted: set[str], vintage: int, client: ArcGI
     )
     total = 0
     for page in client.features(
-        layer.get("where", "1=1"), out_fields=field, page_size=layer.get("page_size", 2000)
+        layer.get("where", "1=1"),
+        out_fields=field,
+        key=layer.get("key", "OBJECTID"),
+        page_size=layer.get("page_size", 2000),
     ):
         rows = []
         for f in page:

@@ -258,6 +258,7 @@
   "parcel_layer": {
     "url": "https://services.arcgis.com/0L95CJ0VTaxqcmED/arcgis/rest/services/EXTERNAL_tcad_parcel/FeatureServer/0",
     "id_field": "PROP_ID",
+    "key": "OBJECTID_1",
     "page_size": 2000,
     "tested_on": "2026-11-17",
     "note": "City of Austin copy of the TCAD parcel polygons; PROP_ID joins to prop_id in the appraisal export."

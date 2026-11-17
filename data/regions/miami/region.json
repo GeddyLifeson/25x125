@@ -33,6 +33,7 @@
   "zoning_layer": {
     "url": "https://services1.arcgis.com/CvuPhqcTQpZPT9qY/arcgis/rest/services/M21_Zoning/FeatureServer/0",
     "zone_field": "M21_ZONE",
+    "key": "FID",
     "tested_on": "2026-11-17",
     "note": "Miami 21 transect zones, published by the City of Miami Planning Department on the City's ArcGIS Online open data hub. 1,130 polygons; data last edited 2026-05-07. 36 distinct values: CI, CI-HD, CS, D1, D2, D3, T1, T3-L, T3-O, T3-R, T4-L, T4-O, T4-R, T5-L, T5-O, T5-R, T6-8-L, T6-8-O, T6-8-R, T6-8A-O, T6-8B-O, T6-12-L, T6-12-O, T6-12-R, T6-24-O, T6-24A-O, T6-24A-R, T6-24B-O, T6-36A-L, T6-36A-O, T6-36B-L, T6-36B-O, T6-48A-O, T6-48B-O, T6-60A-O, T6-80-O. The same data is on the City server at https://gis.miami.gov/gis/rest/services/Zoning/ZoningMiami21/MapServer/5 (field M21_ZONE)."
   },
