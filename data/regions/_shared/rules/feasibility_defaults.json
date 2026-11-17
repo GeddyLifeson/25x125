@@ -1,0 +1,57 @@
+{
+  "extends": true,
+  "source": "Defaults for regions outside Chicago, laid over data/rules/feasibility_defaults.json. Only what differs is here. A region can lay its own file over this one.",
+  "as_of": "2026-11-17",
+  "chicago_rules": false,
+  "unit_size_sqft": {
+    "1": 2000,
+    "2": 1400,
+    "3": 1200,
+    "4-6": 1100,
+    "note": "starting sizes; each region's comp pool shows the local median (python -m jobs.check_region)"
+  },
+  "circulation_factor": 1.0,
+  "circulation_note": "houses, duplexes and townhomes have no shared halls or stairs",
+  "build_spec_presets": {
+    "production": {
+      "1": 162,
+      "2-3": 162,
+      "4-6": 170,
+      "note": "NAHB Cost of Constructing a Home 2024: $428,215 average construction cost on 2,647 finished sq ft, about $162 per sq ft, from 41 builders nationwide. A national figure, not yet checked against local jobs; the range is wider for that reason. 4-6 units adds $8 per sq ft, the same step as the Chicago presets.",
+      "source_url": "https://www.nahb.org/-/media/NAHB/news-and-economics/docs/housing-economics-plus/special-studies/2025/special-study-cost-of-constructing-a-home-2024-january-2025.pdf",
+      "verified_on": "2026-11-17"
+    },
+    "standard": {"1": 200, "2-3": 200, "4-6": 215},
+    "high": {"1": 250, "2-3": 250, "4-6": 265},
+    "status": "national survey figure; replace with local job costs when available",
+    "escalation": {
+      "base_month": "2024 average",
+      "base_value": 190.3,
+      "base_note": "mean of the 12 monthly values of the Census under-construction index for 2024, the NAHB survey year"
+    }
+  },
+  "sprinklers_min_units": 3,
+  "sprinklers_note": "the International Building Code treats 3 or more units in one building as R-2 and requires sprinklers; townhouses and 1-2 unit homes fall under the residential code. Check the state's adopted code.",
+  "soft_cost_pct_of_hard": 0.15,
+  "soft_cost_note": "the NAHB construction figure already carries site work and builder-paid fees; 15% covers design, overhead and general expenses (NAHB 2024: overhead 5.7% and financing 1.5% of price, on top of construction)",
+  "impact_fees": {"per_unit": 0, "basis": "not loaded for this city: enter the fee"},
+  "margins_by_stage": {
+    "feasibility": {"low": -0.25, "high": 0.45},
+    "why_wider": "the cost base is a national survey figure with no local calibration yet"
+  },
+  "hold": {
+    "property_tax": {
+      "effective_tax_rate_default": 0.018,
+      "rate_note": "placeholder carried from Chicago; replace with the county millage"
+    }
+  },
+  "sale_comps": {
+    "pool": "1-6 unit buildings built 2014 or later; first qualified arm's-length sale after construction, or the appraisal district's market value where sale prices are not public",
+    "method": {
+      "size_elasticity": {"building": 0.6, "condo": 0.5},
+      "condo_to_building": 1.0,
+      "elasticity_note": "price per unit moves with size: x (target sq ft / comp sq ft) ^ elasticity; each region refits it with python -m jobs.check_region --write"
+    }
+  },
+  "region_flags": []
+}

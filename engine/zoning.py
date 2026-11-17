@@ -169,6 +169,17 @@ def _path(rules, site, d: District, path_id, name, approval, units, far=None, he
     )
 
 
+def _far_unit_sqft(rules: Rules) -> float:
+    return float((rules.steps.get("far_only") or {}).get("params", {}).get("unit_sqft", 1100))
+
+
+def _district_units(lot: float, d, rules: Rules) -> int:
+    """Units from lot area per unit; in a district that limits floor area only, floor area / an assumed unit size."""
+    if d.lot_area_per_unit_sqft:
+        return _units(lot, d.lot_area_per_unit_sqft)
+    return int(lot * (d.far or 0) // _far_unit_sqft(rules))
+
+
 def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Result:
     d = rules.district_for(site.zone_class)
     res = Result(site.pin, site.zone_class, d is not None, site.lot_sqft, site.frontage_ft)
@@ -186,8 +197,13 @@ def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Re
     lot = site.lot_sqft
 
     # 1-2. By right.
-    units = _cap(d, _units(lot, d.lot_area_per_unit_sqft))
+    units = _cap(d, _district_units(lot, d, rules))
     notes = []
+    if not d.lot_area_per_unit_sqft:
+        notes.append(
+            f"the district limits floor area, not units: units = lot x FAR {d.far:g} /"
+            f" {_far_unit_sqft(rules):,.0f} sq ft per unit (an assumed size)"
+        )
     if d.max_units and units == d.max_units:
         notes.append(f"district allows at most {d.max_units} unit(s) per lot")
     if d.min_lot_area_sqft and lot < d.min_lot_area_sqft:
@@ -299,7 +315,7 @@ def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Re
     target = rezoning_target if rezoning_target in targets else (targets[0] if targets else None)
     if target:
         t = rules.districts[target]
-        t_units = _cap(t, _units(lot, t.lot_area_per_unit_sqft))
+        t_units = _cap(t, _district_units(lot, t, rules))
         if t.min_lot_area_sqft and lot < t.min_lot_area_sqft:
             t_units = min(t_units, 1)
         fam = family(site.zone_class or "")

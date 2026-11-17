@@ -87,7 +87,9 @@ def cost(
     base = rates[key] * escalation
     adj = adjustment_for(preset, index, d["build_spec_presets"].get("production_adjustment"))
     hard = area * base * adj
-    sprinklers = area * d["sprinklers_per_sqft_at_4_plus_units"] if units >= 4 else 0.0
+    sprinklers = (
+        area * d["sprinklers_per_sqft_at_4_plus_units"] if units >= d.get("sprinklers_min_units", 4) else 0.0
+    )
     contingency = d["hard_cost_contingency"] * hard
     soft = d["soft_cost_pct_of_hard"] * hard + (d["rezoning_soft_cost_add"] if rezoning else 0)
     pf = d["permit_fee"]

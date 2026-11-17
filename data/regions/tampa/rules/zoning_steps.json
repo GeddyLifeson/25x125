@@ -1,0 +1,198 @@
+{
+  "verified_on": "2026-11-17",
+  "steps": [
+    {
+      "id": "adu",
+      "rule": "+1 accessory dwelling unit on a lot with a single-family house, only inside the city's ADU eligible areas: west of North Boulevard, south of Dr. Martin Luther King Jr. Boulevard and east and north of the Hillsborough River; between Busch Boulevard and Hillsborough Avenue; south of Hillsborough Avenue, east of Armenia Avenue, west of the river and north of Dr. Martin Luther King Jr. Boulevard; the East Tampa Overlay; the Tampa Heights Overlay. Up to 950 sq ft of living space. The owner must live on the property (main house or ADU). No more than 2 unrelated occupants. S-1 special use permit from the zoning administrator, reviewed yearly; permitted use (no special use permit) in the Tampa Heights Overlay. Outside the eligible areas only an Extended Family Residence is allowed (600 sq ft, relatives only, no rent).",
+      "params": {
+        "units": 1,
+        "by_district": [
+          "RS-150",
+          "RS-100",
+          "RS-75",
+          "RS-60",
+          "RS-50",
+          "RM-12",
+          "RM-16",
+          "RM-18",
+          "RM-24",
+          "RM-35",
+          "RM-50",
+          "RM-75",
+          "CN",
+          "SH-RS"
+        ],
+        "max_sqft": 950,
+        "owner_occupancy": true,
+        "approval": "S-1 special use permit (zoning administrator); permitted use in the Tampa Heights Overlay",
+        "max_unrelated_occupants": 2,
+        "eligible_area_layer": "https://arcgis.tampagov.net/arcgis/rest/services/OpenData/Planning/MapServer/37",
+        "eligible_area_field": "CRITERIA",
+        "eligible_area_values": [
+          "ADU - Special Use Required",
+          "ADU Permitted"
+        ],
+        "not_eligible_value": "ADU Not Permitted"
+      },
+      "section": "Sec. 27-156 Table 4-1 note 17; Sec. 27-132 (Accessory dwelling unit); Sec. 27-211.8 Table SH-25.1; Sec. 27-244 (Tampa Heights Overlay)",
+      "source_url": "https://www.zoneomics.com/code/tampa-FL/chapter_3",
+      "sources": [
+        "https://www.zoneomics.com/code/tampa-FL/chapter_3",
+        "https://www.zoneomics.com/code/tampa-FL/chapter_2",
+        "https://www.tampa.gov/ADU",
+        "https://www.tampa.gov/news/2026-08/city-tampa-highlight-increase-adus-rule-changes-193791"
+      ]
+    },
+    {
+      "id": "parking",
+      "rule": "Single-family and two-family dwellings: 2 spaces per unit. Multiple-family: 1 per efficiency, 1.5 per 1 or 2 bedroom unit, 2 per unit with 3 or more bedrooms, plus 0.25 visitor spaces per unit for attached, townhouse-style and multiple-family buildings. The per-district figures here assume 1 or 2 bedroom units plus visitor parking (1.75) in the districts where multiple-family is by right. Seminole Heights SH-RS: 2 per detached unit. Ybor City, the Central Business District and the Channel District have their own tables and are not covered.",
+      "params": {
+        "spaces_per_unit": {
+          "default": 2,
+          "RM-24": 1.75,
+          "RM-35": 1.75,
+          "RM-50": 1.75,
+          "RM-75": 1.75,
+          "SH-RS": 2
+        },
+        "multifamily_by_bedrooms": {
+          "efficiency": 1.0,
+          "1-2": 1.5,
+          "3+": 2.0
+        },
+        "visitor_spaces_per_unit": 0.25
+      },
+      "section": "Sec. 27-283.7 PKG Table 1 (7) f, h, i; Sec. 27-211.2.1 Table 211.2.1c",
+      "source_url": "https://www.zoneomics.com/code/tampa-FL/chapter_6"
+    },
+    {
+      "id": "rezoning",
+      "rule": "Rezoning to a district with smaller lots or more units per acre. City Council decides after a public hearing. The new district must fit the parcel's Future Land Use category in the Tampa Comprehensive Plan, which caps density; check the category before choosing a target.",
+      "approval": "rezoning (City Council)",
+      "section": "Sec. 27-148; Sec. 27-21 (consistency matrix)",
+      "source_url": "https://www.zoneomics.com/code/tampa-FL/chapter_2",
+      "targets": {
+        "RS-150": [
+          "RS-100"
+        ],
+        "RS-100": [
+          "RS-75"
+        ],
+        "RS-75": [
+          "RS-60",
+          "RS-50"
+        ],
+        "RS-60": [
+          "RS-50",
+          "RM-12"
+        ],
+        "RS-50": [
+          "RM-12",
+          "RM-16",
+          "RM-18"
+        ],
+        "RM-12": [
+          "RM-16",
+          "RM-18"
+        ],
+        "RM-16": [
+          "RM-18",
+          "RM-24"
+        ],
+        "RM-18": [
+          "RM-24"
+        ],
+        "RM-24": [
+          "RM-35"
+        ],
+        "RO": [
+          "RO-1"
+        ]
+      }
+    },
+    {
+      "id": "state_overrides",
+      "rule": "state laws that change what the city code allows on this lot",
+      "items": [
+        {
+          "id": "fl_live_local",
+          "name": "Florida Live Local Act",
+          "applies_to": [
+            "CN",
+            "CG",
+            "CI",
+            "IG",
+            "IH",
+            "SH-CN",
+            "SH-CG",
+            "SH-CI",
+            "NMU-35",
+            "YC-1",
+            "YC-4",
+            "YC-5",
+            "YC-6",
+            "YC-7",
+            "CBD-1",
+            "CBD-2",
+            "CD-1",
+            "CD-2",
+            "CD-3"
+          ],
+          "text": "Florida Live Local Act: on land zoned commercial, industrial or mixed use the city must allow multifamily or mixed-use residential without a rezoning, special use permit or variance if at least 40% of the units are rentals kept affordable for at least 30 years. Density may be up to the highest the city allows anywhere, floor area ratio up to 150% of the highest allowed, and height up to the tallest allowed within 1 mile or 3 stories, whichever is higher. Which Tampa districts count as commercial, industrial or mixed use is the city's call; confirm with the zoning administrator.",
+          "section": "Fla. Stat. 166.04151(7)",
+          "source_url": "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0100-0199/0166/Sections/0166.04151.html"
+        }
+      ]
+    },
+    {
+      "id": "flags",
+      "rule": "local conditions to flag",
+      "items": [
+        {
+          "id": "adu_area",
+          "text": "ADUs are allowed only inside the city's ADU eligible areas (Seminole Heights, the Lowry Park area, Sulphur Springs, Temple Crest, Wellswood, parts of Riverside Heights, East Tampa and Tampa Heights). Check the lot on the city's ADU map before counting an ADU.",
+          "source_url": "https://arcgis.tampagov.net/arcgis/rest/services/OpenData/Planning/MapServer/37"
+        },
+        {
+          "id": "comp_plan_density",
+          "text": "Table 4-2 has no floor area ratio. The Tampa Comprehensive Plan Future Land Use category caps density and floor area on every lot and can be lower than the zoning figure. This tool does not read the Future Land Use map.",
+          "source_url": "https://www.zoneomics.com/code/tampa-FL/chapter_3"
+        },
+        {
+          "id": "multifamily_special_use",
+          "text": "In RM-12, RM-16 and RM-18, a building with 3 or more units needs an S-1 special use permit and direct access to an arterial or collector street. Two-family, semi-detached and attached houses are by right. In RO-1, OP, OP-1 and CN, multiple-family also needs an S-1 permit and must meet the RM-24 dimensions.",
+          "source_url": "https://www.zoneomics.com/code/tampa-FL/chapter_2"
+        },
+        {
+          "id": "flood",
+          "text": "Much of Tampa is in a FEMA flood zone or the Coastal High Hazard Area. Check the flood zone and base flood elevation; the lowest floor may have to be raised and flood insurance may be required.",
+          "source_url": "https://maps.hillsboroughcounty.org/arcgis/rest/services/FEMA_DFIRM/DSD_Flood_Hazard_Layers2022/FeatureServer/7"
+        },
+        {
+          "id": "historic",
+          "text": "Local historic districts (Hyde Park, Seminole Heights, Tampa Heights, Ybor City): new buildings, exterior changes and demolition need a certificate of appropriateness from the Architectural Review Commission, or the Barrio Latino Commission in Ybor City.",
+          "source_url": "https://arcgis.tampagov.net/arcgis/rest/services/OpenData/Planning/MapServer/1"
+        },
+        {
+          "id": "overlay",
+          "text": "Overlay districts add design and site standards on top of the base district: East Tampa (Sec. 27-240), West Tampa (27-241), Tampa Heights (27-244), Parkland Estates (27-242), Westshore (27-238), Kennedy Boulevard (27-243), South Howard (27-236), New Tampa Commercial (27-237).",
+          "source_url": "https://arcgis.tampagov.net/arcgis/rest/services/OpenData/Planning/MapServer/3"
+        },
+        {
+          "id": "form_based",
+          "text": "Seminole Heights (SH-) and Ybor City (YC-) districts are form-based: build-to lines, building forms and frontage types apply. Only SH-RS is covered here. SH-RS-A, SH-RM, SH-CN, SH-CG, SH-CI, NMU and YC districts take their density from the Comprehensive Plan and are reported as not covered.",
+          "source_url": "https://www.zoneomics.com/code/tampa-FL/chapter_3"
+        },
+        {
+          "id": "nonconforming_lot",
+          "text": "A single lot of record smaller or narrower than the district minimum may still take one single-family house if it is not in continuous frontage with other lots in the same ownership. Adjoining substandard lots in one ownership must be combined.",
+          "source_url": "https://www.zoneomics.com/code/tampa-FL/chapter_7"
+        },
+        {
+          "id": "no_state_adu_mandate",
+          "text": "Florida has no statewide rule requiring cities to allow ADUs; Tampa's own rules above govern."
+        }
+      ]
+    }
+  ]
+}

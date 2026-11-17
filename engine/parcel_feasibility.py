@@ -4,6 +4,7 @@ The nightly scorer uses the same engine functions with inputs loaded in bulk (jo
 """
 
 import json
+from dataclasses import replace as dc_replace
 from datetime import date
 
 from core import region
@@ -17,11 +18,11 @@ from engine.zoning import evaluate
 
 
 def load_defaults() -> dict:
-    return json.loads(region.rules_file("feasibility_defaults.json").read_text())
+    return region.rules_json("feasibility_defaults.json")
 
 
 def load_patterns() -> list[dict]:
-    return json.loads(region.rules_file("building_patterns.json").read_text())["patterns"]
+    return region.rules_json("building_patterns.json")["patterns"]
 
 
 def bedrooms_for(unit_sqft: float) -> int:
@@ -35,7 +36,7 @@ def parcel_context(conn, pin: str) -> dict | None:
            from parcel p left join parcel_site ps on ps.pin = p.pin
            where (p.pin = %s or p.pin10 = %s) and p.geom is not null
            order by p.tax_year desc, p.pin limit 1""",
-        (pin, pin[:10]),
+        (pin, region.lot_id(pin)),
     ).fetchone()
     if not row:
         return None
@@ -49,6 +50,15 @@ def parcel_context(conn, pin: str) -> dict | None:
     ctx["cost_index"] = {"index": float(ci[0]), "thin": ci[1], "permits": ci[2], "neighbor_weight": float(ci[3]),
                          "computed_on": ci[4].isoformat()} if ci else None  # fmt: skip
     ctx["land_values"] = land_value(conn, ctx["nbhd"], ctx["ca_num"])
+    ctx["appraiser_land"] = None
+    if not region.is_chicago():
+        v = conn.execute(
+            "select land_market_value, tax_year from assessed_value where pin = %s and land_market_value > 0"
+            " order by tax_year desc limit 1",
+            (ctx["pin"],),
+        ).fetchone()
+        ratio = (load_defaults().get("appraiser_land") or {}).get("ratio_to_sale_price")
+        ctx["appraiser_land"] = {"value": float(v[0]), "tax_year": v[1], "ratio": ratio} if v else None
     return ctx
 
 
@@ -89,6 +99,10 @@ def existing_use(conn, pin10: str) -> dict | None:
     ).fetchone()
     if not row or not row[0]:
         return None
+    if not region.is_chicago():
+        return {"market_value": float(row[0]), "tax_year": row[1], "stages": row[2], "pins_without_value": row[3],
+                "note": "the county appraiser's market value on the latest roll; owners often ask more",
+                "source": region.current().get("value_source", "county appraiser market value")}  # fmt: skip
     ratio = json.loads(region.rules_file("assessment_levels.json").read_text()).get("sales_ratio_check", {})
     c2 = ratio.get("by_major_class", {}).get("2", {})
     note = (f"Assessor values ran at {c2['median']:.0%} of 2024-25 sale prices for class 2 buildings (median of"
@@ -184,9 +198,39 @@ def feasibility(
         unit_sqft = float(
             o.get("unit_sqft") or pick["unit_sqft"] or (1300 if units == 2 else 1200 if units == 3 else 1000)
         )
+        if "units" in o and "unit_sqft" not in o and units != pick["units"]:
+            unit_sqft = float(
+                d["unit_size_sqft"].get(
+                    "1" if units == 1 else "2" if units == 2 else "3" if units == 3 else "4-6", unit_sqft
+                )
+            )
         sell_as = o.get("sell_as", "building")
-        est = sale_estimate(Target(ctx["lat"], ctx["lon"], min(units, 6), today, unit_sqft,
+        # A house with an accessory unit sells as one property: value it as one home of the combined size.
+        one = bool(pick["pattern"]) and next(
+            (pt.get("sold_as_one") for pt in patterns if pt["id"] == pick["pattern"]), False
+        )
+        est = sale_estimate(Target(ctx["lat"], ctx["lon"], 1 if one else min(units, 6), today,
+                                   unit_sqft * units if one else unit_sqft,
                                    "condo" if sell_as == "condo" else None), pool, params, index, older)  # fmt: skip
+        if est and one:
+            est = dc_replace(
+                est,
+                per_unit=est.per_unit / units,
+                low=est.low / units if est.low else None,
+                high=est.high / units if est.high else None,
+                notes=[*est.notes, "valued as one home of the combined size, then divided by units"],
+            )
+        elif est and not est.same_group and units > 1 and not region.is_chicago():
+            est = dc_replace(
+                est,
+                notes=[
+                    *est.notes,
+                    (
+                        "too few sales of buildings this size nearby: comps include"
+                        " single houses, and attached units often sell for less"
+                    ),
+                ],
+            )
         citywide = est is None
         r = rent(conn, bedrooms_for(unit_sqft), ctx["tract"], ctx["zip"], d, today)
         x = inputs_for(ctx, z, rules, pick, units, unit_sqft, est, r, esc, o)
@@ -207,6 +251,12 @@ def feasibility(
             "sell_as": sell_as, "time_index": est.index_used,
             "source": "Cook County Assessor sales of older 2-6 unit buildings, converted with a fitted curve (docs/research/older-sale-fallback-2026-11-01.md); FHFA metro index"
                       if est.ring == 5 else "Cook County Assessor sales of buildings built 2014 or later; FHFA metro index"}  # fmt: skip
+        if sc["sale_source"] and "source" in sc["sale_source"] and not region.is_chicago():
+            r = region.current()
+            sc["sale_source"]["source"] = (r.get("comps") or {}).get(
+                "source", r["name"]
+            ) + "; FHFA metro index"
+            sc["sale_source"]["basis"] = r.get("price_basis", "recorded sales")
         sc["rent_source"] = r
         out["scenarios"].append(sc)
     hold = conn.execute("select environmental_hold from parcel_site where pin = %s", (site.pin,)).fetchone()
@@ -230,6 +280,18 @@ def inputs_for(
     land, land_basis = (
         (float(o["land"]), "entered") if "land" in o else land_for(ctx["land_values"], rules, z)
     )
+    if "land" not in o and not ctx["land_values"] and ctx.get("appraiser_land"):
+        a = ctx["appraiser_land"]
+        land = a["value"] / a["ratio"] if a.get("ratio") else a["value"]
+        land_basis = (
+            f"county appraiser's land value for this parcel, {a['tax_year']} roll, ${a['value']:,.0f}"
+            + (
+                f" / {a['ratio']:.2f}, the median share of sale price it reached on vacant lots sold here"
+                if a.get("ratio")
+                else ""
+            )
+            + " (no vacant-land sales nearby)"
+        )
     ci = ctx["cost_index"] or {}
     x = Inputs(
         units=units,
@@ -277,8 +339,11 @@ def _buildable_now(rules: Rules, z) -> float | None:
 
 def _label(pick: dict, path) -> str:
     names = {"two-flat": "2-flat", "three-flat": "3-flat", "three-flat-coach-house": "3-flat + coach house",
-             "four-flat": "4-flat", "six-flat": "6-flat", "storefront-three": "storefront + 3"}  # fmt: skip
-    what = names.get(pick["pattern"], f"{pick['units']} units")
+             "four-flat": "4-flat", "six-flat": "6-flat", "storefront-three": "storefront + 3", "house": "house",
+             "house-adu": "house + ADU", "duplex": "duplex", "triplex": "triplex", "fourplex": "fourplex",
+             "six-townhomes": "6 townhomes"}  # fmt: skip
+    what = names.get(pick["pattern"], "1 unit" if pick["units"] == 1 else f"{pick['units']} units")
     how = {"by_right": "by right", "rs3_two_flat": "RS-3 block-face rule", "admin_adjustment": "10% adjustment",
-           "adu": "with ADU", "rezoning": f"rezone to {path.district}"}.get(path.id, path.id)  # fmt: skip
+           "adu": "with ADU", "rezoning": f"rezone to {path.district}",
+           "state_override": "under state law"}.get(path.id, path.id)  # fmt: skip
     return f"{what} {how}"

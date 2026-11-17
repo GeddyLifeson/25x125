@@ -63,6 +63,8 @@ def _lognormal_sigma(low_mult: float, high_mult: float) -> tuple[float, float]:
 
 def osif(d: dict, units: int, unit_sqft: float, year: int) -> float:
     """Open Space Impact Fee per the 2024 ordinance; 2026 table by unit size."""
+    if not d.get("chicago_rules", True):
+        return float((d.get("impact_fees") or {}).get("per_unit", 0)) * units
     o = d["open_space_impact_fee"]
     size = (
         "<800"
@@ -88,8 +90,9 @@ def incentives(d: dict, x: Inputs, c: Cost, exit_: str, hold_value: float | None
         out.append({"id": id_, "name": name, "applies": applies, "on": bool(on and applies), "value": round(value) if applies else 0,
                     "basis": basis, "kind": kind, "note": note})  # fmt: skip
 
+    local = d.get("chicago_rules", True)
     ez_value = c.hard * 0.40 * 0.1025
-    ez_ok = x.in_enterprise_zone and x.answers.get("materials_from_ez_supplier", True)
+    ez_ok = local and x.in_enterprise_zone and x.answers.get("materials_from_ez_supplier", True)
     add("ez", "Enterprise Zone materials sales tax exemption", ez_ok, ez_value,
         "10.25% sales tax on about 40% of hard cost (materials)", "cash",
         "confirm residential eligibility; buy through an Enterprise Zone certificate")  # fmt: skip
@@ -116,6 +119,8 @@ def incentives(d: dict, x: Inputs, c: Cost, exit_: str, hold_value: float | None
         add("oz", "Opportunity Zone gain exclusion", oz_ok, gain * 0.238,
             "23.8% of value created, if the tract qualifies, you invest capital gains and hold 10 years", "tax",
             "2018 tract list valid through 2028; the 2027 list is not yet verified")  # fmt: skip
+    if not local:  # Illinois, Cook County and Chicago programs stop here
+        return out
     commercial = x.commercial_sqft > 0 or x.answers.get("has_commercial_space")
     add("tif_sbif", "TIF Small Business Improvement Fund", bool(x.in_tif and commercial), 0,
         "Flag only: commercial space in an active TIF district", "flag")  # fmt: skip
@@ -172,7 +177,11 @@ def scenario(
     inc = incentives(d, x, c, exit_, hold_value)
     out["incentives"] = inc
     out["incentive_total"] = sum(i["value"] for i in inc if i["on"])
-    out["flags"] = code_flags(x.units, x.rezoning)
+    out["flags"] = (
+        code_flags(x.units, x.rezoning)
+        if d.get("chicago_rules", True)
+        else general_flags(d, x.units, x.rezoning)
+    )
     out["buyer_financing"] = _buyer_financing(d, x, out)
     return out
 
@@ -186,16 +195,20 @@ def _cost(d, x: Inputs, gross: float, fee: float, savings: float) -> Cost:
 
 def _lines(d, x: Inputs, c: Cost, fee: float) -> list[dict]:
     m = d["margins_by_stage"][x.stage]
+    local = d.get("chicago_rules", True)
     adj = f" x {c.adjustment:.2f} area adjustment" if c.adjustment != 1 else ""
     lines = [
         ("land", "Land", x.land_basis + " · no margin applied", c.land),
         ("hard", "Hard cost", f"{c.gfa_sqft:,.0f} sq ft x ${c.base_per_sqft:,.2f} ({c.preset} spec){adj}", c.hard),
         ("sprinklers", "Sprinkler system",
-         "Required: building has 4+ units" if c.sprinklers else "Not required: no building over 3 units", c.sprinklers),
+         f"Priced: building has {d.get('sprinklers_min_units', 4)}+ units" if c.sprinklers
+         else f"Not priced: under {d.get('sprinklers_min_units', 4)} units in one building", c.sprinklers),
         ("contingency", "Contingency", "5% of hard cost", c.contingency),
         ("soft", "Soft cost", "22% of hard" + (" + $30,000 rezoning attorney and architect" if x.rezoning else ""), c.soft),
-        ("permit", "Building permit", "City fee formula; construction factor $0.50 per sq ft is a placeholder", c.permit),
-        ("osif", "Open Space Impact Fee", "2024 ordinance, 2026 rate by unit size", fee),
+        ("permit", "Building permit", "City fee formula; construction factor $0.50 per sq ft is a placeholder"
+         if local else "Placeholder: $0.50 per sq ft, with a minimum; replace with the city's fee schedule", c.permit),
+        ("osif", "Open Space Impact Fee", "2024 ordinance, 2026 rate by unit size", fee) if local else
+        ("impact_fees", "Impact fees", (d.get("impact_fees") or {}).get("basis", "not loaded for this city: enter the fee"), fee),
         ("financing", "Interest", "65% loan at 8%, 55% drawn over 12 months build, full over 6 months sell", c.financing),
         ("origination", "Loan fee", "1% of loan (placeholder until a lender quote)", c.origination),
         ("tax_insurance", "Tax and insurance while building", "1.5% a year for 18 months", c.tax_insurance),
@@ -217,6 +230,25 @@ def _lines(d, x: Inputs, c: Cost, fee: float) -> list[dict]:
                     "low": round(v * (1 + m["low"])) if margin else round(v),
                     "high": round(v * (1 + m["high"])) if margin else round(v)})  # fmt: skip
     return out
+
+
+def general_flags(d: dict, units: int, rezoning: bool) -> list[dict]:
+    """Flags for regions outside Chicago, from the model building codes most states adopt."""
+    n = d.get("sprinklers_min_units", 3)
+    f = [{"tag": "Note", "text": "1-2 unit homes and townhouses: residential code (IRC)"} if units < 3 else
+         {"tag": "Adds cost", "text": f"{units} units in one building: commercial building code (IBC) applies"}]  # fmt: skip
+    if units >= n:
+        f.append({"tag": "Adds cost", "text": f"Sprinkler system priced ({n}+ units in one building)"})
+    if rezoning:
+        f.append(
+            {
+                "tag": "Risk",
+                "text": "Rezoning needs public hearings and a council vote; approval is not certain",
+            }
+        )
+    for text in d.get("region_flags", []):
+        f.append({"tag": "Verify", "text": text})
+    return f
 
 
 def max_land_price(net: float, c: Cost, target: float) -> float:
@@ -370,6 +402,9 @@ def code_flags(units: int, rezoning: bool) -> list[dict]:
 
 def _buyer_financing(d, x: Inputs, out: dict) -> dict:
     b = d["sell"]["buyer_financing"]
+    if not d.get("chicago_rules", True):
+        return {"class": "residential (1-4 units): owner-occupant loans" if x.units <= 4
+                else "commercial (5+ units): commercial loan and appraisal"}  # fmt: skip
     if x.units <= 4:
         limit = b["residential_owner_occupant"]["fha_limit_cook_2026"].get(str(x.units))
         price = out.get("sell", {}).get("sale_total")
@@ -380,6 +415,8 @@ def _buyer_financing(d, x: Inputs, out: dict) -> dict:
 
 def pattern_fits(pattern: dict, path: Path, lot_sqft: float | None) -> tuple[bool, str]:
     """A pattern fits a zoning path when its units, floor area and height are within the path's limits."""
+    if pattern.get("paths") and path.id not in pattern["paths"]:
+        return False, f"used only for: {', '.join(pattern['paths'])}"
     if pattern["units"] > path.units:
         return False, f"{pattern['units']} units > {path.units} allowed"
     if path.floor_area_sqft and pattern["gross_sqft"] > path.floor_area_sqft * 1.001:
@@ -435,6 +472,10 @@ def fast_path(z: Result, landmark: str | None, historic_rating: str | None, use_
     issued permits by review type (permit_wait)."""
     by_right = next((p for p in z.paths if p.id == "by_right"), None)
     why = []
+    if not region.is_chicago():
+        ok = by_right is not None and by_right.units >= 1 and not landmark
+        return {"eligible": ok, "why_not": [] if ok else ["no by-right program" if not landmark else f"historic: {landmark}"],
+                "definition": "by-right units and floor area, no zoning relief, not in a historic district"}  # fmt: skip
     if by_right is None or by_right.units < 2:
         why.append("no 2-unit or larger program by right")
     elif by_right.units > 8:

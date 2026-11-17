@@ -2,6 +2,8 @@
 
 import re
 
+from core import region
+
 SITE_FIELDS = [
     "zone_class", "zone_share", "zone_class_2", "zone_share_2", "lot_sqft", "frontage_ft", "depth_ft", "lot_source",
     "historic_rating", "landmark_name", "tif_name", "cta_rail_ft", "metra_ft", "transit_served", "adu_zone",
@@ -15,7 +17,8 @@ SITE_FIELDS = [
 
 def normalize_address(q: str) -> str:
     q = " ".join(q.upper().replace(",", " ").replace(".", " ").split())
-    q = re.sub(r"\bCHICAGO\b.*$", "", q).strip()
+    city = "CHICAGO" if region.is_chicago() else re.escape(region.current()["name"].upper())
+    q = re.sub(rf"\b{city}\b.*$", "", q).strip()
     for a, b in (("STREET", "ST"), ("AVENUE", "AVE"), ("BOULEVARD", "BLVD"), ("PLACE", "PL"), ("NORTH", "N"),
                  ("SOUTH", "S"), ("WEST", "W"), ("EAST", "E"), ("COURT", "CT"), ("DRIVE", "DR"), ("ROAD", "RD")):  # fmt: skip
         q = re.sub(rf"\b{a}\b", b, q)
@@ -24,12 +27,18 @@ def normalize_address(q: str) -> str:
 
 def search(conn, q: str, limit: int = 10) -> list[dict]:
     digits = re.sub(r"\D", "", q)
-    if len(digits) in (10, 14) and len(digits) >= len(q.replace("-", "").strip()) - 1:
+    by_id = len(digits) in (10, 14) and len(digits) >= len(q.replace("-", "").strip()) - 1
+    if not region.is_chicago():
+        # A parcel ID has no spaces and is mostly digits; an address starts with a house number and a space.
+        token = q.strip()
+        by_id = " " not in token and len(token) >= 8 and sum(c.isdigit() for c in token) >= len(token) * 0.6
+        digits = token.upper()
+    if by_id:
         rows = conn.execute(
             """select a.pin, a.address, a.zip, ps.zone_class, ps.lot_sqft from parcel_address a
                left join parcel_site ps on ps.pin = a.pin
                where a.pin like %s order by a.pin limit %s""",
-            (digits[:10] + "%", limit),
+            ((digits[:10] if region.is_chicago() else digits) + "%", limit),
         ).fetchall()
     else:
         addr = normalize_address(q)
@@ -58,7 +67,7 @@ def parcel(conn, pin: str) -> dict | None:
             left join lateral (select * from block_face b where b.block_face = lu.block_face offset 0) bf on true
             left join source_pull sp on sp.id = p.source_pull_id
             where p.pin = %s or p.pin10 = %s order by p.tax_year desc, p.pin limit 1""",
-        (pin, pin[:10]),
+        (pin, region.lot_id(pin)),
     ).fetchone()
     if not row:
         return None
@@ -74,8 +83,11 @@ def parcel(conn, pin: str) -> dict | None:
         {"date": d.isoformat(), "price": float(p), "deed_type": t}
         for d, p, t in conn.execute(
             # A PIN range rather than left(pin, 10), so the lookup uses the pin index (0.2 s down to under 1 ms).
-            "select sale_date, sale_price, deed_type from sale where pin between %s and %s order by sale_date desc limit 5",
-            (out["pin10"] + "0000", out["pin10"] + "9999"),
+            "select sale_date, sale_price, coalesce(deed_type, 'qualification code ' || qualification) from sale"
+            " where pin between %s and %s order by sale_date desc limit 5",
+            (out["pin10"] + "0000", out["pin10"] + "9999")
+            if region.is_chicago()
+            else (out["pin"], out["pin"]),
         ).fetchall()
     ]
     out["signals"] = [
@@ -91,6 +103,13 @@ def parcel(conn, pin: str) -> dict | None:
         "zoning": "City of Chicago zoning districts (dj47-wfun)",
         "signals": "City of Chicago violations, 311, scofflaw, city land, demolition notices",
     }
+    if not region.is_chicago():
+        r = region.current()
+        out["sources"] = {
+            "parcel": r.get("parcel_source", ""),
+            "zoning": (r.get("zoning_layer") or {}).get("url", ""),
+        }
+        out["region"] = r["id"]
     sc = conn.execute(
         """select score, zoning_upside, profit, acquisition, location, incentives, penalties, details, computed_on
            from parcel_score where pin10 = %s""",

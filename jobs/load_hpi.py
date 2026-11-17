@@ -1,4 +1,4 @@
-"""Load FHFA house price indexes for Illinois: annual by census tract and five-digit ZIP, quarterly by metro
+"""Load FHFA house price indexes for the region's state (Illinois by default): annual by census tract and five-digit ZIP, quarterly by metro
 division. Comp prices move to the estimate date with the tract index, then ZIP, then metro (the first with
 values for both years). FHFA indexes are public domain and can be shown on screen.
 
@@ -11,6 +11,7 @@ import io
 import urllib.request
 from collections.abc import Callable, Iterator
 
+from core import region
 from core.db import connect
 from core.sources import finish_pull, start_pull
 from jobs.common import num, upsert
@@ -25,9 +26,21 @@ FILES = {
 COLUMNS = ["geo_kind", "geo_id", "year", "quarter", "hpi", "source_pull_id"]
 
 
+def _state() -> str:
+    return region.current().get("state", "IL")
+
+
+def _fips() -> str:
+    return region.STATE_FIPS[_state()]
+
+
+def _zip_prefixes() -> tuple:
+    return region.STATE_ZIP_PREFIXES[_state()]
+
+
 def tract_rows(fh: io.TextIOBase) -> Iterator[tuple]:
     for r in csv.DictReader(fh):
-        if r["tract"].startswith("17") and (v := num(r["hpi"])):
+        if r["tract"].startswith(_fips()) and (v := num(r["hpi"])):
             yield "tract", r["tract"], int(r["year"]), 0, v
 
 
@@ -37,14 +50,14 @@ def zip_rows(path) -> Iterator[tuple]:
     ws = openpyxl.load_workbook(path, read_only=True).active
     for r in ws.iter_rows(min_row=7, values_only=True):
         z, year, _, hpi = r[:4]
-        # Illinois ZIP codes run 60001-62999.
-        if z and str(z)[:2] in ("60", "61", "62") and isinstance(hpi, int | float):
-            yield "zip", str(z), int(year), 0, float(hpi)
+        # Illinois ZIP codes run 60001-62999; other states' prefixes are in core/region.py.
+        if z and str(z).zfill(5).startswith(_zip_prefixes()) and isinstance(hpi, int | float):
+            yield "zip", str(z).zfill(5), int(year), 0, float(hpi)
 
 
 def metro_rows(fh: io.TextIOBase) -> Iterator[tuple]:
     for r in csv.reader(fh):
-        if len(r) >= 5 and ", IL" in r[0] and (v := num(r[4].replace("-", ""))):
+        if len(r) >= 5 and _state() in r[0].split(", ")[-1] and (v := num(r[4].replace("-", ""))):
             yield "metro", r[1], int(r[2]), int(r[3]), v
 
 

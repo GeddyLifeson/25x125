@@ -16,6 +16,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 from pydantic import BaseModel, Field, field_validator
 
+from core import region
 from core.db import connect
 from engine.accounts import clean_email
 from engine.auth import Caller, admin, audit, check_rate, signed, user_email
@@ -96,9 +97,9 @@ class FeedbackIn(BaseModel):
     def digits(cls, v):
         if v is None or v == "":
             return None
-        d = v.replace("-", "")
-        if not d.isdigit() or len(d) not in (10, 14):
-            raise ValueError("PIN must be 10 or 14 digits")
+        d = region.clean_parcel_id(v)
+        if d is None:
+            raise ValueError(region.parcel_id_error())
         return d
 
     @field_validator("numbers_wrong", "outside_questions", "missing", "notes", "page_path", "email")

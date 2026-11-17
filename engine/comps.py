@@ -277,6 +277,8 @@ def index_from_db(conn) -> Index:
 
 
 def params_from_files() -> Params:
-    defaults = json.loads(region.rules_file("feasibility_defaults.json").read_text())
+    defaults = region.rules_json("feasibility_defaults.json")
     band = region.rules_file("sale_band.json")
+    if not region.is_chicago() and band == RULES_DIR / "sale_band.json":
+        band = RULES_DIR / "no-band-fitted-for-this-region"  # never borrow Chicago's fitted range
     return Params.from_rules(defaults["sale_comps"], json.loads(band.read_text()) if band.exists() else None)

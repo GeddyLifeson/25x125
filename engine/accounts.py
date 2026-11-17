@@ -17,6 +17,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
+from core import region
 from core.db import connect
 from core.settings import settings
 from engine import billing, mail
@@ -549,10 +550,10 @@ class OverrideIn(BaseModel):
 
 
 def _pin(pin: str) -> str:
-    pin = pin.replace("-", "").strip()
-    if not pin.isdigit() or len(pin) not in (10, 14):
-        raise HTTPException(400, "PIN must be 10 or 14 digits")
-    return pin
+    pid = region.clean_parcel_id(pin)
+    if pid is None:
+        raise HTTPException(400, region.parcel_id_error())
+    return pid
 
 
 @router.get("/overrides/{pin}")

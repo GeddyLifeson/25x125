@@ -93,15 +93,20 @@ def health(response: Response) -> dict:
         return {"status": "degraded", "database": f"error: {type(e).__name__}"}
 
 
+def _pid(raw: str) -> str:
+    pid = region.clean_parcel_id(raw)
+    if pid is None:
+        raise HTTPException(400, region.parcel_id_error())
+    return pid
+
+
 @app.get("/parcels/{pin}/zoning")
 def parcel_zoning(pin: str, target: str | None = None) -> dict:
     """Zoning capacity paths and flags for a PIN (14 digits) or lot (10 digits), from the stored rules.
 
     `target` picks the rezoning district (e.g. RM-4.5); the default is the first listed target.
     """
-    pin = pin.replace("-", "")
-    if not pin.isdigit() or len(pin) not in (10, 14):
-        raise HTTPException(400, "PIN must be 10 or 14 digits")
+    pin = _pid(pin)
     with connect() as conn:
         site = site_by_pin(conn, pin)
         if site is None:
@@ -118,16 +123,15 @@ def parcel_sale_value(
 
     `sell` is 'building' (whole building, both comp kinds) or 'condo' (condo units, condo comps only).
     """
-    pin = pin.replace("-", "")
-    if not pin.isdigit() or len(pin) not in (10, 14):
-        raise HTTPException(400, "PIN must be 10 or 14 digits")
-    if sell not in ("building", "condo") or not 2 <= units <= 6:
-        raise HTTPException(400, "sell must be building or condo; units 2 to 6")
+    pin = _pid(pin)
+    low = 2 if region.is_chicago() else 1
+    if sell not in ("building", "condo") or not low <= units <= 6:
+        raise HTTPException(400, f"sell must be building or condo; units {low} to 6")
     with connect() as conn:
         row = conn.execute(
             "select st_y(geom), st_x(geom) from parcel where (pin = %s or pin10 = %s) and geom is not null"
             " order by tax_year desc limit 1",
-            (pin, pin[:10]),
+            (pin, region.lot_id(pin)),
         ).fetchone()
         if row is None:
             raise HTTPException(404, f"PIN {pin} has no location in the parcel table")
@@ -164,17 +168,15 @@ def parcel_sale_value(
 @app.get("/parcels/{pin}/rent")
 def parcel_rent(pin: str, bedrooms: int = 2) -> dict:
     """Monthly rent per unit for a new unit on this lot: Census ACS rent, grown to today, x the new-building factor."""
-    pin = pin.replace("-", "")
-    if not pin.isdigit() or len(pin) not in (10, 14):
-        raise HTTPException(400, "PIN must be 10 or 14 digits")
+    pin = _pid(pin)
     with connect() as conn:
         row = conn.execute(
             "select tract_geoid, zip from parcel where pin = %s or pin10 = %s order by tax_year desc limit 1",
-            (pin, pin[:10]),
+            (pin, region.lot_id(pin)),
         ).fetchone()
         if row is None:
             raise HTTPException(404, f"PIN {pin} is not in the parcel table")
-        defaults = json.loads(region.rules_file("feasibility_defaults.json").read_text())
+        defaults = region.rules_json("feasibility_defaults.json")
         r = rent(conn, bedrooms, row[0], row[1], defaults, date.today())
     if r is None:
         raise HTTPException(404, "no Census rent for this tract or ZIP area")
@@ -194,9 +196,7 @@ def parcel_feasibility(
     `overrides` sets any input per scenario ("0", "1", "2") or for all ("all"): units, unit_sqft, land,
     sale_per_unit, rent_per_unit, cost_index, preset, stage, sell_as, toggles, answers.
     """
-    pin = pin.replace("-", "")
-    if not pin.isdigit() or len(pin) not in (10, 14):
-        raise HTTPException(400, "PIN must be 10 or 14 digits")
+    pin = _pid(pin)
     if exit not in ("sell", "hold"):
         raise HTTPException(400, "exit must be sell or hold")
     with connect() as conn:
@@ -257,9 +257,7 @@ def list_lots(
 @app.get("/lots/{pin10}")
 def one_lot(pin10: str) -> dict:
     """One lot's row from the scored list (same columns as /lots), for the map's side panel."""
-    pin10 = pin10.replace("-", "")[:10]
-    if not pin10.isdigit() or len(pin10) != 10:
-        raise HTTPException(400, "PIN must be 10 or 14 digits")
+    pin10 = region.lot_id(_pid(pin10))
     with connect() as conn:
         rows = lots(conn, pin10=pin10, limit=1)
     if not rows:
@@ -270,9 +268,7 @@ def one_lot(pin10: str) -> dict:
 @app.get("/parcels/{pin}")
 def parcel_facts(pin: str) -> dict:
     """The parcel page's facts: lot, zoning, overlays, what stands on the lot, signals and recent sales."""
-    pin = pin.replace("-", "")
-    if not pin.isdigit() or len(pin) not in (10, 14):
-        raise HTTPException(400, "PIN must be 10 or 14 digits")
+    pin = _pid(pin)
     with connect() as conn:
         out = parcel(conn, pin)
     if out is None:

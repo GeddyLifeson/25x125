@@ -11,7 +11,7 @@ from collections.abc import Callable
 
 import psycopg
 
-from core import errors
+from core import errors, region
 from core.settings import settings
 from jobs import (
     build_comps,
@@ -50,7 +50,29 @@ from jobs import (
 )
 
 
+def region_steps(skip_yearly: bool) -> list[tuple[str, Callable]]:
+    """A region outside Chicago: its parcel loader, its zoning layer, then the shared builders."""
+    from jobs import build_region, load_fl_dor, load_zoning_layer
+
+    r = region.current()
+    loaders = {"fl_dor": load_fl_dor.run}
+    loader = loaders.get(r.get("parcel_loader"))
+    if loader is None:
+        raise SystemExit(f"region {r['id']}: no parcel loader yet (parcel_loader in region.json)")
+    yearly = [("parcels, values, sales and lot shapes", lambda: loader()), ("house price index", lambda: load_hpi.run())]
+    return ([] if skip_yearly else yearly) + [
+        ("zoning", lambda: load_zoning_layer.run()),
+        ("cost escalation", lambda: load_cost_escalation.run()),
+        ("rules", lambda: seed_rules.run()),
+        ("parcel sites", lambda: build_parcel_site.run()),
+        ("lot use, comps and land values", lambda: build_region.run()),
+        ("development score", lambda: score_parcels.run()),
+    ]
+
+
 def steps(year: int, skip_yearly: bool) -> list[tuple[str, Callable]]:
+    if not region.is_chicago():
+        return region_steps(skip_yearly)
     nightly = [
         ("sales", lambda: load_sales.run()),
         ("permits", lambda: load_permits.run()),

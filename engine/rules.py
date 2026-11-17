@@ -32,7 +32,7 @@ class Citation:
 class District:
     name: str  # e.g. 'RT-4' or 'B/C-2'
     match: tuple[str, ...]
-    lot_area_per_unit_sqft: float
+    lot_area_per_unit_sqft: float | None  # None: the district limits floor area only (FAR)
     min_lot_area_sqft: float | None
     far: float
     cite: Citation
@@ -65,6 +65,13 @@ class Rules:
         for d in self.districts.values():
             if zone_class in d.match:
                 return d
+        if not region.is_chicago():
+            # Some city layers store the base district with overlay suffixes ("R-2A/T/HP") or with spaces.
+            base = zone_class.split("/")[0].strip()
+            squeezed = zone_class.replace(" ", "")
+            for d in self.districts.values():
+                if base in d.match or squeezed in d.match or d.name in (zone_class, base):
+                    return d
         return None
 
     def height(
@@ -131,11 +138,14 @@ def rows_from_files(directory: Path | None = None) -> list[tuple]:
 
     out = []
     for r in csv.DictReader(path("zoning_districts.csv").open(encoding="utf-8")):
-        if not r.get("district") or not r.get("lot_area_per_unit_sqft"):
+        if not r.get("district") or not (
+            r.get("lot_area_per_unit_sqft")
+            or (r.get("far") and directory is None and not region.is_chicago())
+        ):
             continue
         value = {
             "match": r["match"].split(),
-            "lot_area_per_unit_sqft": float(r["lot_area_per_unit_sqft"]),
+            "lot_area_per_unit_sqft": _f(r.get("lot_area_per_unit_sqft")),
             "min_lot_area_sqft": _f(r.get("min_lot_area_sqft")),
             "far": _f(r.get("far")) or 0.0,
             "max_units": int(float(r["max_units"])) if r.get("max_units") else None,

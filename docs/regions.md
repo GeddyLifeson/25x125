@@ -104,3 +104,62 @@ developer would plausibly ask for; every target must be a row in zoning_district
 - Test the zoning GIS layer with a real request and record the exact field that holds the district code and
   20 or so distinct values, so `match` lines up.
 - Free sources only. No sign-ups, no paid data, no records requests.
+
+## Loading a region (added 2026-11-17)
+
+One install serves one region. Set `REGION` and point `DATABASE_URL` at that region's database, then:
+
+```
+python -m db.migrate
+python -m jobs.nightly
+python -m jobs.check_region --write
+```
+
+`jobs.nightly` runs the region's parcel loader (`parcel_loader` in region.json), the zoning layer loader
+(`jobs/load_zoning_layer.py`, from `zoning_layer`), the FHFA index for the region's state, then the shared
+builders: parcel sites, `jobs/build_region.py` (what stands on each lot, comps, land values), rules and the
+score. `jobs.check_region --write` fits the region's own size elasticity and 80% sale range, measures the
+appraiser's land value against vacant-lot sales, and draws a 35-sale test set into
+`data/regions/<id>/reference/test_parcels.csv`. Chicago's fitted range is never borrowed.
+
+### Parcel loaders
+
+| `parcel_loader` | Covers | Source |
+|---|---|---|
+| `fl_dor` | every Florida county | Department of Revenue NAL tax roll file and parcel map (`jobs/load_fl_dor.py`) |
+
+Florida county entries carry `dor_name`, `dor_county_no`, `shape_name`, `shape_epsg` (the State Plane zone of
+the county's parcel map) and `tax_auth_codes` or `tax_auth_prefixes` (the city's taxing authority codes, read
+from the NAL file). The roll holds each parcel's two latest sales, from January of the year before the roll, so
+the comp pool starts at about 20 months of sales and grows as each year's roll is added. Sale dates are known
+to the month.
+
+### Rules shared by the new regions
+
+`data/regions/_shared/rules/` holds files every region outside Chicago uses unless it has its own:
+`feasibility_defaults.json` and `building_patterns.json`. A JSON file marked `"extends": true` holds only what
+differs and is laid over the next copy down: region, then `_shared`, then `data/rules` (`region.rules_json`).
+`"chicago_rules": false` switches off the Chicago-only lines (Open Space Impact Fee, Illinois Enterprise Zone,
+Cook County classes, Missing Middle, the 2019 Chicago code flags).
+
+Cost base outside Chicago: $162 per sq ft, from the NAHB 2024 construction cost survey. Tampa's own new-house
+sales imply a median of $162 per sq ft after land and the builder's other costs (1,218 sales; 25th to 75th
+percentile $128 to $200), so the national figure holds there. The feasibility-stage margin is wider
+(-25% / +45%) until local job costs replace it.
+
+### Engine rules added for the new regions
+
+- A district row with FAR and no lot area per unit (Atlanta RG, MR, MRC) gives units = lot x FAR / 1,100 sq ft.
+  The 1,100 is an assumed unit size, shown in the path's notes; a `far_only` step can change it.
+- A zoning code stored with overlay suffixes (`R-2A/T/HP`) falls back to the text before the first `/`.
+- A pattern with `paths` is used only on those zoning paths. `sold_as_one` values a house plus accessory unit
+  as one home of the combined size.
+- Where no vacant-lot sales are nearby, land is the appraiser's land value for the parcel divided by the
+  measured ratio of appraiser land value to sale price (Tampa: 0.55 on 426 vacant-lot sales).
+
+### Not built yet
+
+Steps the city files describe that the engine does not compute: Tampa ADU eligible areas (map layer), Orlando
+duplex-lot, multiplex and townhome steps, Jacksonville cottages, Miami cottage housing, Houston's Chapter 42
+lot steps, Austin's small-lot rule. Each city's `notes.md` lists what could not be confirmed against the
+official code text. Flood, historic and overlay layers are recorded in each region.json and not loaded yet.
