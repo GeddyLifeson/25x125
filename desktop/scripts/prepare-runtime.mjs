@@ -1,7 +1,7 @@
 // Build desktop/build/runtime: everything the Windows program runs besides Electron itself.
 //   pgsql/   PostgreSQL 16 (EDB Windows binaries) with the PostGIS 3.5 bundle (OSGeo) copied in
 //   python/  Python 3.12 (python.org build from NuGet) with the engine's packages from pyproject.toml
-//   app/     core, db, engine, jobs, data/{rules,sources,reference} and desktop_bootstrap.py
+//   app/     core, db, engine, jobs, data/{rules,sources,reference,regions} and desktop_bootstrap.py
 //   node/    node.exe (Node.js 22, signed by the OpenJS Foundation) that runs the web server
 //   web/     the Next.js standalone server, built with LOCAL_MODE=1
 // Run on Windows from desktop/: node scripts/prepare-runtime.mjs   (CI: .github/workflows/desktop.yml)
@@ -145,7 +145,7 @@ function appCode() {
   step("copy the engine, jobs and data");
   const app = path.join(out, "app");
   for (const d of ["core", "db", "engine", "jobs"]) copyTree(path.join(repo, d), path.join(app, d));
-  for (const d of ["rules", "sources", "reference"]) copyTree(path.join(repo, "data", d), path.join(app, "data", d));
+  for (const d of ["rules", "sources", "reference", "regions"]) copyTree(path.join(repo, "data", d), path.join(app, "data", d));
   fs.copyFileSync(path.join(desktop, "src", "bootstrap.py"), path.join(app, "desktop_bootstrap.py"));
 }
 
