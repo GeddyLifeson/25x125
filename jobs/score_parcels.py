@@ -18,9 +18,10 @@ import json
 import time
 from datetime import date
 
+from core import region
 from core.db import connect
 from engine import older_sales
-from engine.comps import RULES_DIR, Target, index_from_db, params_from_files, pool_from_db
+from engine.comps import Target, index_from_db, params_from_files, pool_from_db
 from engine.feasibility import fast_path, scenario, scenarios_for
 from engine.parcel_feasibility import (
     escalation,
@@ -161,7 +162,7 @@ def score_lot(row, w: dict, rules: Rules, ctx: dict, sale_for, sur_match: list[s
 
 
 def run(url: str | None = None, limit: int | None = None) -> dict:
-    w = json.loads((RULES_DIR / "development_score.json").read_text())
+    w = json.loads(region.rules_file("development_score.json").read_text())
     today = date.today()
     t0 = time.time()
     with connect(url) as conn:

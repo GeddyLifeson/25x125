@@ -6,8 +6,9 @@ The nightly scorer uses the same engine functions with inputs loaded in bulk (jo
 import json
 from datetime import date
 
+from core import region
 from engine import older_sales
-from engine.comps import RULES_DIR, Estimate, Target, estimate, index_from_db, params_from_files, pool_from_db
+from engine.comps import Estimate, Target, estimate, index_from_db, params_from_files, pool_from_db
 from engine.feasibility import Inputs, fast_path, pattern_fits, scenario, scenarios_for
 from engine.rents import rent
 from engine.rules import Rules
@@ -16,11 +17,11 @@ from engine.zoning import evaluate
 
 
 def load_defaults() -> dict:
-    return json.loads((RULES_DIR / "feasibility_defaults.json").read_text())
+    return json.loads(region.rules_file("feasibility_defaults.json").read_text())
 
 
 def load_patterns() -> list[dict]:
-    return json.loads((RULES_DIR / "building_patterns.json").read_text())["patterns"]
+    return json.loads(region.rules_file("building_patterns.json").read_text())["patterns"]
 
 
 def bedrooms_for(unit_sqft: float) -> int:
@@ -88,7 +89,7 @@ def existing_use(conn, pin10: str) -> dict | None:
     ).fetchone()
     if not row or not row[0]:
         return None
-    ratio = json.loads((RULES_DIR / "assessment_levels.json").read_text()).get("sales_ratio_check", {})
+    ratio = json.loads(region.rules_file("assessment_levels.json").read_text()).get("sales_ratio_check", {})
     c2 = ratio.get("by_major_class", {}).get("2", {})
     note = (f"Assessor values ran at {c2['median']:.0%} of 2024-25 sale prices for class 2 buildings (median of"
             f" {c2['n']:,} sales, measured {ratio.get('measured_on')}); owners often ask more") if c2 else None  # fmt: skip
@@ -97,7 +98,7 @@ def existing_use(conn, pin10: str) -> dict | None:
 
 
 def load_questions() -> list[dict]:
-    return json.loads((RULES_DIR / "incentive_questions.json").read_text())["questions"]
+    return json.loads(region.rules_file("incentive_questions.json").read_text())["questions"]
 
 
 def escalation(conn, d: dict) -> dict:

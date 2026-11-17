@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://postgres:postgres@localhost:5432/x25x125"
     socrata_app_token: str = ""
     census_api_key: str = ""
+    # The market this install serves: chicago (default), tampa, orlando, jacksonville, miami, houston,
+    # atlanta, austin, dallas, san_antonio. One database per region (core/region.py).
+    region: str = "chicago"
 
     # "development" (default) or "production". Production refuses the dev fallbacks below.
     app_env: str = "development"

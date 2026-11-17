@@ -10,12 +10,12 @@ import psycopg
 from fastapi import Body, Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, Response
 
-from core import errors
+from core import errors, region
 from core.db import connect
 from engine import accounts, areas, basemap, billing, deals, feedback
 from engine.accounts import export_gate
 from engine.auth import Caller, caller, check_rate
-from engine.comps import RULES_DIR, Target, estimate, miles, params_from_files
+from engine.comps import Target, estimate, miles, params_from_files
 from engine.parcel_feasibility import comp_tables, feasibility
 from engine.parcels import LOT_COLUMNS, lots, parcel, search
 from engine.rents import rent
@@ -54,7 +54,7 @@ async def unhandled(request: Request, exc: Exception) -> JSONResponse:
     return JSONResponse({"detail": "The engine hit an error. It has been logged."}, status_code=500)
 
 
-FRESHNESS = json.loads((RULES_DIR / "freshness.json").read_text())
+FRESHNESS = json.loads(region.rules_file("freshness.json").read_text())
 
 
 def freshness(conn, now=None) -> dict:
@@ -174,7 +174,7 @@ def parcel_rent(pin: str, bedrooms: int = 2) -> dict:
         ).fetchone()
         if row is None:
             raise HTTPException(404, f"PIN {pin} is not in the parcel table")
-        defaults = json.loads((RULES_DIR / "feasibility_defaults.json").read_text())
+        defaults = json.loads(region.rules_file("feasibility_defaults.json").read_text())
         r = rent(conn, bedrooms, row[0], row[1], defaults, date.today())
     if r is None:
         raise HTTPException(404, "no Census rent for this tract or ZIP area")

@@ -21,11 +21,22 @@ from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 
+from core import region
+
 RULES_DIR = Path(__file__).resolve().parents[1] / "data" / "rules"
 
 MILES_PER_DEG_LAT = 69.0
 COS_LAT = math.cos(math.radians(41.85))
 METRO = "16984"  # Chicago-Naperville-Schaumburg metro division
+
+
+def _cos_lat() -> float:
+    return COS_LAT if region.is_chicago() else math.cos(math.radians(region.current()["center"]["lat"]))
+
+
+def metro() -> str:
+    """FHFA metro (or metro division) code whose index moves comp prices through time."""
+    return METRO if region.is_chicago() else str(region.current().get("fhfa_metro") or "")
 
 
 @dataclass(frozen=True)
@@ -105,11 +116,11 @@ class Estimate:
 
 
 def miles(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    return math.hypot((lat1 - lat2) * MILES_PER_DEG_LAT, (lon1 - lon2) * MILES_PER_DEG_LAT * COS_LAT)
+    return math.hypot((lat1 - lat2) * MILES_PER_DEG_LAT, (lon1 - lon2) * MILES_PER_DEG_LAT * _cos_lat())
 
 
 def group(units: int) -> str:
-    return "2" if units == 2 else ("3" if units == 3 else "4-6")
+    return "1" if units <= 1 else "2" if units == 2 else ("3" if units == 3 else "4-6")
 
 
 class Index:
@@ -128,7 +139,7 @@ class Index:
         self.last_year = {k: max(y for kk, _, y in self.v if kk == k) for k in {k for k, _, _ in self.v}}
 
     def factor(self, comp: Comp, to_year: int, levels=("tract", "zip", "metro")) -> tuple[float, str]:
-        for kind, geo in (("tract", comp.tract), ("zip", comp.zip), ("metro", METRO)):
+        for kind, geo in (("tract", comp.tract), ("zip", comp.zip), ("metro", metro())):
             if not geo or kind not in levels:
                 continue
             y_to = min(to_year, self.last_year.get(kind, to_year))
@@ -266,6 +277,6 @@ def index_from_db(conn) -> Index:
 
 
 def params_from_files() -> Params:
-    defaults = json.loads((RULES_DIR / "feasibility_defaults.json").read_text())
-    band = RULES_DIR / "sale_band.json"
+    defaults = json.loads(region.rules_file("feasibility_defaults.json").read_text())
+    band = region.rules_file("sale_band.json")
     return Params.from_rules(defaults["sale_comps"], json.loads(band.read_text()) if band.exists() else None)

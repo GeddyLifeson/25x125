@@ -8,6 +8,7 @@ a path.
 import math
 from dataclasses import asdict, dataclass, field
 
+from core import region
 from engine.rules import District, Rules, family
 
 
@@ -82,18 +83,20 @@ class Result:
 
 def _parking(rules: Rules, district: str, units: int, site: "Site") -> tuple[int, int, str]:
     """Car and bike spaces for a building of `units` on this lot (17-10-0207, 17-10-0102-B)."""
-    p = rules.step("parking")["params"]
-    per_unit = p["spaces_per_unit"].get(district, p["spaces_per_unit"]["default"])
-    if units == 2 and district in p["two_flat_spaces_per_unit"]:
+    p = rules.steps.get("parking", {}).get("params") or {"spaces_per_unit": {"default": 1}}
+    spu = p["spaces_per_unit"]
+    per_unit = spu.get(district, spu.get("default", 1))
+    if units == 2 and district in p.get("two_flat_spaces_per_unit", {}):
         per_unit = p["two_flat_spaces_per_unit"][district]
-    big = p["large_building"]
-    if district == big["district"] and units > big["after_units"]:
+    big = p.get("large_building")
+    if big and district == big["district"] and units > big["after_units"]:
         cars = big["after_units"] * per_unit + (units - big["after_units"]) * big["spaces_per_unit"]
     else:
         cars = units * per_unit
     cars = math.ceil(cars - 1e-9)
-    narrow = units <= 2 and site.frontage_ft is not None and site.frontage_ft <= p["narrow_lot_exemption_ft"]
-    if site.transit_served:
+    narrow_ft = p.get("narrow_lot_exemption_ft")
+    narrow = bool(narrow_ft) and units <= 2 and site.frontage_ft is not None and site.frontage_ft <= narrow_ft
+    if site.transit_served and "bike_spaces_per_unit" in p:
         bikes = units * p["bike_spaces_per_unit"]
         if site.transit_served == "Metra station":
             share = p["metra_only_share_by_right"]
@@ -106,10 +109,16 @@ def _parking(rules: Rules, district: str, units: int, site: "Site") -> tuple[int
                 ),
             )
         return 0, bikes, f"transit-served ({site.transit_served}): no car parking required"
-    note = f"{per_unit:g} space(s) per unit outside transit-served areas"
+    note = f"{per_unit:g} space(s) per unit" + (
+        " outside transit-served areas" if "bike_spaces_per_unit" in p else ""
+    )
     if narrow:
         note += f"; 0 if the lot of record has no improved alley ({site.frontage_ft:.0f} ft wide)"
     return cars, 0, note
+
+
+def _cap(d: District, units: int) -> int:
+    return min(units, d.max_units) if d.max_units else units
 
 
 def _units(lot: float, lapu: float) -> int:
@@ -131,7 +140,15 @@ def _path(rules, site, d: District, path_id, name, approval, units, far=None, he
             *notes,
             f"{with_shop.max_height_ft * height_factor:.0f} ft with ground-floor commercial space",
         ]
-    floor_area = (site.lot_sqft or 0) * (far if far is not None else d.far)
+    ratio = far if far is not None else d.far
+    if not ratio and d.max_lot_coverage and h:
+        # No floor area ratio in the code: lot coverage times the stories the height limit allows (11 ft each).
+        ratio = d.max_lot_coverage * max(int(h.max_height_ft // 11), 1)
+        notes = [
+            *notes,
+            f"no floor area ratio in the code; floor area from {d.max_lot_coverage:.0%} lot coverage",
+        ]
+    floor_area = (site.lot_sqft or 0) * ratio
     cars, bikes, park_note = _parking(rules, d.name, units, site)
     cites = [f"{d.name}: {d.cite.text()}"]
     if h:
@@ -160,6 +177,8 @@ def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Re
         if d is None:
             res.flags.append(
                 Flag("not_covered", f"District {site.zone_class or 'unknown'} is not covered in version 1.")
+                if region.is_chicago() or site.zone_class
+                else Flag("not_covered", "No zoning district on file for this lot.")
             )
         else:
             res.flags.append(Flag("no_lot_size", "No lot size on file; capacity cannot be computed."))
@@ -167,17 +186,23 @@ def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Re
     lot = site.lot_sqft
 
     # 1-2. By right.
-    units = _units(lot, d.lot_area_per_unit_sqft)
+    units = _cap(d, _units(lot, d.lot_area_per_unit_sqft))
     notes = []
+    if d.max_units and units == d.max_units:
+        notes.append(f"district allows at most {d.max_units} unit(s) per lot")
     if d.min_lot_area_sqft and lot < d.min_lot_area_sqft:
         units = min(units, 1)
         notes.append(
             f"lot is under the {d.min_lot_area_sqft:,.0f} sq ft district minimum; one house on a lot of record"
         )
+    if d.min_lot_width_ft and site.frontage_ft and site.frontage_ft < d.min_lot_width_ft - 0.5:
+        res.flags.append(Flag("narrow_lot", f"Lot is about {site.frontage_ft:.0f} ft wide; the district asks for"
+                              f" {d.min_lot_width_ft:g} ft. A lot of record may still be buildable; check with the city.",
+                              d.cite.section))  # fmt: skip
     res.paths.append(_path(rules, site, d, "by_right", "By right", "none (permit only)", units, notes=notes))
 
     # 3. RS-3 two-flat.
-    rs3 = rules.step("rs3_two_flat_exception")["params"]
+    rs3 = rules.steps.get("rs3_two_flat_exception", {}).get("params") or {"district": None}
     if d.name == rs3["district"]:
         in_606 = rs3["special_district"] in (site.special_district or "")
         share = _block_share(site)
@@ -198,8 +223,8 @@ def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Re
                 res.paths.append(p)
 
     # 4. Administrative adjustment.
-    aa = rules.step("administrative_adjustment")
-    adj_units = _units(lot, aa["params"]["lot_area_factor"] * d.lot_area_per_unit_sqft)
+    aa = rules.steps.get("administrative_adjustment")
+    adj_units = _cap(d, _units(lot, aa["params"]["lot_area_factor"] * d.lot_area_per_unit_sqft)) if aa else 0
     if adj_units > units and not (
         d.min_lot_area_sqft and lot < d.min_lot_area_sqft * aa["params"]["lot_area_factor"]
     ):
@@ -212,46 +237,81 @@ def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Re
         res.paths.append(p)
 
     # 5. ADU.
-    adu = rules.step("adu")["params"]
-    adu_ok = d.name in adu["by_district"] or (d.name in adu["by_map"] and site.adu_zone)
+    adu_step = rules.steps.get("adu") or {}
+    adu = adu_step.get("params") or {}
+    by_map_list = adu.get("by_map", [])
+    adu_ok = d.name in adu.get("by_district", []) or (d.name in by_map_list and site.adu_zone)
     if adu_ok:
         base = max(p.units for p in res.paths if p.approval == "none (permit only)")
-        note = (
-            f"ADU zone {site.adu_zone}: {site.adu_limits}"
-            if d.name in adu["by_map"]
-            else "ADU allowed in this district"
-        )
-        by_map = d.name in adu["by_map"]
+        by_map = d.name in by_map_list
+        note = f"ADU zone {site.adu_zone}: {site.adu_limits}" if by_map else "ADU allowed in this district"
         if by_map:
             cap = adu["annual_cap_per_block_face"].get(d.name)
             note += f"; yearly cap of {cap} per block face and opposite face" if cap else ""
             note += "; owner must live on site if the main building is a house"
-        approval = adu["by_map_approval"] if by_map else "ADU permit (as of right)"
-        p = _path(rules, site, d, "adu", "By right plus ADU", approval, base + adu["units"], notes=[note])
-        p.citations.append(rules.step("adu")["section"])
+        else:
+            if adu.get("max_sqft"):
+                note += f", up to {adu['max_sqft']:,.0f} sq ft"
+            if adu.get("owner_occupancy"):
+                note += "; owner must live on site"
+        approval = adu["by_map_approval"] if by_map else adu.get("approval", "ADU permit (as of right)")
+        p = _path(
+            rules, site, d, "adu", "By right plus ADU", approval, base + adu.get("units", 1), notes=[note]
+        )
+        if adu_step.get("section"):
+            p.citations.append(adu_step["section"])
         res.paths.append(p)
-    elif d.name in adu["by_map"]:
+    elif d.name in by_map_list:
         res.flags.append(Flag("no_adu", "Outside the city's ADU zones: no coach house or conversion unit in this district.",
-                              rules.step("adu")["section"]))  # fmt: skip
+                              adu_step.get("section")))  # fmt: skip
+
+    # State laws that override the city code on this lot (for example Texas SB 840 on commercial land).
+    for item in (rules.steps.get("state_overrides") or {}).get("items", []):
+        applies = item.get("applies_to")
+        if applies and d.name not in applies and (site.zone_class or "") not in applies:
+            continue
+        if not applies and not item.get("always"):
+            continue
+        upa = (item.get("path") or {}).get("units_per_acre")
+        if upa:
+            so_units = _units(lot, 43560 / upa)
+            if so_units > units and so_units >= (item["path"].get("min_units") or 0):
+                p = _path(rules, site, d, "state_override", item.get("name", "State law"),
+                          item["path"].get("approval", "none (permit only, by state law)"), so_units,
+                          notes=[item["text"]])  # fmt: skip
+                if (
+                    item["path"].get("min_height_ft")
+                    and (p.max_height_ft or 0) < item["path"]["min_height_ft"]
+                ):
+                    p.max_height_ft = item["path"]["min_height_ft"]
+                if item["path"].get("parking_per_unit") is not None:
+                    p.parking_spaces = min(
+                        p.parking_spaces, math.ceil(so_units * item["path"]["parking_per_unit"])
+                    )
+                p.citations.append(item.get("source_url") or item["id"])
+                res.paths.append(p)
+                continue
+        res.flags.append(Flag(item["id"], item["text"], item.get("source_url")))
 
     # 6. Rezoning.
-    targets = rules.step("rezoning")["targets"].get(d.name, [])
+    rz = rules.steps.get("rezoning") or {"targets": {}}
+    targets = [t for t in rz["targets"].get(d.name, []) if t in rules.districts]
     target = rezoning_target if rezoning_target in targets else (targets[0] if targets else None)
     if target:
         t = rules.districts[target]
-        t_units = _units(lot, t.lot_area_per_unit_sqft)
+        t_units = _cap(t, _units(lot, t.lot_area_per_unit_sqft))
         if t.min_lot_area_sqft and lot < t.min_lot_area_sqft:
             t_units = min(t_units, 1)
         fam = family(site.zone_class or "")
         label = f"{fam}{target[3:]}" if fam and target.startswith("B/C") else target
-        p = _path(rules, site, t, "rezoning", f"Rezone to {label}", rules.step("rezoning")["approval"], t_units,
+        p = _path(rules, site, t, "rezoning", f"Rezone to {label}", rz.get("approval", "rezoning"), t_units,
                   notes=[f"other targets: {', '.join(x for x in targets if x != target)}" if len(targets) > 1 else "only target listed"])  # fmt: skip
-        if t_units >= rules.step("aro_flag")["params"]["units"]:
+        if "aro_flag" in rules.steps and t_units >= rules.step("aro_flag")["params"]["units"]:
             p.notes.append("Affordable Requirements Ordinance applies at 10+ units with a zoning change")
         res.paths.append(p)
 
     # 7. Transit-served density bonus (B3-3 and C3-3).
-    tb = rules.step("transit_density_bonus")
+    tb = rules.steps.get("transit_density_bonus") or {"params": {"districts": []}}
     if site.zone_class in tb["params"]["districts"] and site.transit_served:
         for tier in tb["params"]["tiers"]:
             p = _path(rules, site, d, f"tsl_bonus_{int(tier['aro_on_site_share'] * 100)}",
@@ -261,7 +321,7 @@ def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Re
             res.paths.append(p)
 
     # 8. Ground floor residential in B/C.
-    fam = family(site.zone_class or "")
+    fam = family(site.zone_class or "") if "ground_floor_residential" in rules.steps else None
     if fam:
         status = rules.step("ground_floor_residential")["params"][fam]
         if status != "by right":
