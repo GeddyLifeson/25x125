@@ -12,6 +12,7 @@ from functools import lru_cache
 
 import numpy as np
 
+from core import region
 from engine.costs import Cost, cost, unit_size
 from engine.zoning import Path, Result
 
@@ -403,13 +404,14 @@ def scenarios_for(zoning: Result, patterns: list[dict]) -> list[dict]:
         ok = [pt for pt, (f, _) in fits if f]
         return max(ok, key=lambda pt: (pt["units"], pt["gross_sqft"])) if ok else None
 
-    order = ["by_right", "rs3_two_flat", "admin_adjustment", "adu", "rezoning"]
+    order = ["by_right", "rs3_two_flat", "admin_adjustment", "adu", "state_override", "rezoning"]
+    min_units = 2 if region.is_chicago() else int(region.current().get("min_units", 1))
     for pid in order:
         if pid not in by_id or len(picks) >= 3:
             continue
         path = by_id[pid]
         target = min(path.units, 6)  # version 1 prices 2-6 unit buildings
-        if target < 2 or any(p["units"] == target for p in picks):
+        if target < min_units or any(p["units"] == target for p in picks):
             continue
         pt = best(path)
         if pt and pt["units"] == target:
@@ -417,7 +419,7 @@ def scenarios_for(zoning: Result, patterns: list[dict]) -> list[dict]:
                           "unit_sqft": pt["unit_sqft"], "commercial_sqft": pt.get("commercial_sqft", 0)})  # fmt: skip
             continue
         # No pattern fits the path's unit count: a custom program at that count, sized to the floor area allowed.
-        size = 1300 if target == 2 else 1200 if target == 3 else 1000
+        size = 1800 if target == 1 else 1300 if target == 2 else 1200 if target == 3 else 1000
         gross = target * size * 1.12
         if path.floor_area_sqft:
             gross = min(gross, path.floor_area_sqft)
