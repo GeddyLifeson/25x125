@@ -1,0 +1,283 @@
+{
+  "verified_on": "2026-11-17",
+  "district_tables": {
+    "districts": "data/regions/san_antonio/rules/zoning_districts.csv",
+    "heights": "data/regions/san_antonio/rules/zoning_heights.csv"
+  },
+  "steps": [
+    {
+      "id": "units_by_right",
+      "rule": "floor(lot_area / lot_area_per_unit), capped at max_units where set. R districts: 1 house per lot. RM-6, RM-5, RM-4: up to 2, 3 or 4 units on a lot that meets the district minimum lot size (6,000, 5,000 or 4,000 sq ft). MF districts: units per acre. On lots of 1/3 acre or less, multi-unit construction in RM and MF-33 must be one structure.",
+      "section": "Sec. 35-310.01 Table 310-1; Sec. 35-310.06(a)(1); Sec. 35-310.07",
+      "source_url": "https://www.zoneomics.com/code/san-antonio-TX/chapter_2"
+    },
+    {
+      "id": "adu",
+      "rule": "+1 accessory dwelling per lot, attached or detached, with a building permit. The owner must live in the main house or the ADU and record an affidavit and covenant with the Bexar County Clerk; an owner who does not live on site needs a rezoning. Size: up to 800 sq ft, or 50% of the main house floor area if larger, never more than 1,600 sq ft. Detached units go in the rear yard, 25 ft or 2 stories at most, 5 ft from side and rear lines (3 ft with no overhang). One parking space only if the detached unit is over 800 sq ft. In multi-family districts an ADU is allowed where the lot has fewer than 5 units.",
+      "params": {
+        "units": 1,
+        "by_district": [
+          "R-1",
+          "R-2",
+          "R-3",
+          "R-4",
+          "R-5",
+          "R-6",
+          "RM-4",
+          "RM-5",
+          "RM-6",
+          "MF-18",
+          "MF-25",
+          "MF-33",
+          "MF-40",
+          "MF-50",
+          "MF-65"
+        ],
+        "max_sqft": 1600,
+        "base_sqft": 800,
+        "share_of_main_house": 0.5,
+        "owner_occupancy": true,
+        "approval": "permit only (recorded owner-occupancy affidavit and covenant required)",
+        "detached_max_height_ft": 25,
+        "detached_max_stories": 2,
+        "parking_spaces_if_over_800_sqft": 1,
+        "multi_family_total_units_under": 5
+      },
+      "section": "Sec. 35-371 (Ord. 2022-11-03-0831, effective 2023-01-01); districts from the city ADU page",
+      "source_url": "https://www.zoneomics.com/code/san-antonio-TX/chapter_7",
+      "sources": [
+        "https://www.sa.gov/Directory/Departments/DSD/Constructing/Residential/ADU",
+        "https://docsonline.sanantonio.gov/DSDUploads/IB402AccessoryDwellingUnits.pdf",
+        "https://docsonline.sanantonio.gov/DSDUploads/20230210UDC_ADUs(2).pdf"
+      ]
+    },
+    {
+      "id": "parking",
+      "rule": "Minimum off-street spaces per dwelling unit: 1 for a house, townhouse or duplex unit; 1.5 for units in 3-family, 4-family and multi-family buildings (maximum 2). Multi-family or mixed-use projects built under Texas SB 840 in commercial and office districts: no more than 1 space per unit may be required. Downtown 'D' is exempt. R-1 lots: off-street parking waived (Table 310-1 note 15).",
+      "params": {
+        "spaces_per_unit": {
+          "default": 1,
+          "RM-4": 1.5,
+          "RM-5": 1.5,
+          "MF-18": 1.5,
+          "MF-25": 1.5,
+          "MF-33": 1.5,
+          "MF-40": 1.5,
+          "MF-50": 1.5,
+          "MF-65": 1.5,
+          "R-1": 0,
+          "NC": 1,
+          "C-1": 1,
+          "C-2": 1,
+          "C-2P": 1,
+          "C-3": 1,
+          "O-1": 1,
+          "O-1.5": 1
+        },
+        "by_building_type": {
+          "1-family": 1,
+          "2-family": 1,
+          "3-family": 1.5,
+          "4-family": 1.5,
+          "multi-family": 1.5
+        },
+        "max_spaces_per_unit_multi": 2
+      },
+      "section": "Sec. 35-526 Table 526-3a; Local Gov't Code 218.102(a)(2) for SB 840 projects",
+      "source_url": "http://sanantonio-tx.elaws.us/code/udc_artv_div6_sec35-526",
+      "caveat": "The Table 526-3a copy that could be read is current only through Ord. 2018-11-01-0858. The official Municode copy blocks automated reads. Recheck against the current table. RM values assume a 3- or 4-unit building; a duplex in RM needs 1 per unit."
+    },
+    {
+      "id": "rezoning",
+      "rule": "Next districts up that a small developer would plausibly ask for. Targets are an editorial pick, not a code rule. IDZ (Infill Development Zone, Sec. 35-343) is the other common small-lot request inside Loop 410; it is a special district and is not covered here.",
+      "approval": "rezoning (Zoning Commission recommendation, then City Council); under HB 24 a protest needs owners of 60% of land within 200 ft and council approval of added housing takes a simple majority",
+      "section": "Sec. 35-421; Sec. 35-403 as amended 2025-09-04",
+      "source_url": "https://docsonline.sanantonio.gov/DSDUploads/20250812FAQ_UDCoutofcycle.pdf",
+      "targets": {
+        "RE": [
+          "R-20"
+        ],
+        "R-20": [
+          "R-6"
+        ],
+        "R-6": [
+          "R-5",
+          "R-4",
+          "RM-6"
+        ],
+        "R-5": [
+          "R-4",
+          "RM-5",
+          "RM-4"
+        ],
+        "R-4": [
+          "R-3",
+          "RM-4",
+          "MF-18"
+        ],
+        "R-3": [
+          "RM-4"
+        ],
+        "RM-6": [
+          "RM-5",
+          "RM-4"
+        ],
+        "RM-5": [
+          "RM-4",
+          "MF-18"
+        ],
+        "RM-4": [
+          "MF-18",
+          "MF-25",
+          "MF-33"
+        ],
+        "MF-18": [
+          "MF-25",
+          "MF-33"
+        ],
+        "MF-25": [
+          "MF-33"
+        ],
+        "MF-33": [
+          "MF-40"
+        ],
+        "MF-40": [
+          "MF-50"
+        ],
+        "MF-50": [
+          "MF-65"
+        ]
+      }
+    },
+    {
+      "id": "state_overrides",
+      "rule": "state laws that change what the city code allows on this lot",
+      "items": [
+        {
+          "id": "tx_sb840",
+          "applies_to": [
+            "NC",
+            "C-1",
+            "C-2",
+            "C-2P",
+            "C-3",
+            "O-1",
+            "O-1.5"
+          ],
+          "text": "Texas SB 840 (Local Government Code Ch. 218, effective 2025-09-01): multi-family (3 or more units) and mixed-use residential (at least 65% residential floor area) are allowed by right, with no rezoning, variance or special approval, in any zoning classification that allows office, commercial, retail, warehouse or mixed use. The city may not cap density below the greater of its highest residential density or 36 units/acre, cap height below the greater of the commercial height for the site or 45 ft, require setbacks over the lesser of the commercial setback or 25 ft, require more than 1 parking space per unit or a parking structure, or limit FAR. San Antonio's highest density is 65 units/acre (MF-65), and Sec. 35-312 (adopted 2025-09-04) allows up to 65 units/acre. Does not apply in districts that allow heavy industrial use, within 1,000 ft of an existing heavy industrial site, within 3,000 ft of an airport or military base, or in a clear zone or accident potential zone. Historic district rules, building codes and stormwater rules still apply. Also covers O-2, L and other districts that allow those uses; they are not in the district table.",
+          "params": {
+            "min_units": 3,
+            "density_floor_units_per_acre": 36,
+            "city_density_units_per_acre": 65,
+            "height_floor_ft": 45,
+            "max_setback_ft": 25,
+            "max_parking_per_unit": 1,
+            "far_limit_allowed": false,
+            "airport_military_exclusion_ft": 3000,
+            "heavy_industrial_exclusion_ft": 1000,
+            "effective": "2025-09-01"
+          },
+          "section": "Tex. Local Gov't Code 218.101, 218.102; UDC Sec. 35-312",
+          "source_url": "https://capitol.texas.gov/tlodocs/89R/billtext/html/SB00840F.htm",
+          "sources": [
+            "https://capitol.texas.gov/tlodocs/89R/billtext/html/SB00840F.htm",
+            "https://docsonline.sanantonio.gov/DSDUploads/20250812FAQ_UDCoutofcycle.pdf"
+          ]
+        },
+        {
+          "id": "tx_sb840_conversion",
+          "applies_to": [
+            "NC",
+            "C-1",
+            "C-2",
+            "C-2P",
+            "C-3",
+            "O-1",
+            "O-1.5"
+          ],
+          "text": "Texas SB 840 Subchapter C: an office, retail or warehouse building at least 5 years old may be converted to multi-family or mixed-use residential (at least 65% of the building and of each floor). The city may not require a traffic study, traffic mitigation, added parking beyond what exists, or utility upgrades beyond the minimum needed.",
+          "section": "Tex. Local Gov't Code 218.202, 218.203",
+          "source_url": "https://capitol.texas.gov/tlodocs/89R/billtext/html/SB00840F.htm"
+        },
+        {
+          "id": "tx_sb15",
+          "applies_to": [
+            "RE",
+            "R-20",
+            "R-6",
+            "R-5",
+            "R-4",
+            "R-3"
+          ],
+          "text": "Texas SB 15 (Local Government Code Ch. 211 Subchapter D, effective 2025-09-01) applies only to an unplatted tract of 5 acres or more, zoned single-family, that will be platted. There the city may not require lots larger than 3,000 sq ft, wider than 30 ft or deeper than 75 ft. On lots of 4,000 sq ft or less it may not require setbacks over 15 ft front, 10 ft rear, 5 ft side, more than 1 parking space per unit, covered parking, more than 30% open space, or a height below 3 full stories. Does not apply within 3,000 ft of an airport or military base. San Antonio put this in Sec. 35-398.03 (Small Lot Single-Family Development) and Table 310-1 note 16. It does not change what can be built on an existing platted infill lot.",
+          "params": {
+            "min_tract_acres": 5,
+            "max_required_lot_sqft": 3000,
+            "max_required_lot_width_ft": 30,
+            "max_required_lot_depth_ft": 75,
+            "small_lot_sqft": 4000,
+            "min_stories_allowed": 3,
+            "max_parking_per_unit": 1,
+            "effective": "2025-09-01"
+          },
+          "section": "Tex. Local Gov't Code 211.052, 211.054, 211.055; UDC Sec. 35-398.03",
+          "source_url": "https://capitol.texas.gov/tlodocs/89R/billtext/html/SB00015F.htm",
+          "sources": [
+            "https://capitol.texas.gov/tlodocs/89R/billtext/html/SB00015F.htm",
+            "https://docsonline.sanantonio.gov/DSDUploads/20250812FAQ_UDCoutofcycle.pdf"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flags",
+      "rule": "local conditions to flag",
+      "items": [
+        {
+          "id": "special_district",
+          "text": "The zoning layer stores overlays and special districts apart from the base code. If SpecDistrict is filled (PUD, IDZ, IDZ-1/2/3, NP-8/10/15, MXD, MPCD, TOD, FBZ and others), the base district numbers do not govern. Report as not covered."
+        },
+        {
+          "id": "conditional",
+          "text": "SpecCondition 'CD' (conditional use) or 'S' (specific use authorization) means City Council attached a site-specific use to the lot. Read the ordinance (OrdinanceKey, CaseNo) before relying on the base district."
+        },
+        {
+          "id": "historic",
+          "text": "32 local historic districts and 1,459 landmark sites. Exterior work and new construction need a Certificate of Appropriateness from the Office of Historic Preservation or HDRC before permits. SB 840 does not override historic rules."
+        },
+        {
+          "id": "ncd",
+          "text": "10 Neighborhood Conservation Districts (NCD-1 to NCD-10) add design standards (lot size, height, setbacks, massing) on top of the base district. Numbers not loaded."
+        },
+        {
+          "id": "rio",
+          "text": "River Improvement Overlay (RIO-1 to RIO-7) and Mission Protection Overlay (MPOD) add height and design limits near the river and the missions."
+        },
+        {
+          "id": "airport_military",
+          "text": "AHOD covers most of the city and can add FAA height review. MAOZ, MLOD and military protection areas restrict housing near bases. SB 840 and SB 15 do not apply within 3,000 ft of an airport or military base."
+        },
+        {
+          "id": "flood",
+          "text": "FEMA flood zones A, AE, AO and the floodway limit building and raise cost. Check the NFHL layer (DFIRM 48029C)."
+        },
+        {
+          "id": "edwards_aquifer",
+          "text": "Over the Edwards Aquifer Recharge Zone (ERZD) impervious cover limits and water quality rules apply."
+        },
+        {
+          "id": "small_lot_single_structure",
+          "text": "On lots of 1/3 acre or less in RM districts and MF-33, multi-unit construction must be in one structure; 2 to 4 unit buildings need a front entry facing the street (Table 310-1 note 13)."
+        },
+        {
+          "id": "mf_next_to_single_family",
+          "text": "Multi-family, office and commercial buildings within 50 ft of single-family property are held to the single-family height (Table 310-1 note 11)."
+        },
+        {
+          "id": "texas_values",
+          "text": "Texas does not make sale prices public. Prices shown are Bexar Appraisal District values, not sales."
+        }
+      ]
+    }
+  ]
+}

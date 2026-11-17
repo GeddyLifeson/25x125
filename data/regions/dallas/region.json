@@ -1,0 +1,214 @@
+{
+  "id": "dallas",
+  "name": "Dallas",
+  "state": "TX",
+  "counties": [
+    {
+      "id": "dallas",
+      "name": "Dallas",
+      "fips": "48113"
+    }
+  ],
+  "city_filter": {
+    "field": "CITY_JURIS_DESC",
+    "values": [
+      "DALLAS"
+    ],
+    "note": "ACCOUNT_APPRL_YEAR.CSV in the DCAD data files; 381,632 of 861,484 accounts on 2026-11-17. ACCOUNT_INFO.CSV PROPERTY_CITY = 'DALLAS' gives 380,953."
+  },
+  "center": {
+    "lat": 32.78,
+    "lon": -96.8,
+    "zoom": 11
+  },
+  "fhfa_metro": "19124",
+  "parcel_id_label": "DCAD account",
+  "price_basis": "appraisal district values",
+  "zoning_layer": {
+    "url": "https://gis.dallascityhall.com/arcgis/rest/services/sdc_public/Zoning/MapServer/15",
+    "zone_field": "ZONE_DIST",
+    "detail_field": "LONG_ZONE_DIST",
+    "tested_on": "2026-11-17",
+    "note": "City of Dallas Planning and Development 'Base Zoning' polygons (MapServer layer, query enabled, max 2,000 records per request, spatial reference 2276). ZONE_DIST holds the district code; LONG_ZONE_DIST adds the PD or CD number (for example PD-842). 60 distinct ZONE_DIST values on 2026-11-17: A(A), CA-1(A), CA-2(A), CD, CH, CR, CS, D(A), GO(A), GR, IM, IR, LI, LO-1, LO-2, LO-3, MC-1, MC-2, MC-3, MC-4, MF-1(A), MF-1(A)(SAH), MF-2, MF-2(A), MF-2(A)(SAH), MF-3(A), MF-4(A), MH(A), MO-1, MO-2, MU-1, MU-1(SAH), MU-2, MU-2(SAH), MU-3, MU-3(SAH), NO(A), NS(A), O-2, P(A), PD, PFD, R-1/2ac(A), R-10(A), R-13(A), R-16(A), R-1ac(A), R-5(A), R-7.5(A), RR, TH-1(A), TH-2(A), TH-3(A), UC-2, WMU-3, WMU-5, WMU-8, WR-20, WR-3, WR-5. PD is the largest group (1,004 polygons)."
+  },
+  "overlay_layers": [
+    {
+      "kind": "historic",
+      "url": "https://gis.dallascityhall.com/arcgis/rest/services/sdc_public/Zoning/MapServer/2",
+      "name_field": "NAME",
+      "code_field": "H_OVERLAY",
+      "note": "Historic overlay districts and landmarks; 158 features; tested 2026-11-17"
+    },
+    {
+      "kind": "conservation_district",
+      "url": "https://gis.dallascityhall.com/arcgis/rest/services/sdc_public/Zoning/MapServer/8",
+      "name_field": "COMMON_NAME",
+      "code_field": "CD_NUM",
+      "note": "Conservation district subdistricts; 25 features; base zoning shows these as CD"
+    },
+    {
+      "kind": "nso",
+      "url": "https://gis.dallascityhall.com/arcgis/rest/services/sdc_public/Zoning/MapServer/5",
+      "name_field": "COMMON_NAME",
+      "code_field": "NSO_NUM",
+      "note": "Neighborhood Stabilization Overlay; 13 features"
+    },
+    {
+      "kind": "deed_restrictions",
+      "url": "https://gis.dallascityhall.com/arcgis/rest/services/sdc_public/Zoning/MapServer/0",
+      "name_field": "DEED_RES",
+      "note": "Deed restrictions recorded with zoning cases; 975 features"
+    },
+    {
+      "kind": "planned_development",
+      "url": "https://gis.dallascityhall.com/arcgis/rest/services/sdc_public/Zoning/MapServer/9",
+      "name_field": "COMMON_NAME",
+      "code_field": "LONG_ZONE_DIST",
+      "note": "PD subdistricts; 1,259 features"
+    },
+    {
+      "kind": "height_map",
+      "url": "https://gis.dallascityhall.com/arcgis/rest/services/sdc_public/Zoning/MapServer/12",
+      "name_field": "HM_OVERLAY",
+      "note": "Height map overlay"
+    },
+    {
+      "kind": "demolition_delay",
+      "url": "https://gis.dallascityhall.com/arcgis/rest/services/sdc_public/Zoning/MapServer/19",
+      "name_field": "NAME",
+      "code_field": "DDO_NUM",
+      "note": "Demolition delay overlay; 4 features"
+    },
+    {
+      "kind": "flood",
+      "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28",
+      "name_field": "FLD_ZONE",
+      "note": "FEMA National Flood Hazard Layer, flood hazard zones; SFHA_TF = 'T' marks the special flood hazard area; point query tested 2026-11-17. No city floodplain layer was found on gis.dallascityhall.com."
+    }
+  ],
+  "parcel_layer": {
+    "url": "https://gis.dallascityhall.com/arcgis/rest/services/Basemap/DallasTaxParcels/MapServer/0",
+    "id_field": "ACCT",
+    "area_field": "AREA_FEET",
+    "tested_on": "2026-11-17",
+    "note": "City copy of DCAD tax parcels, appraisal year 2026. ACCT joins to ACCOUNT_NUM in the DCAD data files. Has SPTBCODE, PROP_CL, BLDG_CL, address and owner; no values."
+  },
+  "permit_source": {
+    "kind": "socrata",
+    "url": "https://www.dallasopendata.com/resource/e7gq-4sah.json",
+    "dataset_id": "e7gq-4sah",
+    "tested_on": "2026-11-17",
+    "note": "'Building Permits', City of Dallas. 397,045 rows; issue dates run 2018-01-01 to 2026-11-17 (3,197 permits issued so far in November 2026), so it is updated daily. No key needed. Fields: permit_number, permit_type, issued_date (text, MM/DD/YY), mapsco, contractor, value, area, work_description, land_use, street_address, zip_code. No unit count, no coordinates and no parcel ID; match by address. New building types in 2026 rows: 'Residential New Construction Permit', 'Commercial New Construction Permit', 'Phase - New Construction'; older rows use names like 'Building (BU) Single Family New Construction'. No newer permits dataset was found on the portal; the fiscal-year permit datasets stop at FY 2017-18."
+  },
+  "appraisal_source": {
+    "publisher": "Dallas Central Appraisal District (DCAD)",
+    "page": "https://www.dallascad.org/DataProducts.aspx",
+    "download_url": "https://www.dallascad.org/ViewPDFs.aspx?type=3&id=%5C%5CDCAD.ORG%5CWEB%5CWEBDATA%5CWEBFORMS%5CDATA%20PRODUCTS%5CDCAD2026_CURRENT.ZIP",
+    "name": "2026 Certified Data Files with Supplemental Changes (Comma Delimited)",
+    "format": "zip of 14 comma-delimited CSV files plus a README, data dictionary and field list",
+    "size_bytes": 206556643,
+    "files_dated": "2026-11-09",
+    "tested_on": "2026-11-17",
+    "cost": "free, no sign-up",
+    "has": {
+      "market_value": true,
+      "year_built": true,
+      "living_area": true,
+      "land_sqft": true
+    },
+    "fields": {
+      "account": "ACCOUNT_NUM (17 characters, in every file)",
+      "market_value": "ACCOUNT_APPRL_YEAR.CSV TOT_VAL, with LAND_VAL and IMPR_VAL",
+      "city": "ACCOUNT_APPRL_YEAR.CSV CITY_JURIS_DESC",
+      "year_built": "RES_DETAIL.CSV YR_BUILT (COM_DETAIL.CSV YEAR_BUILT for commercial accounts)",
+      "living_area": "RES_DETAIL.CSV TOT_LIVING_AREA_SF (COM_DETAIL.CSV GROSS_BLDG_AREA)",
+      "units": "RES_DETAIL.CSV NUM_UNITS; COM_DETAIL.CSV NUM_UNITS",
+      "land_sqft": "LAND.CSV AREA_SIZE with AREA_UOM_DESC ('SQUARE FEET' on 541,279 rows, 'ACRE' on 27,129, 'UNASSIGNED' on 182,420), plus FRONT_DIM, DEPTH_DIM and DCAD's ZONING text",
+      "address": "ACCOUNT_INFO.CSV STREET_NUM, FULL_STREET_NAME, PROPERTY_CITY, PROPERTY_ZIPCODE",
+      "last_deed_date": "ACCOUNT_INFO.CSV DEED_TXFR_DATE (date only, no price)"
+    },
+    "note": "861,484 accounts county-wide (682,964 residential, 77,391 commercial, 101,129 business personal property). RES_DETAIL has 683,080 rows; 648,387 have a year built and 635,702 a living area. An account can have several LAND rows. Other downloads on the same page: DCAD2027_CURRENT.zip (2027 ownership, most current), certified files for 2022 to 2025, and the 2026 file as certified on 2026-07-24. A curl download took 10 seconds; the first try was reset and a retry worked."
+  },
+  "disclaimer": "Estimates, not tax, legal, zoning or appraisal advice. Prices are appraisal district values, not sale prices.",
+  "sources": [
+    {
+      "what": "zoning district standards (city summary pages of Dallas Development Code Ch. 51A, Art. IV)",
+      "url": "https://dallascityhall.com/departments/sustainabledevelopment/planning/Pages/zoning-districts.aspx",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "zoning code (American Legal; blocked for automated reading, not read)",
+      "url": "https://codelibrary.amlegal.com/codes/dallas/latest/dallas_tx/0-0-0-75376",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "parking reform ordinance, file 25-0763 (DCA190-002), passed 2025-05-14",
+      "url": "https://citysecretary2.dallascityhall.com/resolutions/2025/05-14-25/25-0763.pdf",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "ADU overlay ordinance 30931 (Sec. 51A-4.510)",
+      "url": "https://dallascityhall.com/departments/sustainabledevelopment/planning/DCH%20Documents/code%20amendments/ADUs/30931_ADU%20overlay.pdf",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "ADU special exception ordinance 30930 (Sec. 51A-4.209(b)(6)(E))",
+      "url": "https://dallascityhall.com/departments/sustainabledevelopment/planning/DCH%20Documents/code%20amendments/ADUs/30930_BDA_ADU_Ord.PDF",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "City of Dallas SB 840 information sheet, 2025-08-25",
+      "url": "https://dallascityhall.com/departments/pnv/Documents/AH%20Memos/SB%20840%20Info%20Sheet_final_Aug_26_2025v8.pdf",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "City of Dallas SB 15 information sheet, 2025-09-08",
+      "url": "https://dallascityhall.com/departments/pnv/Documents/AH%20Memos/SB%2015%20Public%20Info%20Sheet.pdf",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Texas SB 840 enrolled text",
+      "url": "https://capitol.texas.gov/tlodocs/89R/billtext/html/SB00840F.htm",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Texas SB 15 enrolled text",
+      "url": "https://capitol.texas.gov/tlodocs/89R/billtext/html/SB00015F.htm",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "zoning GIS service",
+      "url": "https://gis.dallascityhall.com/arcgis/rest/services/sdc_public/Zoning/MapServer",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "building permits",
+      "url": "https://www.dallasopendata.com/d/e7gq-4sah",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "DCAD data products",
+      "url": "https://www.dallascad.org/DataProducts.aspx",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "One- to Eight-Family Dwelling Code (building code change, 2025-04-23)",
+      "url": "https://content.govdelivery.com/accounts/TXDALLAS/bulletins/3ddaedc",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Dallas Development Code Public Draft #1 released 2026-11-06 (not adopted)",
+      "url": "https://content.govdelivery.com/accounts/TXDALLAS/bulletins/431f9eb",
+      "checked_on": "2026-11-17"
+    }
+  ],
+  "parcel_loader": "dcad",
+  "min_units": 1,
+  "parcel_source": "Dallas Central Appraisal District 2026 certified data files; lot shapes from the City of Dallas tax parcel layer",
+  "value_source": "Dallas Central Appraisal District market value, 2026 certified roll",
+  "comps": {
+    "built_since": 2019,
+    "price_floor_per_unit": 100000,
+    "source": "Dallas Central Appraisal District appraised market value of 1-6 unit buildings built 2019 or later, 2026 roll. Texas does not publish sale prices (Government Code 552.148), so these are appraisals, not sales"
+  }
+}

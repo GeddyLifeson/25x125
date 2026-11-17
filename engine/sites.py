@@ -1,5 +1,6 @@
 """Read a Site from Postgres: parcel_site joined to what stands on the lot and its block face."""
 
+from core import region
 from engine.zoning import Site
 
 SQL = """
@@ -27,6 +28,10 @@ def _site(row) -> Site:
 
 def site_by_pin(conn, pin: str) -> Site | None:
     """A 14-digit PIN, or a 10-digit lot PIN (first unit on the lot)."""
-    where = "ps.pin = %s" if len(pin) == 14 else "ps.pin10 = %s order by ps.pin limit 1"
+    where = (
+        "ps.pin = %s"
+        if len(pin) == 14 or not region.is_chicago()
+        else "ps.pin10 = %s order by ps.pin limit 1"
+    )
     row = conn.execute(SQL.format(where=where), (pin,)).fetchone()
     return _site(row) if row else None

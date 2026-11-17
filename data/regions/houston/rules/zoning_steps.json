@@ -1,0 +1,274 @@
+{
+  "source": "City of Houston Code of Ordinances Chapter 42 and Chapter 26 as amended by Ord. 2023-801 and 2023-802 (Livable Places, effective 2023-11-27), read from the signed ordinances on houstontx.gov",
+  "verified_on": "2026-11-17",
+  "district_tables": {
+    "districts": "data/regions/houston/rules/zoning_districts.csv",
+    "heights": "data/regions/houston/rules/zoning_heights.csv"
+  },
+  "steps": [
+    {
+      "id": "units_by_right",
+      "rule": "Houston has no use zoning. Chapter 42 controls how land is split into lots. Single-family lots: floor(tract area / 3,500 sq ft) lots in the city, floor(tract area / 5,000) in the ETJ. Each single-family lot may hold one building with up to 2 units, or a house plus a detached second unit of up to 1,500 sq ft. Land not restricted to single-family use is platted as a reserve and may hold 3 or more units (multi-unit residential or multi-family). Deed restrictions and Special Minimum Lot Size areas can stop all of this.",
+      "params": {
+        "min_lot_sqft": {
+          "city": 3500,
+          "etj": 5000
+        },
+        "units_per_single_family_lot": 2,
+        "min_lot_width_ft": 20
+      },
+      "section": "Sec. 42-181(a); Sec. 42-185(a); Sec. 42-1 (Single-family residential); Sec. 42-190(a)",
+      "source_url": "https://www.houstontx.gov/planning/Commissions/docs_pdfs/Livable%20Places_Chapter%2042%20amend.%20Ord.%202023-801_Approved.pdf"
+    },
+    {
+      "id": "reduced_lot_size",
+      "rule": "In the city, a subdivision plat may create single-family lots under 3,500 sq ft, down to an average of 1,400 sq ft, when: more than 60% of each lot under 3,500 sq ft is not covered by buildings (more than 75% for a replat of a single corner lot); each such lot has at least 150 sq ft of permeable area; and the plat stays at or under 27 units per gross acre, or 35 units per gross acre when every lot takes vehicle access from the rear or side by an alley, flag staff, shared driveway or permanent access easement. The other route is compensating open space under Sec. 42-182 (city or ETJ).",
+      "params": {
+        "applies_to": [
+          "City of Houston (no zoning)"
+        ],
+        "min_average_lot_sqft": 1400,
+        "max_building_coverage": 0.4,
+        "max_building_coverage_corner_lot_replat": 0.25,
+        "min_permeable_sqft_per_lot": 150,
+        "max_units_per_gross_acre": 27,
+        "max_units_per_gross_acre_rear_or_side_access": 35,
+        "lot_area_per_unit_sqft_at_27_per_acre": 1613,
+        "lot_area_per_unit_sqft_at_35_per_acre": 1245
+      },
+      "approval": "subdivision plat (replat); no variance needed when the standards are met",
+      "section": "Sec. 42-181(b); Sec. 42-184",
+      "source_url": "https://www.houstontx.gov/planning/Commissions/docs_pdfs/Livable%20Places_Chapter%2042%20amend.%20Ord.%202023-801_Approved.pdf"
+    },
+    {
+      "id": "lots_under_1400",
+      "rule": "A plat may include a lot under 1,400 sq ft only in the city, only when every lot takes access from a shared driveway or permanent access easement, and only when the average lot size in the plat (and on each whole blockface) is 1,400 sq ft or more. Lots over 3,500 sq ft count as 3,500 in the average.",
+      "params": {
+        "applies_to": [
+          "City of Houston (no zoning)"
+        ],
+        "min_average_lot_sqft": 1400,
+        "lot_counted_at_most_sqft": 3500
+      },
+      "section": "Sec. 42-181(c)",
+      "source_url": "https://www.houstontx.gov/planning/Commissions/docs_pdfs/Livable%20Places_Chapter%2042%20amend.%20Ord.%202023-801_Approved.pdf"
+    },
+    {
+      "id": "narrow_lots",
+      "rule": "Minimum lot width is 20 ft. In the city it may drop to 15 ft when every lot takes access from a shared driveway or permanent access easement and the average width is 18 ft or more (lots over 30 ft count as 30). Lots under 44 ft wide are narrow lots: at most 1 vehicle access from the street. On a mid-block tract with no usable alley, narrow lots take access from a flag staff, shared driveway or permanent access easement; on a tract of 15,000 sq ft or less, lots 33 ft to under 44 ft wide may have a direct driveway up to 12 ft wide. Lots 44 ft or wider must leave 20 ft of unbroken curb. A tract that abuts a maintained alley must take access from the alley. Existing lots under 33 ft wide can keep direct driveway access under Sec. 42-188.5 (one 12 ft driveway, 20 ft garage building line, not within 1,400 ft walking distance of a school entrance, not in a Complete Community).",
+      "params": {
+        "applies_to": [
+          "City of Houston (no zoning)"
+        ],
+        "min_lot_width_ft": 20,
+        "min_lot_width_shared_driveway_ft": 15,
+        "min_average_width_ft": 18,
+        "narrow_lot_below_ft": 44,
+        "direct_driveway_min_lot_width_ft": 33,
+        "direct_driveway_max_tract_sqft": 15000,
+        "max_driveway_width_ft": 12,
+        "flag_staff_min_width_ft": 16,
+        "flag_staff_max_lots": 4,
+        "flag_staff_max_length_ft": 200
+      },
+      "section": "Sec. 42-185; Sec. 42-180(a)(4); Sec. 42-187; Sec. 42-188(e)-(g); Sec. 42-188.5",
+      "source_url": "https://www.houstontx.gov/planning/Commissions/docs_pdfs/Livable%20Places_Chapter%2042%20amend.%20Ord.%202023-801_Approved.pdf"
+    },
+    {
+      "id": "adu",
+      "rule": "Second dwelling unit: +1 unit on a single-family lot in the city or ETJ. A detached second unit may be up to 1,500 sq ft. No owner-occupancy rule in Chapter 42. No extra parking when the second unit is 1,000 sq ft or less; 1 extra space when it is 1,001 to 1,500 sq ft. Deed restrictions that limit a lot to one dwelling still apply.",
+      "params": {
+        "units": 1,
+        "by_district": [
+          "City of Houston (no zoning)",
+          "Houston ETJ (outside city limits)"
+        ],
+        "max_sqft": 1500,
+        "owner_occupancy": false,
+        "approval": "permit only"
+      },
+      "section": "Sec. 42-1 (Single-family residential); Sec. 42-186(b)",
+      "source_url": "https://www.houstontx.gov/planning/Commissions/docs_pdfs/Livable%20Places_Chapter%2042%20amend.%20Ord.%202023-801_Approved.pdf"
+    },
+    {
+      "id": "multi_unit_residential",
+      "rule": "Multi-unit residential (MUR): 3 to 8 units on one tract in the city, in one or more buildings, without subdividing. Site at least 3,500 sq ft, at least 50 ft of frontage on a 50 ft street, no more than 150 ft deep. No more than 4 units on a site on a local street. Height limit 30 ft to the highest roof surface. Building line 5 ft on local and collector streets, 15 ft on a major thoroughfare of 80 ft or less. All parking on site, at the side or rear. One driveway on an interior site, up to 16 ft wide; alley access where an alley exists. 1 guest space per 6 units.",
+      "params": {
+        "applies_to": [
+          "City of Houston (no zoning)"
+        ],
+        "min_units": 3,
+        "max_units": 8,
+        "max_units_on_local_street": 4,
+        "min_site_sqft": 3500,
+        "min_frontage_ft": 50,
+        "max_site_depth_ft": 150,
+        "max_height_ft": 30,
+        "building_line_ft": 5,
+        "building_line_major_thoroughfare_ft": 15,
+        "max_driveway_width_ft": 16,
+        "guest_spaces_per_units": "1 per 6"
+      },
+      "approval": "development plat and building permit; the tract must be a reserve or unrestricted land, not a lot restricted to single-family use",
+      "section": "Sec. 42-1 (Multi-unit residential); Sec. 42-237(c); Sec. 42-190(c) (MUR reserve)",
+      "source_url": "https://www.houstontx.gov/planning/Commissions/docs_pdfs/Livable%20Places_Chapter%2042%20amend.%20Ord.%202023-801_Approved.pdf"
+    },
+    {
+      "id": "courtyard_style_development",
+      "rule": "Courtyard style development: small single-family lots around a shared courtyard, in the city only. No minimum lot size and no street frontage needed for each lot. Site needs 50 ft of frontage on a 50 ft street and no part more than 150 ft from a street. No lot over 3,500 sq ft, no unit over 1,800 sq ft. Main courtyard at least 480 sq ft, at least 150 sq ft of courtyard per lot, courtyards at least 12 ft by 12 ft. At least half the lots front the main courtyard or a street. Height limit 30 ft. Building line 5 ft on local and collector streets, 15 ft on a major thoroughfare of 80 ft or less; 20 ft between facing buildings across the courtyard. Parking may sit in a shared reserve.",
+      "params": {
+        "applies_to": [
+          "City of Houston (no zoning)"
+        ],
+        "min_site_frontage_ft": 50,
+        "max_distance_from_street_ft": 150,
+        "max_lot_sqft": 3500,
+        "max_unit_sqft": 1800,
+        "main_courtyard_min_sqft": 480,
+        "courtyard_sqft_per_lot": 150,
+        "courtyard_min_dimension_ft": 12,
+        "max_height_ft": 30,
+        "building_line_ft": 5,
+        "building_line_major_thoroughfare_ft": 15,
+        "min_distance_across_courtyard_ft": 20,
+        "driveway_width_ft": [
+          12,
+          18
+        ]
+      },
+      "approval": "subdivision plat as a unified courtyard style development with a site plan and a binding owners' agreement",
+      "section": "Sec. 42-194; Sec. 42-181(a); Sec. 42-186(c)-(d)",
+      "source_url": "https://www.houstontx.gov/planning/Commissions/docs_pdfs/Livable%20Places_Chapter%2042%20amend.%20Ord.%202023-801_Approved.pdf"
+    },
+    {
+      "id": "building_lines",
+      "rule": "Building lines are Houston's setbacks. Single-family in the city on a local or collector street: 10 ft for the house and 19 ft for a street-facing garage or carport; 5 ft when vehicle access is from the rear or side (alley, flag staff, permanent access easement, courtyard access drive) or a shared driveway and each street unit has a front door with an entry feature; 0 ft on a qualifying corner-lot replat with shared driveways. Major thoroughfares: 25 ft in general. Shared driveways: 3 ft or 0 ft. No building line in the central business district. A deeper building line in deed restrictions or a Special Minimum Building Line block controls.",
+      "params": {
+        "local_or_collector_ft": 10,
+        "garage_facing_street_ft": 19,
+        "rear_or_side_access_ft": 5,
+        "corner_replat_shared_driveway_ft": 0,
+        "major_thoroughfare_ft": 25,
+        "shared_driveway_ft": [
+          3,
+          0
+        ]
+      },
+      "section": "Sec. 42-150 (summary chart); Sec. 42-157(b)-(d); Sec. 42-151(a)",
+      "source_url": "https://www.houstontx.gov/planning/Commissions/docs_pdfs/Livable%20Places_Chapter%2042%20amend.%20Ord.%202023-801_Approved.pdf"
+    },
+    {
+      "id": "parking",
+      "rule": "Single-family: 2 spaces per unit; 1 space for a unit of 1,500 sq ft or less; 0 for a unit of 1,000 sq ft or less on a lot with under 33 ft of street frontage, the whole unit front occupiable, and no driveway from the street. Second unit: 0 extra spaces at 1,000 sq ft or less, 1 extra at 1,001-1,500 sq ft. Courtyard lots: 1 space for a unit of 1,000 sq ft or less, 2 for 1,001-1,800 sq ft. Multi-unit residential: 1 space for a unit of 1,000 sq ft or less, 2 for a larger unit, plus 1 guest space per 6 units. Shared-driveway, courtyard-drive or type 2 PAE plats with 6 or more units: 1 extra space per 6 units. Apartments: 1.25 efficiency, 1.333 one-bedroom, 1.666 two-bedroom, 2.0 three-bedroom or more.",
+      "params": {
+        "spaces_per_unit": {
+          "default": 2,
+          "unit_1500_sqft_or_less": 1,
+          "second_unit_1000_sqft_or_less": 0,
+          "second_unit_1001_to_1500_sqft": 1,
+          "mur_unit_1000_sqft_or_less": 1,
+          "mur_unit_over_1000_sqft": 2,
+          "courtyard_unit_1000_sqft_or_less": 1,
+          "courtyard_unit_1001_to_1800_sqft": 2,
+          "apartment_efficiency": 1.25,
+          "apartment_1_bedroom": 1.333,
+          "apartment_2_bedroom": 1.666,
+          "apartment_3_bedroom_or_more": 2.0
+        },
+        "guest_spaces": "1 per 6 units (MUR; shared driveway, courtyard access drive or type 2 PAE plats of 6 or more units)"
+      },
+      "section": "Sec. 42-186; Sec. 26-492 (Class 2); Sec. 42-237(c)(6)",
+      "source_url": "https://www.houstontx.gov/planning/Commissions/docs_pdfs/Livable%20Places_Chapter%2026%20amend.%20Ord.%202023-802_Approved.pdf",
+      "sources": [
+        "https://www.houstontx.gov/planning/Commissions/docs_pdfs/Livable%20Places_Chapter%2042%20amend.%20Ord.%202023-801_Approved.pdf",
+        "https://www.houstontx.gov/planning/Commissions/docs_pdfs/Livable%20Places_Chapter%2026%20amend.%20Ord.%202023-802_Approved.pdf"
+      ]
+    },
+    {
+      "id": "special_minimum_lot_size",
+      "rule": "City Council can set a Special Minimum Lot Size on a block (1 or 2 facing blockfaces) or an area (5 or more blockfaces, up to 500 lots). Inside one, no plat may create a lot smaller than the special minimum, and a lot that was single-family or vacant when the application was complete may only be used for single-family. The special minimum overrides Sec. 42-181. It lasts 40 years (20 years for applications complete before 2013-05-24). The minimum for each block or area is in the GIS layer (LOTSIZE field); use only records with Status = Approved, and treat Pending as in force for plats filed after the application was published.",
+      "params": {
+        "term_years": 40,
+        "term_years_before_2013_05_24": 20,
+        "layer_lot_size_field": "LOTSIZE",
+        "layer_status_field": "Status"
+      },
+      "section": "Sec. 42-197; Sec. 42-202; Sec. 42-207; Sec. 42-208; Sec. 42-181(e)",
+      "source_url": "https://www.houstontx.gov/planning/Neighborhood/docs_pdfs/SMLS_Ord.pdf"
+    },
+    {
+      "id": "special_minimum_building_line",
+      "rule": "City Council can set a Special Minimum Building Line on a blockface. It overrides the other building line rules in Chapter 42. The setback in feet is in the GIS layer (BLD__LINE field); use records with Status = Approved.",
+      "params": {
+        "layer_building_line_field": "BLD__LINE",
+        "layer_status_field": "Status"
+      },
+      "section": "Sec. 42-150(c); Sec. 42-170 and following",
+      "source_url": "https://www.houstontx.gov/planning/Neighborhood/docs_pdfs/SMBL_Ord.pdf"
+    },
+    {
+      "id": "state_overrides",
+      "rule": "state laws that change what the city code allows on this lot",
+      "items": [
+        {
+          "id": "tx_sb840",
+          "applies_to": [],
+          "text": "Texas SB 840 (Local Government Code ch. 218, effective 2025-09-01) applies to cities over 150,000 people in counties over 300,000, so Houston is in scope. It makes multifamily (3 or more units) and mixed-use residential allowed in any zoning classification that allows office, commercial, retail, warehouse or mixed use, and caps what a city may require there: density no tighter than 36 units per acre, height no lower than 45 ft, setbacks no more than 25 ft, no more than 1 parking space per unit, no FAR limit. Houston has no zoning classifications, so the use part changes nothing: multifamily was already allowed on any land not limited by deed restrictions. Whether the caps on parking (1 space per unit) and setbacks override Chapter 26 and Chapter 42 for multifamily in Houston has not been confirmed from a city document. Deed restrictions are private and are not touched by the law. It does not apply within 1,000 ft of heavy industrial use or 3,000 ft of an airport or military base.",
+          "source_url": "https://capitol.texas.gov/tlodocs/89R/billtext/html/SB00840F.htm"
+        },
+        {
+          "id": "tx_sb15",
+          "applies_to": [],
+          "text": "Texas SB 15 (Local Government Code ch. 211 subch. D, effective 2025-09-01) applies to cities over 150,000 in counties over 300,000, but only to a tract of 5 acres or more with no recorded plat that will be platted in an area zoned for single-family homes. There a city may not require a lot larger than 3,000 sq ft, wider than 30 ft or deeper than 75 ft. Houston has no area zoned for single-family homes, and its own rule already allows lots averaging 1,400 sq ft, so this is not expected to change results for 1 to 6 unit infill. Not confirmed from a city document. The law leaves deed restrictions and HOA rules in force.",
+          "source_url": "https://capitol.texas.gov/tlodocs/89R/billtext/html/SB00015F.htm"
+        }
+      ]
+    },
+    {
+      "id": "flags",
+      "rule": "local conditions to flag",
+      "items": [
+        {
+          "id": "deed_restrictions",
+          "text": "Deed restrictions are Houston's main land-use control. They are private, recorded with the plat or separately in the county real property records, and are not in any free GIS layer. They often limit a lot to one house, set a minimum lot size or a deeper setback. Where they are stricter than Chapter 42 they control (Sec. 42-150(b)),. Every Houston result must say: check the deed restrictions for this subdivision before relying on these numbers. The subdivision name comes from the Subdivisions layer."
+        },
+        {
+          "id": "special_minimum_lot_size",
+          "text": "The lot is in a Special Minimum Lot Size block or area. Lots cannot be split below the listed size and single-family lots stay single-family."
+        },
+        {
+          "id": "special_minimum_building_line",
+          "text": "The blockface has a Special Minimum Building Line. Use the listed setback, not the Chapter 42 default."
+        },
+        {
+          "id": "historic",
+          "text": "The lot is in a City of Houston historic district (23 districts). New construction, additions and demolition need a Certificate of Appropriateness from the Houston Archaeological and Historical Commission (Chapter 33, Article VII). The Heights districts have design guidelines with size limits; those numbers were not read."
+        },
+        {
+          "id": "flood",
+          "text": "The lot is in the FEMA 100-year or 500-year floodplain or the floodway. Chapter 19 sets finished-floor elevations and limits fill; the numbers were not read. Flood layers come from the City's copy of FEMA/Harris County Flood Control District data."
+        },
+        {
+          "id": "street_width_and_access",
+          "text": "MUR and courtyard sites need 50 ft of frontage on a 50 ft street. The engine cannot see street right-of-way width; flag for a manual check. Street Width Exception areas and Restricted Lot Driveway Access streets are in overlay layers."
+        },
+        {
+          "id": "market_based_parking",
+          "text": "The lot is in a Market Based Parking area. The City sets no minimum parking there. The Chapter 26 text for this was not read; confirm before relying on it."
+        },
+        {
+          "id": "limited_purpose_annexation",
+          "text": "The city limit layer marks 749 small areas as LIMITED (limited purpose annexation, mostly commercial strips in the ETJ). They are not matched to a district. Treat as not covered."
+        },
+        {
+          "id": "airport_and_tirz1",
+          "text": "Land near the three airports has use and height rules (Chapter 9, Articles VI and VII). TIRZ No. 1 (St. George Place) has its own zoning. Neither is modeled."
+        },
+        {
+          "id": "detention_and_wastewater",
+          "text": "The 3,500 and 5,000 sq ft minimums assume wastewater collection service. Lots on septic follow state (TCEQ) minimums. Stormwater detention rules in the Infrastructure Design Manual can limit building coverage; not modeled."
+        }
+      ]
+    }
+  ]
+}

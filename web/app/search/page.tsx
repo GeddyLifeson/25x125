@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ENGINE_URL, searchParcels, settle } from "../../lib/engine";
-import { formatPin, num, titleCase } from "../../lib/format";
+import { num, titleCase } from "../../lib/format";
+import { getRegion, showParcelId } from "../../lib/region";
 
 export const dynamic = "force-dynamic";
 
@@ -21,23 +22,26 @@ export default async function AddressSearch({ searchParams }: { searchParams: Pr
   const { q: rawQ } = await searchParams;
   const q = (rawQ ?? "").trim();
   const status = await engineStatus();
+  const region = await getRegion();
+  const idLabel = region.parcel_id_label;
   const result = q.length >= 3 ? await settle(searchParcels(q)) : null;
   if (result?.ok && result.value.length === 1) redirect(`/parcels/${result.value[0].pin}`);
 
   return (
     <main className="wrap">
       <section className="card">
-        <h1 style={{ fontSize: 24, marginBottom: 6 }}>Find a Chicago parcel</h1>
+        <h1 style={{ fontSize: 24, marginBottom: 6 }}>Find a {region.name} parcel</h1>
         <p className="muted" style={{ marginBottom: 14 }}>
-          Type a street address (for example 624 N Troy St) or a 10- or 14-digit PIN. Results come from the Cook County
-          Assessor address file, copied nightly.
+          {region.chicago
+            ? "Type a street address (for example 624 N Troy St) or a 10- or 14-digit PIN. Results come from the Cook County Assessor address file, copied nightly."
+            : `Type a street address or a parcel number (${idLabel}). Results come from: ${region.parcel_source ?? "the county tax roll"}.`}
         </p>
         <form className="search" action="/search" method="get" role="search">
           <input
             name="q"
             defaultValue={q}
-            placeholder="Address or PIN"
-            aria-label="Address or PIN"
+            placeholder={`Address or ${idLabel}`}
+            aria-label={`Address or ${idLabel}`}
             autoComplete="off"
             minLength={3}
             autoFocus
@@ -84,7 +88,7 @@ export default async function AddressSearch({ searchParams }: { searchParams: Pr
                           <span className="addr">{titleCase(h.address) || "No address on file"}</span>
                         </Link>
                       </td>
-                      <td className="mono">{formatPin(h.pin)}</td>
+                      <td className="mono">{showParcelId(region, h.pin)}</td>
                       <td>{h.zip ?? ""}</td>
                       <td>{h.zone_class ?? "n/a"}</td>
                       <td className="num">{h.lot_sqft ? `${num(h.lot_sqft)} sq ft` : "n/a"}</td>

@@ -1,0 +1,13 @@
+{
+  "source": "Starting patterns for regions outside Chicago: detached houses, a house with an accessory unit, and 2-6 attached homes. Sizes are starting defaults, set from the first region's new-construction sales (Tampa median new house 2,486 sq ft) and kept on the small side for infill lots.",
+  "as_of": "2026-11-17",
+  "status": "draft: sizes are defaults; users can enter a custom program",
+  "patterns": [
+    {"id": "house", "name": "House", "units": 1, "stories": 2, "basement": false, "unit_sqft": 2000, "gross_sqft": 2000, "build_spec_default": "production"},
+    {"id": "house-adu", "name": "House plus accessory unit", "units": 2, "stories": 2, "basement": false, "unit_sqft": 1300, "gross_sqft": 2600, "adu_sqft": 600, "paths": ["adu"], "sold_as_one": true, "build_spec_default": "production"},
+    {"id": "duplex", "name": "Duplex", "units": 2, "stories": 2, "basement": false, "unit_sqft": 1400, "gross_sqft": 2800, "paths": ["by_right", "state_override", "rezoning"], "build_spec_default": "production"},
+    {"id": "triplex", "name": "Triplex", "units": 3, "stories": 2, "basement": false, "unit_sqft": 1200, "gross_sqft": 3600, "paths": ["by_right", "state_override", "rezoning"], "build_spec_default": "production"},
+    {"id": "fourplex", "name": "Fourplex", "units": 4, "stories": 2, "basement": false, "unit_sqft": 1100, "gross_sqft": 4400, "paths": ["by_right", "state_override", "rezoning"], "build_spec_default": "production"},
+    {"id": "six-townhomes", "name": "Six townhomes", "units": 6, "stories": 2, "basement": false, "unit_sqft": 1100, "gross_sqft": 6600, "paths": ["by_right", "state_override", "rezoning"], "build_spec_default": "production"}
+  ]
+}

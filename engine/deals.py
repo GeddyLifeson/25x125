@@ -16,6 +16,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
+from core import region
 from core.db import connect
 from engine.accounts import export_gate
 from engine.auth import Caller, audit, needs, scoped
@@ -79,10 +80,10 @@ class EventIn(BaseModel):
 
 
 def _clean_pin(pin: str) -> str:
-    pin = pin.replace("-", "").strip()
-    if not pin.isdigit() or len(pin) not in (10, 14):
-        raise HTTPException(400, "PIN must be 10 or 14 digits")
-    return pin
+    pid = region.clean_parcel_id(pin)
+    if pid is None:
+        raise HTTPException(400, region.parcel_id_error())
+    return pid
 
 
 def _stage(value: str) -> str:
@@ -124,7 +125,7 @@ def _parcel_for(conn, pin: str) -> tuple[str, str, str | None] | None:
     return conn.execute(
         """select p.pin, p.pin10, a.address from parcel p left join parcel_address a on a.pin = p.pin
            where p.pin = %s or p.pin10 = %s order by (p.pin = %s) desc, p.tax_year desc, p.pin limit 1""",
-        (pin, pin[:10], pin),
+        (pin, region.lot_id(pin), pin),
     ).fetchone()
 
 

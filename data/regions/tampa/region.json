@@ -1,0 +1,128 @@
+{
+  "id": "tampa",
+  "name": "Tampa",
+  "state": "FL",
+  "counties": [
+    {
+      "id": "hillsborough",
+      "name": "Hillsborough",
+      "fips": "12057",
+      "dor_county_no": 39,
+      "dor_name": "Hillsborough",
+      "shape_name": "hillsborough",
+      "shape_epsg": 2882,
+      "tax_auth_codes": [
+        "TA"
+      ]
+    }
+  ],
+  "city_filter": {
+    "field": "PHY_CITY",
+    "values": [
+      "TAMPA"
+    ]
+  },
+  "center": {
+    "lat": 27.95,
+    "lon": -82.46,
+    "zoom": 11
+  },
+  "fhfa_metro": "45294",
+  "parcel_id_label": "Folio",
+  "price_basis": "recorded sales",
+  "zoning_layer": {
+    "url": "https://arcgis.tampagov.net/arcgis/rest/services/OpenData/Planning/MapServer/28",
+    "zone_field": "ZONECLASS",
+    "tested_on": "2026-11-17",
+    "note": "City of Tampa GIS 'Zoning District' layer on the city's open data ArcGIS server. No key needed. ZONEDESC holds the long name. 55 distinct ZONECLASS values on 2026-11-17, including PD, PD-A, CBD, CD, YC, SH, NMU-35, M-AP and a few county codes (A, AS-1, CU)."
+  },
+  "overlay_layers": [
+    {
+      "kind": "historic",
+      "url": "https://arcgis.tampagov.net/arcgis/rest/services/OpenData/Planning/MapServer/1",
+      "name_field": "HISTORIC_BNDY",
+      "note": "Local historic districts: Hyde Park, Seminole Heights, Tampa Heights, Ybor City. Names carry a trailing space."
+    },
+    {
+      "kind": "historic_national",
+      "url": "https://arcgis.tampagov.net/arcgis/rest/services/OpenData/Planning/MapServer/2",
+      "name_field": "",
+      "note": "National Register districts; fields not tested."
+    },
+    {
+      "kind": "overlay",
+      "url": "https://arcgis.tampagov.net/arcgis/rest/services/OpenData/Planning/MapServer/3",
+      "name_field": "NAME",
+      "note": "Overlay districts; CODE holds the code section (for example Sec. 27-240 East Tampa)."
+    },
+    {
+      "kind": "adu_area",
+      "url": "https://arcgis.tampagov.net/arcgis/rest/services/OpenData/Planning/MapServer/37",
+      "name_field": "CRITERIA",
+      "note": "ADU eligible areas. CRITERIA is 'ADU Permitted', 'ADU - Special Use Required' or 'ADU Not Permitted'; NAME says which standards apply."
+    },
+    {
+      "kind": "flood",
+      "url": "https://maps.hillsboroughcounty.org/arcgis/rest/services/FEMA_DFIRM/DSD_Flood_Hazard_Layers2022/FeatureServer/7",
+      "name_field": "FLD_ZONE",
+      "note": "Hillsborough County copy of the FEMA flood hazard zones effective 2022 (detailed). SFHA_TF marks the special flood hazard area."
+    }
+  ],
+  "permit_source": {
+    "kind": "arcgis",
+    "url": "https://arcgis.tampagov.net/arcgis/rest/services/OpenData/Planning/MapServer/30",
+    "note": "City of Tampa 'Construction Inspections' layer: 2,588 rows on 2026-11-17 with record ID, record type, address, number of units (NBROFUNITS), new construction sq ft, status and created date. It lists current and recent projects, not a full history, and has no job value. A second layer, https://arcgis.tampagov.net/arcgis/rest/services/OpenData/Planning/MapServer/32 'Single Family Permits', has 1,045 rows, mostly 2025-2026. No free bulk permit history was found; the Accela portal (aca-prod.accela.com/TAMPA) is search-only."
+  },
+  "disclaimer": "Estimates, not tax, legal, zoning or appraisal advice.",
+  "sources": [
+    {
+      "what": "zoning code, Chapter 27 (official host; blocked to automated requests on 2026-11-17, not read directly)",
+      "url": "https://library.municode.com/fl/tampa/codes/code_of_ordinances?nodeId=COOR_CH27ZOLADE",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Chapter 27 text as read (third-party copy of the Municode text; includes ordinances through January 8, 2026)",
+      "url": "https://www.zoneomics.com/code/tampa-FL/chapter_3",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Sec. 27-156 Table 4-2 as reproduced by the City (ABCs of Zoning, 2023); matches the copy above",
+      "url": "https://www.tampa.gov/sites/default/files/document/2023/abcs-of-zoning-module-one.pdf",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "City ADU page",
+      "url": "https://www.tampa.gov/ADU",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Florida Live Local Act, Fla. Stat. 166.04151(7)",
+      "url": "http://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0100-0199/0166/Sections/0166.04151.html",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "City of Tampa open data GIS",
+      "url": "https://city-tampa.opendata.arcgis.com",
+      "checked_on": "2026-11-17"
+    }
+  ],
+  "roll": "2026F",
+  "min_units": 1,
+  "parcel_loader": "fl_dor",
+  "parcel_source": "Florida Department of Revenue Hillsborough County tax roll (NAL 2026 final) and parcel map",
+  "value_source": "Hillsborough County Property Appraiser just value, 2026 final tax roll (Florida Department of Revenue NAL file)",
+  "comps": {
+    "built_since": 2014,
+    "price_floor_per_unit": 100000,
+    "qualified_codes": [
+      "01",
+      "02"
+    ],
+    "land_qualified_codes": [
+      "01",
+      "02",
+      "03"
+    ],
+    "source": "Florida Department of Revenue Hillsborough County tax roll: first qualified sale (codes 01, 02) of 1-6 unit buildings built 2014 or later; the roll carries each parcel's two latest sales, January 2025 on"
+  }
+}

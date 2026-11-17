@@ -1,0 +1,264 @@
+{
+  "verified_on": "2026-11-17",
+  "steps": [
+    {
+      "id": "adu",
+      "rule": "One accessory dwelling unit on a single-family building site. Up to 500 sq ft on a lot that meets the listed minimum; up to 1,000 sq ft in the R-1 districts on a lot 1.5 times that minimum. In R-2, R-3, MXD and O districts an ADU over 500 sq ft must meet the tandem dwelling standards (Part 3C). The ADU must be smaller than the house. House plus ADU cannot exceed 0.50 FAR. Not allowed in R-2A on a site with a duplex or tandem. No extra parking space for an ADU of 500 sq ft or less; one more space if larger. Appearance review is required before the building permit. A nonconforming lot needs a variance and is capped at 500 sq ft.",
+      "params": {
+        "units": 1,
+        "by_district": [
+          "R-1AA",
+          "R-1A",
+          "R-1",
+          "R-1N",
+          "R-2A",
+          "R-2B",
+          "R-3A",
+          "R-3B",
+          "R-3C",
+          "R-3D",
+          "MXD-1",
+          "MXD-2",
+          "O-1",
+          "O-2"
+        ],
+        "max_sqft": 1000,
+        "max_sqft_standard_lot": 500,
+        "min_lot_sqft_adu_up_to_500": {
+          "R-1AA": 10000,
+          "R-1A": 7700,
+          "R-1": 6000,
+          "R-1N": 5500,
+          "R-2A": 5500,
+          "R-2B": 5000,
+          "R-3A": 5500,
+          "R-3B": 5000,
+          "R-3C": 4500,
+          "R-3D": 4500,
+          "MXD-1": 5000,
+          "MXD-2": 4500,
+          "O-1": 5500,
+          "O-2": 4500
+        },
+        "min_lot_sqft_adu_up_to_1000": {
+          "R-1AA": 15000,
+          "R-1A": 11550,
+          "R-1": 9000,
+          "R-1N": 8250
+        },
+        "max_far_with_house": 0.5,
+        "owner_occupancy": false,
+        "owner_occupancy_note": "Sec. 58.501 states no owner-occupancy rule; other chapters were not read",
+        "approval": "building permit with appearance review (Certificate of Appropriateness in historic districts; appearance review marked PA in R-3, MXD and O districts)"
+      },
+      "section": "Sec. 58.500-58.501; Fig. 2 (FG-2A.LDC) row Accessory dwelling units",
+      "source_url": "https://www.zoneomics.com/code/orlando-FL/chapter_3"
+    },
+    {
+      "id": "duplex_lot",
+      "rule": "A duplex or tandem (two houses on one building site, front and back, which can be split into two fee-simple lots) needs the duplex lot area and width in Figure 1, not just the density. Each tandem lot must meet 0.50 FAR. Duplexes are not allowed on corner sites in R-2A; tandems are. Appearance review applies.",
+      "params": {
+        "min_lot_sqft": {
+          "R-2A": 5500,
+          "R-2B": 5000,
+          "R-3A": 5500,
+          "R-3B": 5000,
+          "R-3C": 4500,
+          "MXD-1": 5000,
+          "MXD-2": 4500,
+          "O-1": 5500,
+          "O-2": 4500,
+          "MU-1": 4500,
+          "AC-N": 4500
+        },
+        "min_lot_width_ft": {
+          "R-2A": 50,
+          "R-2B": 50,
+          "R-3A": 50,
+          "R-3B": 50,
+          "R-3C": 45,
+          "MXD-1": 50,
+          "MXD-2": 45,
+          "O-1": 50,
+          "O-2": 45,
+          "AC-N": 45
+        },
+        "far_per_tandem_lot": 0.5
+      },
+      "section": "Fig. 1 (FG-1A, FG-1B, FG-1C) rows Duplex or Tandem; Sec. 58.514-58.518",
+      "source_url": "https://www.zoneomics.com/code/orlando-FL/chapter_3"
+    },
+    {
+      "id": "multiplex",
+      "rule": "3 to 8 units on a lot in R-2B, R-3A, R-3B, O-1 and O-2. Units = lot acres x district maximum density; a result of .5 or more rounds up. R-2B lots stop at 5 units. Most units must be 750 sq ft or less, or the project follows the multifamily rules. Height is the district limit or 3 stories, whichever is less. 10 ft between buildings. No parking between the front building and the street. Master plan review (Sec. 65.331).",
+      "params": {
+        "by_district": [
+          "R-2B",
+          "R-3A",
+          "R-3B",
+          "O-1",
+          "O-2"
+        ],
+        "min_units": 3,
+        "max_units": 8,
+        "max_units_by_district": {
+          "R-2B": 5
+        },
+        "round_up_from": 0.5,
+        "majority_unit_max_sqft": 750,
+        "max_stories": 3
+      },
+      "approval": "master plan review",
+      "section": "Sec. 58.560-58.562 (Part 3H)",
+      "source_url": "https://www.zoneomics.com/code/orlando-FL/chapter_3"
+    },
+    {
+      "id": "townhomes",
+      "rule": "Townhome lots: 20 ft minimum width, 1,000 sq ft minimum area, at most 8 units in one building, 10 ft between buildings. Driveways and parking must be at the rear; front-loaded townhomes are prohibited. Density, ISR, setbacks and height follow the zoning district. Needs a master plan and a subdivision plat. Not allowed in R-1 districts, R-2A or R-3D.",
+      "params": {
+        "by_district": [
+          "R-2B",
+          "R-3A",
+          "R-3B",
+          "R-3C",
+          "MXD-1",
+          "MXD-2",
+          "O-1",
+          "O-2",
+          "O-3",
+          "MU-1",
+          "MU-2",
+          "AC-N",
+          "AC-1",
+          "AC-2",
+          "AC-3"
+        ],
+        "min_lot_width_ft": 20,
+        "min_lot_sqft": 1000,
+        "max_units_per_building": 8
+      },
+      "approval": "master plan review plus subdivision plat",
+      "section": "Sec. 58.510-58.512 (Part 3B); Fig. 2 row Town homes",
+      "source_url": "https://www.zoneomics.com/code/orlando-FL/chapter_3"
+    },
+    {
+      "id": "parking",
+      "rule": "One-family, duplex and tandem units: 1 space for a unit under 1,500 sq ft, 2 spaces for a unit of 1,500 sq ft or more, behind the front setback. An ADU over 500 sq ft adds 1 space. Townhome sites with new streets or more than 20 units add 1 guest space per 5 units. The multifamily ratio in Chapter 61 Figure 26 was not read; do not apply these numbers to buildings of 3 or more units.",
+      "params": {
+        "spaces_per_unit": {
+          "default": 2,
+          "unit_under_1500_sqft": 1
+        },
+        "applies_to": "one-family, duplex and tandem units only",
+        "adu_over_500_sqft_extra_spaces": 1,
+        "townhome_guest_spaces_per_unit": 0.2
+      },
+      "section": "LDC Ch. 61 Fig. 26, as cited in the City's Duplex and Tandem Standards and Review Guidebook (updated 2017-05-04), p. 6; Sec. 58.501.F; Sec. 58.511.A.6",
+      "source_url": "https://www.orlando.gov/files/sharedassets/public/v/1/departments/edv/city-planning/duplextandemdesignstandards.pdf"
+    },
+    {
+      "id": "rezoning",
+      "rule": "A zoning map change goes to the Municipal Planning Board for a hearing and then to City Council. The new district must fit the parcel's Future Land Use designation in the Growth Management Plan; if it does not, a plan amendment is needed too. Targets listed are the next districts up in Figure 1. They are a judgment about what a small developer would ask for, not a list from the code.",
+      "approval": "rezoning (Municipal Planning Board hearing, then City Council)",
+      "targets": {
+        "R-1AA": [
+          "R-1A",
+          "R-1"
+        ],
+        "R-1A": [
+          "R-1",
+          "R-1N"
+        ],
+        "R-1": [
+          "R-1N",
+          "R-2A"
+        ],
+        "R-1N": [
+          "R-2A"
+        ],
+        "R-2A": [
+          "R-2B",
+          "R-3A"
+        ],
+        "R-2B": [
+          "R-3B"
+        ],
+        "R-3A": [
+          "R-3B"
+        ],
+        "R-3B": [
+          "R-3C"
+        ],
+        "R-3C": [
+          "R-3D"
+        ],
+        "MXD-1": [
+          "MXD-2"
+        ],
+        "O-1": [
+          "O-2",
+          "MXD-1"
+        ]
+      },
+      "section": "LDC Ch. 65 (not read); board confirmed from a 2025 city case page (ZON2025-10002, O-1/T to PD, Municipal Planning Board)",
+      "source_url": "https://orlando.gov/Building-Development/Planning-Zoning-Approvals/View-Open-Development-Applications/GMP2025-10003-and-ZON2025-10002-Park-Lake-Townhomes"
+    },
+    {
+      "id": "state_overrides",
+      "rule": "state laws that change what the city code allows on this lot",
+      "items": [
+        {
+          "id": "fl_live_local",
+          "applies_to": [
+            "MU-1",
+            "MU-2",
+            "AC-N",
+            "AC-1",
+            "AC-2",
+            "AC-3"
+          ],
+          "text": "Florida Live Local Act, s. 166.04151(7). On land zoned commercial, industrial or mixed use, the city must allow multifamily or mixed-use residential when at least 40% of the units are rentals kept affordable (as defined in s. 420.0004) for at least 30 years. Mixed-use projects need at least 65% residential floor area. The city cannot hold density below the highest it allows anywhere, FAR below 150% of the highest it allows, or height below the tallest allowed within 1 mile or 3 stories, whichever is higher. Next to single-family zoning on 2 or more sides the height limit can drop. Approval is administrative. Parking drops 15% near transit on request. It does not apply in airport-impacted areas or the Wekiva Study Area (zoning codes with /W). Subsection (7) expires 2033-10-01. It also covers Orlando's industrial districts (I-C, I-G, I-P), which this file does not cover. Whether MXD and O districts count as mixed use or commercial was not confirmed.",
+          "source_url": "https://www.flsenate.gov/Laws/Statutes/2025/166.04151"
+        }
+      ]
+    },
+    {
+      "id": "flags",
+      "rule": "local conditions to flag",
+      "items": [
+        {
+          "id": "flood",
+          "text": "Check the FEMA flood zone. Orange County (DFIRM 12095C) has A, AE and AH special flood hazard zones inside the city. City floodplain rules are in LDC Ch. 63 Part 2C (not read)."
+        },
+        {
+          "id": "historic",
+          "text": "Zoning codes with /HP are in one of 6 local historic districts (Downtown, Lake Eola Heights, Lake Lawsona, Lake Cherokee, Lake Copeland, Colonialtown South). Single family, tandem and duplex FAR drops to 0.40 (Fig. 1 footnote 41). New work needs a Certificate of Appropriateness; ADUs follow Sec. 62.706."
+        },
+        {
+          "id": "traditional_city",
+          "text": "Zoning codes with /T are in the Traditional City overlay (Sec. 62.600-62.629). Height in R-1, R-2 and O-1 is 30 ft there and 35 ft outside. Some minimum lot areas are smaller inside it (MXD-1 4,000 vs 4,400 sq ft; O-1 4,500 vs 4,950 sq ft). Design standards and appearance review apply."
+        },
+        {
+          "id": "minimum_density",
+          "text": "R-3B, R-3C, R-3D, MXD, O-2, O-3, MU and AC districts set a minimum density (12 to 30 du/ac). New housing on vacant land must meet it (Sec. 58.206), so a single house may not be allowed on a larger lot."
+        },
+        {
+          "id": "nonconforming_lot",
+          "text": "A lot of record below the district's area, width or depth may hold one house, limited to 2 stories and 0.50 FAR, with appearance review (Sec. 58.1152-58.1153). Other uses on a lot short on width or depth in R-2 and R-3 districts need a variance."
+        },
+        {
+          "id": "overlays_in_zoning_code",
+          "text": "The zoning layer appends overlays to the base code: /T Traditional City, /HP historic, /SP special plan, /PH Parramore Heritage, /AR appearance review, /AN aircraft noise, /W Wekiva, /RP resource protection, /MA major attraction. Each can add limits not modeled here."
+        },
+        {
+          "id": "density_bonus",
+          "text": "Density and non-residential FAR in R-3, MXD, O, MU and AC districts are base figures that bonuses can raise (Fig. 1 footnote 9; Ch. 58 Part 6). Bonuses are not modeled."
+        },
+        {
+          "id": "adu_state_law",
+          "text": "Orlando's own code governs ADUs. A statewide ADU requirement was not confirmed from the Florida Statutes on 2026-11-17."
+        }
+      ]
+    }
+  ]
+}

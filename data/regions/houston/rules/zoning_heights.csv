@@ -1,0 +1,3 @@
+district,frontage_from_ft,frontage_to_ft,ground_floor_commercial,max_height_ft,section,source_url,verified_on
+City of Houston (no zoning),0,,any,,No height limit for a standard lot in Chapter 42. 30 ft applies only to multi-unit residential (Sec. 42-237(c)(8)) and courtyard style development (Sec. 42-194(p)); see zoning_steps.json. Deed restrictions and airport hazard areas (Chapter 9) can set a lower limit,https://www.houstontx.gov/planning/Commissions/docs_pdfs/Livable%20Places_Chapter%2042%20amend.%20Ord.%202023-801_Approved.pdf,2026-11-17
+Houston ETJ (outside city limits),0,,any,,No height limit in Chapter 42,https://www.houstontx.gov/planning/Commissions/docs_pdfs/Livable%20Places_Chapter%2042%20amend.%20Ord.%202023-801_Approved.pdf,2026-11-17

@@ -9,6 +9,7 @@ import "@fontsource/ibm-plex-mono/latin-500.css";
 import "./globals.css";
 import { Nav } from "../components/Nav";
 import { StaleDataNote } from "../components/StaleDataNote";
+import { getRegion } from "../lib/region";
 import { getSession, trialDaysLeft } from "../lib/session";
 
 export const metadata = {
@@ -18,6 +19,7 @@ export const metadata = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const s = await getSession();
+  const region = await getRegion();
   const days = s ? trialDaysLeft(s.org) : null;
   const account = s
     ? { email: s.user.email, plan: days !== null ? `Pro trial, ${days} days left` : s.org.plan_label, isAdmin: Boolean(s.is_admin), local: Boolean(s.local) }
@@ -25,14 +27,20 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <Nav account={account} />
+        <Nav account={account} regionName={region.name} />
         <StaleDataNote />
         {children}
         <footer className="foot">
-          Estimates, not tax, legal, zoning or appraisal advice. Data from the Chicago Data Portal, the Cook County data
-          catalog, the U.S. Census Bureau and FHFA, copied nightly into the 25x125 database. Map data ©
-          OpenStreetMap contributors. <Link href="/sources">Data sources</Link> · <Link href="/areas">Community areas</Link> ·{" "}
-          <Link href="/help">Help</Link>
+          {region.chicago ? (
+            <>
+              Estimates, not tax, legal, zoning or appraisal advice. Data from the Chicago Data Portal, the Cook County data
+              catalog, the U.S. Census Bureau and FHFA, copied nightly into the 25x125 database. Map data © OpenStreetMap
+              contributors. <Link href="/sources">Data sources</Link> · <Link href="/areas">Community areas</Link> ·{" "}
+              <Link href="/help">Help</Link>
+            </>
+          ) : (
+            `Estimates, not tax, legal, zoning or appraisal advice. Data: ${region.parcel_source ?? "county tax roll"}; city zoning map; FHFA. Sale values rest on ${region.price_basis}. Map data © OpenStreetMap contributors.`
+          )}
         </footer>
       </body>
     </html>

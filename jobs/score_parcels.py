@@ -18,9 +18,10 @@ import json
 import time
 from datetime import date
 
+from core import region
 from core.db import connect
 from engine import older_sales
-from engine.comps import RULES_DIR, Target, index_from_db, params_from_files, pool_from_db
+from engine.comps import Target, index_from_db, params_from_files, pool_from_db
 from engine.feasibility import fast_path, scenario, scenarios_for
 from engine.parcel_feasibility import (
     escalation,
@@ -161,7 +162,7 @@ def score_lot(row, w: dict, rules: Rules, ctx: dict, sale_for, sur_match: list[s
 
 
 def run(url: str | None = None, limit: int | None = None) -> dict:
-    w = json.loads((RULES_DIR / "development_score.json").read_text())
+    w = json.loads(region.rules_file("development_score.json").read_text())
     today = date.today()
     t0 = time.time()
     with connect(url) as conn:
@@ -176,6 +177,12 @@ def run(url: str | None = None, limit: int | None = None) -> dict:
         sur_match = sur["match"] if sur else []
         lv_cache: dict = {}
         sales: dict = {}
+        appraiser_land: dict = {}
+        if not region.is_chicago():
+            ratio = (d.get("appraiser_land") or {}).get("ratio_to_sale_price")
+            appraiser_land = {r[0]: {"value": float(r[1]), "tax_year": r[2], "ratio": ratio} for r in conn.execute(
+                "select distinct on (pin) pin, land_market_value, tax_year from assessed_value"
+                " where land_market_value > 0 order by pin, tax_year desc")}  # fmt: skip
 
         def sale_for(lat, lon, units, unit_sqft):
             key = (round(lat / CELL), round(lon / CELL), units, round(unit_sqft, -1))
@@ -192,7 +199,7 @@ def run(url: str | None = None, limit: int | None = None) -> dict:
             if lk not in lv_cache:
                 lv_cache[lk] = land_value(conn, *lk)
             ctx.update(land_values=lv_cache[lk], cost_index=cost_index.get(ctx["ca_num"]), patterns=patterns,
-                       d=d, esc=esc)  # fmt: skip
+                       d=d, esc=esc, appraiser_land=appraiser_land.get(row[0]))  # fmt: skip
             try:
                 out.append(score_lot(row, w, rules, ctx, sale_for, sur_match, today))
             except Exception as e:  # noqa: BLE001 - one bad lot must not stop the nightly run

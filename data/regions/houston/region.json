@@ -1,0 +1,246 @@
+{
+  "id": "houston",
+  "name": "Houston",
+  "state": "TX",
+  "counties": [
+    {
+      "id": "harris",
+      "name": "Harris",
+      "fips": "48201"
+    }
+  ],
+  "city_filter": {
+    "field": "site_city",
+    "values": [
+      "HOUSTON"
+    ],
+    "note": "HCAD parcel field site_city (Harris County parcel service). It is a mailing city: 926,383 parcels on 2026-11-17, which includes unincorporated Harris County and the ETJ. Use the city limit polygon (zoning_layer, SERVICE_TY = FULL) to tell city from ETJ. Houston also reaches into Fort Bend and Montgomery counties; only Harris is loaded."
+  },
+  "center": {
+    "lat": 29.76,
+    "lon": -95.37,
+    "zoom": 10
+  },
+  "fhfa_metro": "26420",
+  "parcel_id_label": "HCAD account",
+  "price_basis": "appraisal district values",
+  "zoning_layer": {
+    "url": "https://services.arcgis.com/NummVBqZSIJKUeVR/arcgis/rest/services/COH_City_Limit_view/FeatureServer/0",
+    "zone_field": "SERVICE_TY",
+    "tested_on": "2026-11-17",
+    "note": "Houston has no zoning map. This is the City of Houston city limit layer (Houston Open Data, owner cohgis_ago, 751 polygons). SERVICE_TY has 2 values: FULL (2 polygons, the full-purpose city, about 599 sq mi) and LIMITED (749 limited purpose annexation areas, not matched). Inside FULL the Chapter 42 'within the city' rules apply (3,500 sq ft lots). The same layer is at https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Administrative_Boundary/MapServer/0. The ETJ is a separate layer: https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Administrative_Boundary/MapServer/1, field Class, values 'ETJ' and 'SB 2038' (land released from the ETJ). A parcel outside FULL and inside Class = 'ETJ' gets the ETJ row.",
+    "subdivide": true,
+    "key": "OBJECTID_1",
+    "where": "SERVICE_TY = 'FULL'"
+  },
+  "overlay_layers": [
+    {
+      "kind": "etj",
+      "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Administrative_Boundary/MapServer/1",
+      "name_field": "Class",
+      "note": "City of Houston extraterritorial jurisdiction. Values: ETJ, SB 2038. Chapter 42 platting rules apply in the ETJ with 5,000 sq ft lots."
+    },
+    {
+      "kind": "special_minimum_lot_size",
+      "url": "https://services.arcgis.com/NummVBqZSIJKUeVR/arcgis/rest/services/COH_Special_Minimum_Lot_Size_view/FeatureServer/12",
+      "name_field": "App_Num",
+      "value_field": "LOTSIZE",
+      "status_field": "Status",
+      "note": "804 blocks and areas. LOTSIZE is the minimum in sq ft. Status values: Approved, Pending, Expired, Denied, Rescinded, Withdrawn, Ineligible. Use Approved (and Pending). SFR_Restriction Y/N. Same data at https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Planning_and_Development/MapServer/13."
+    },
+    {
+      "kind": "special_minimum_building_line",
+      "url": "https://services.arcgis.com/NummVBqZSIJKUeVR/arcgis/rest/services/COH_Special_Minimum_Building_Lines_view/FeatureServer/11",
+      "name_field": "App_Num",
+      "value_field": "BLD__LINE",
+      "status_field": "Status",
+      "note": "249 blockfaces. BLD__LINE is the setback in feet. Same data at https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Planning_and_Development/MapServer/12."
+    },
+    {
+      "kind": "historic",
+      "url": "https://services.arcgis.com/NummVBqZSIJKUeVR/arcgis/rest/services/COH_Historic_Districts_view/FeatureServer/7",
+      "name_field": "NAME",
+      "note": "23 City of Houston historic districts. Same data at https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Planning_and_Development/MapServer/8. Landmarks are layer 7 and National Register districts layer 9 of that MapServer."
+    },
+    {
+      "kind": "conservation_district",
+      "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Planning_and_Development/MapServer/3",
+      "name_field": "District_Name",
+      "note": "Conservation districts. On 2026-11-17 it held Independence Heights Section 1 with Status = Proposed."
+    },
+    {
+      "kind": "flood",
+      "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Flood_Hazard/MapServer/1",
+      "name_field": "FLD_ZONE",
+      "note": "100-year floodplain, Harris County (FEMA data as served by the City), 3,957 polygons. Layer 0 = floodway (405), layer 6 = 500-year floodplain (5,201). Fields FLD_ZONE, SFHA_TF, ZONE_SUBTY."
+    },
+    {
+      "kind": "flood_floodway",
+      "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Flood_Hazard/MapServer/0",
+      "name_field": "FLOOD",
+      "note": "Floodway, Harris County."
+    },
+    {
+      "kind": "flood_500yr",
+      "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Flood_Hazard/MapServer/6",
+      "name_field": "FLD_ZONE",
+      "note": "500-year floodplain, Harris County."
+    },
+    {
+      "kind": "subdivision",
+      "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Cadastral/MapServer/2",
+      "name_field": "Name",
+      "note": "45,431 recorded subdivision plats with Name, Vol_Page and Section. Use it to name the subdivision whose deed restrictions the user must look up. It does not hold the restrictions."
+    },
+    {
+      "kind": "civic_club",
+      "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Planning_and_Development/MapServer/6",
+      "name_field": "NAME",
+      "note": "Civic club boundaries; clubs often enforce deed restrictions. name_field not tested."
+    },
+    {
+      "kind": "market_based_parking",
+      "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Planning_and_Development/MapServer/35",
+      "name_field": "Name",
+      "note": "Area with no minimum parking (1 polygon)."
+    },
+    {
+      "kind": "walkable_places_tod",
+      "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Planning_and_Development/MapServer/37",
+      "name_field": "",
+      "note": "Walkable Places streets (layer 37) and TOD streets (layer 38). New single-family lots may not take direct driveway access from these streets (Sec. 42-188(h))."
+    },
+    {
+      "kind": "street_width_exception",
+      "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Planning_and_Development/MapServer/15",
+      "name_field": "",
+      "note": "Street Width Exception Area (Sec. 42-123); layer 14 lists the 60 ft exception streets."
+    },
+    {
+      "kind": "restricted_driveway_access",
+      "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Planning_and_Development/MapServer/2",
+      "name_field": "FULL_NAME",
+      "note": "Streets with restricted lot driveway access."
+    }
+  ],
+  "parcel_layer": {
+    "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Cadastral/MapServer/0",
+    "where": "COUNCIL_DISTRICT IS NOT NULL",
+    "page_size": 2000,
+    "tax_year": 2026,
+    "fields": {
+      "id": "TAX_ID",
+      "address": "SITE_ADDR_1",
+      "zip": "SITE_ADDR_3",
+      "use_code": "STATE_CLASS",
+      "market_value": "TOTAL_MARKET_VALUE",
+      "land_value": "LAND_VALUE",
+      "year_built": "YR_IMPR",
+      "living_sqft": "TOTAL_BUILDING_AREA",
+      "land_sqft": "TOTAL_LAND_AREA",
+      "nbhd": "NEIGHBORHOOD_CODE",
+      "tax_year": "TAX_YEAR"
+    },
+    "use_groups": {
+      "A1": "single",
+      "A2": "single",
+      "A3": "single",
+      "A4": "single",
+      "A": "single",
+      "B1": "multi",
+      "B2": "multi",
+      "B3": "multi",
+      "B4": "multi",
+      "B": "multi",
+      "C1": "vacant"
+    },
+    "units_by_use": {
+      "B2": 2,
+      "B3": 3,
+      "B4": 4
+    },
+    "note": "City of Houston copy of the Harris Central Appraisal District roll. COUNCIL_DISTRICT is filled only inside the city (690,147 parcels on 2026-11-17). State class codes: A1 single-family, A2 mobile home, A3 half-duplex, A4 townhome, B1 multi-family, B2 two-family, B3 three-family, B4 four-family or more, C1 vacant residential lot.",
+    "tested_on": "2026-11-17"
+  },
+  "permit_source": {
+    "kind": "none",
+    "url": "https://www.houstonpermittingcenter.org/sold-permits-search",
+    "format": "xlsx",
+    "sample_url": "https://www.houstonpermittingcenter.org/sites/g/files/nwywnm431/files/2026-10/Oct%2019-25.xlsx",
+    "tested_on": "2026-11-17",
+    "note": "No API or bulk file. The Houston Permitting Center posts one spreadsheet a week on the Sold Permits page (45 xls/xlsx links on 2026-11-17, back to January 2026). Tested the Oct 12-19, 2026 file: 358 rows, columns Zip Code, Permit Date, Permit Type, Project No, Address, Comments. No unit count, value or parcel id; units must be read from the Comments text. File names follow no pattern, so the job must scrape the page for links. Older weeks are not on the page."
+  },
+  "disclaimer": "Estimates, not tax, legal, zoning or appraisal advice. Houston has no zoning; private deed restrictions can prohibit what city rules allow. Check the deed restrictions for the subdivision.",
+  "sources": [
+    {
+      "what": "Chapter 42 as amended by Ord. 2023-801 (Livable Places, effective 2023-11-27), signed ordinance, scanned; sections 42-1, 42-150, 42-157, 42-180 to 42-190, 42-194, 42-237",
+      "url": "https://www.houstontx.gov/planning/Commissions/docs_pdfs/Livable%20Places_Chapter%2042%20amend.%20Ord.%202023-801_Approved.pdf",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Chapter 26 parking amendments, Ord. 2023-802, signed ordinance (Sec. 26-492 Class 2)",
+      "url": "https://www.houstontx.gov/planning/Commissions/docs_pdfs/Livable%20Places_Chapter%2026%20amend.%20Ord.%202023-802_Approved.pdf",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Special Minimum Lot Size code text, Sec. 42-197 to 42-208",
+      "url": "https://www.houstontx.gov/planning/Neighborhood/docs_pdfs/SMLS_Ord.pdf",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Special Minimum Building Line code text, Sec. 42-170 and following",
+      "url": "https://www.houstontx.gov/planning/Neighborhood/docs_pdfs/SMBL_Ord.pdf",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Official City of Houston no-zoning letter, 2026-01-06",
+      "url": "https://www.houstontx.gov/planning/DevelopRegs/docs_pdfs/2026/No-Zoning-Letter-and-Boundary-Map-061726.pdf",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Chapter 42 on Municode (official codified copy; blocked to automated fetches on 2026-11-17, not read)",
+      "url": "https://library.municode.com/tx/houston/codes/code_of_ordinances?nodeId=COOR_CH42SUDEPL",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Livable Places User Guide (city guide, used to cross-check)",
+      "url": "https://www.houstontx.gov/planning/LP%20user%20Guide.pdf",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Texas SB 840 enrolled text",
+      "url": "https://capitol.texas.gov/tlodocs/89R/billtext/html/SB00840F.htm",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Texas SB 15 enrolled text",
+      "url": "https://capitol.texas.gov/tlodocs/89R/billtext/html/SB00015F.htm",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "City of Houston GIS services",
+      "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap",
+      "checked_on": "2026-11-17"
+    },
+    {
+      "what": "Houston Permitting Center sold permits weekly reports",
+      "url": "https://www.houstonpermittingcenter.org/sold-permits-search",
+      "checked_on": "2026-11-17"
+    }
+  ],
+  "parcel_layer_other": {
+    "url": "https://www.gis.hctx.net/arcgis/rest/services/HCAD/Parcels/MapServer/0",
+    "id_field": "HCAD_NUM",
+    "tested_on": "2026-11-17",
+    "note": "Harris Central Appraisal District parcels served by Harris County. Fields include acct_num, StatedArea (acres), state_class, land_value, total_market_val, tax_year (2026). The City's copy with FLOOD_ZONE and LANDUSE_CD is at https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Cadastral/MapServer/0 (TAX_ID)."
+  },
+  "parcel_loader": "arcgis_parcels",
+  "min_units": 1,
+  "parcel_source": "City of Houston parcel layer (Harris Central Appraisal District 2026 roll)",
+  "value_source": "Harris Central Appraisal District market value, 2026 roll",
+  "comps": {
+    "built_since": 2019,
+    "price_floor_per_unit": 100000,
+    "source": "Harris Central Appraisal District appraised market value of 1-6 unit buildings built 2019 or later, 2026 roll. Texas does not publish sale prices (Government Code 552.148), so these are appraisals, not sales"
+  }
+}

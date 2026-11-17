@@ -1,0 +1,14 @@
+{
+  "id": "chicago",
+  "name": "Chicago",
+  "state": "IL",
+  "counties": [{"id": "cook", "name": "Cook", "fips": "17031"}],
+  "center": {"lat": 41.84, "lon": -87.68, "zoom": 10},
+  "fhfa_metro": "16984",
+  "parcel_id_label": "PIN",
+  "area_label": "Community area",
+  "price_basis": "recorded sales",
+  "min_units": 2,
+  "disclaimer": "Estimates, not tax, legal, zoning or appraisal advice.",
+  "note": "The default region. Its rules are the shared files in data/rules; its loaders are the original jobs."
+}

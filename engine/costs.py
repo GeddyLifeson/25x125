@@ -39,7 +39,9 @@ class Cost:
 
 def unit_size(d: dict, units: int) -> float:
     s = d["unit_size_sqft"]
-    return s["2"] if units == 2 else (s["3"] if units == 3 else s["4-6"])
+    if units <= 1 and "1" in s:
+        return s["1"]
+    return s["2"] if units <= 2 else (s["3"] if units == 3 else s["4-6"])
 
 
 def gfa(d: dict, units: int, lot_sqft: float | None = None, far: float | None = None) -> float:
@@ -80,10 +82,14 @@ def cost(
 ) -> Cost:
     area = gfa(d, units, lot_sqft, far)
     preset = preset or preset_for(index)
-    base = d["build_spec_presets"][preset]["2-3" if units <= 3 else "4-6"] * escalation
+    rates = d["build_spec_presets"][preset]
+    key = "1" if units <= 1 and "1" in rates else "2-3" if units <= 3 else "4-6"
+    base = rates[key] * escalation
     adj = adjustment_for(preset, index, d["build_spec_presets"].get("production_adjustment"))
     hard = area * base * adj
-    sprinklers = area * d["sprinklers_per_sqft_at_4_plus_units"] if units >= 4 else 0.0
+    sprinklers = (
+        area * d["sprinklers_per_sqft_at_4_plus_units"] if units >= d.get("sprinklers_min_units", 4) else 0.0
+    )
     contingency = d["hard_cost_contingency"] * hard
     soft = d["soft_cost_pct_of_hard"] * hard + (d["rezoning_soft_cost_add"] if rezoning else 0)
     pf = d["permit_fee"]
