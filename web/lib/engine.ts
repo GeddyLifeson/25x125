@@ -87,6 +87,18 @@ export function getCommunityAreas(): Promise<import("./types").CommunityArea[]> 
   return call(`/community-areas`);
 }
 
+export function getAreaSnapshot(num: number | string): Promise<import("./types").AreaSnapshot> {
+  return call(`/community-areas/${encodeURIComponent(String(num))}/snapshot`);
+}
+
+export function getSources(): Promise<import("./types").SourceList> {
+  return call(`/sources`);
+}
+
+export function getLots(query: string): Promise<import("./types").Lot[]> {
+  return call(`/lots?${query}`);
+}
+
 export function getDeals(): Promise<import("./types").Deal[]> {
   return call(`/deals`);
 }

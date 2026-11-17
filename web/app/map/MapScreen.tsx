@@ -7,6 +7,7 @@ import { LotPanel } from "../../components/LotPanel";
 import { Source } from "../../components/Source";
 import { num, pct, titleCase, usd, usdK } from "../../lib/format";
 import { PENALTY_LABELS, SCORE_LABEL, SIGNAL_LABELS } from "../../lib/labels";
+import { TILE_SCHEME, loadTile, tileRequest } from "../../lib/tiles";
 import type { AreaSnapshot, CommunityArea, Lot } from "../../lib/types";
 
 export type Filters = {
@@ -18,6 +19,7 @@ export type Filters = {
   for_sale: boolean;
   vacant: boolean;
   fast_path: boolean;
+  tax_sale: boolean;
   sort: string;
 };
 
@@ -30,6 +32,7 @@ export const DEFAULT_FILTERS: Filters = {
   for_sale: false,
   vacant: false,
   fast_path: false,
+  tax_sale: false,
   sort: "score",
 };
 
@@ -102,6 +105,7 @@ function lotsQuery(f: Filters, offset: number, format?: "csv"): string {
   if (f.for_sale) qs.set("for_sale", "true");
   if (f.vacant) qs.set("vacant", "true");
   if (f.fast_path) qs.set("fast_path", "true");
+  if (f.tax_sale) qs.set("tax_sale", "true");
   qs.set("sort", f.sort);
   if (format) {
     qs.set("format", format);
@@ -125,6 +129,7 @@ function mapFilter(f: Filters): FilterSpecification {
   if (f.vacant) all.push(sig("vacant_land"));
   if (f.for_sale) all.push(sig("city_owned_for_sale"));
   if (f.fast_path) all.push(["==", ["get", "fp"], true]);
+  if (f.tax_sale) all.push(sig("tax_sale"));
   return all as FilterSpecification;
 }
 
@@ -283,6 +288,7 @@ export function MapScreen({
       // MapLibre 6 ships ES modules only; the bundler emits the worker file and this points the map at it.
       maplibregl.setWorkerUrl(new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString());
       lib.current = maplibregl;
+      maplibregl.addProtocol(TILE_SCHEME, loadTile);
       let style: StyleSpecification = {
         version: 8,
         sources: {},
@@ -296,6 +302,7 @@ export function MapScreen({
       const map = new maplibregl.Map({
         container: mapDiv.current,
         style,
+        transformRequest: (url) => tileRequest(url, window.location.origin),
         bounds: HOME,
         // The same padding as the fit below, so the first view is final and its tiles load once.
         fitBoundsOptions: { padding: 30 },
@@ -445,10 +452,11 @@ export function MapScreen({
   };
 
   const set = <K extends keyof Filters>(k: K, v: Filters[K]) => setFilters((f) => ({ ...f, [k]: v }));
-  const chips: { key: "vacant" | "for_sale" | "fast_path"; label: string }[] = [
+  const chips: { key: "vacant" | "for_sale" | "fast_path" | "tax_sale"; label: string }[] = [
     { key: "vacant", label: "Vacant land" },
     { key: "for_sale", label: "City-owned lot for sale" },
     { key: "fast_path", label: "Fast path (by right, no zoning relief)" },
+    { key: "tax_sale", label: "In the next county tax sale" },
   ];
   const computedOn = lots[0]?.computed_on;
   const floor = zoom >= 14 ? null : zoom >= 13 ? 20 : zoom >= 11 ? 40 : 50;
@@ -589,6 +597,7 @@ export function MapScreen({
                     </span>
                     <span className="rtags">
                       {l.details.fast_path && <span className="tag g">Fast path</span>}
+                      {l.tax_sale_date && <span className="tag c">Tax sale {l.tax_sale_date}</span>}
                       {(l.details.signals ?? []).map((s) => (
                         <span key={s} className="tag n">
                           {SIGNAL_LABELS[s] ?? s}

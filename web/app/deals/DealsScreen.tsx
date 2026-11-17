@@ -1,4 +1,5 @@
 "use client";
+import { SAMPLE_ADDRESS, SAMPLE_PIN } from "../../lib/sample";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Source } from "../../components/Source";
@@ -199,7 +200,8 @@ export function DealsScreen({ initial, initialPick }: { initial: Deal[]; initial
           {deals.length === 0 ? (
             <p style={{ padding: 20 }}>
               No deals yet. Save one from the <Link href="/map">map</Link>, a parcel page or the feasibility screen, or import a CSV with a{" "}
-              <span className="mono">pin</span> column.
+              <span className="mono">pin</span> column. To see how a deal looks, open the{" "}
+              <Link href={`/parcels/${SAMPLE_PIN}`}>sample lot, {SAMPLE_ADDRESS}</Link>, and press Save to deals.
             </p>
           ) : (
             <table className="t deals" data-testid="deal-table">

@@ -287,3 +287,15 @@ details.fold > summary::before { content: "+"; font-family: var(--mono); color: 
 details.fold[open] > summary::before { content: "\2212"; }
 details.fold[open] > summary { margin-bottom: 12px; }
 details.fold > p.sub { margin: 0 0 14px; color: var(--muted); }
+
+/* Help, data sources and community-area pages */
+.steps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 720px) { .steps { grid-template-columns: 1fr; } }
+dl.qa { margin: 0; display: flex; flex-direction: column; gap: 14px; }
+dl.qa dt { font-weight: 600; margin-bottom: 2px; }
+dl.qa dd { margin: 0; color: var(--ink); max-width: 80ch; }
+ul.arealist { margin: 0; padding: 0; list-style: none; columns: 4 200px; column-gap: 24px; }
+ul.arealist li { padding: 4px 0; break-inside: avoid; }
+footer.foot a { color: inherit; }
+.guide { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 24px; background: var(--blue-soft); color: var(--blue-dark); font-size: 13px; }
+.guide button { margin-left: auto; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; text-decoration: underline; }

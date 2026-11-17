@@ -39,6 +39,9 @@ export function Nav({ account, regionName = "Chicago" }: { account?: NavAccount;
         </Link>
       </nav>
       <div className="note">
+        <Link href="/help" data-testid="nav-help">
+          Help
+        </Link>
         <Link href={path === "/feedback" ? "/feedback" : `/feedback?from=${encodeURIComponent(path)}`} data-testid="nav-feedback">
           Feedback
         </Link>

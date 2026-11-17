@@ -78,6 +78,10 @@ def region_steps(skip_yearly: bool) -> list[tuple[str, Callable]]:
     ]
 
 
+class CountDrop(Exception):
+    """A source returned over 10% fewer rows than its last pull (jobs/report.py count_drops)."""
+
+
 def steps(year: int, skip_yearly: bool) -> list[tuple[str, Callable]]:
     if not region.is_chicago():
         return region_steps(skip_yearly)
@@ -172,7 +176,10 @@ def _run(a: argparse.Namespace) -> int:
             print(f"{name}: FAILED", flush=True)
             traceback.print_exc()
             errors.report(e, {"job": "nightly", "step": name}, wait=True)  # no-op without SENTRY_DSN
-    report.main()
+    drops = (report.main() or {}).get("drops", [])
+    for d in drops:  # an alert per source, through the same hook as a failed step (no-op without SENTRY_DSN)
+        msg = f"{d['dataset_id']} rows fell {d['drop']:.0%}: {d['previous_rows']:,} to {d['rows']:,}"
+        errors.report(CountDrop(msg), {"job": "nightly", "step": "count check", **d}, wait=True)
     return 1 if failures else 0
 
 
