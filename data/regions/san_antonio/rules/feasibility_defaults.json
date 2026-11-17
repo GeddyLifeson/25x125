@@ -1,0 +1,40 @@
+{
+  "extends": true,
+  "sale_comps": {
+    "method": {
+      "size_elasticity": {
+        "building": 0.5,
+        "condo": 0.5
+      }
+    }
+  },
+  "calibration": {
+    "region": "san_antonio",
+    "computed_on": "2026-11-17",
+    "comps": 67056,
+    "sales_from": "2026-01-01",
+    "sales_to": "2026-01-01",
+    "size_elasticity": 0.5,
+    "leave_one_out": {
+      "n": 800,
+      "median_abs_error": 0.0444,
+      "within_15pct": 0.866
+    },
+    "test_set": {
+      "n": 35,
+      "median_abs_error": 0.0382,
+      "within_15pct": 0.8
+    },
+    "test_set_inside_range": 0.886,
+    "appraiser_land": null,
+    "implied_construction_cost": {
+      "sales": 63658,
+      "per_sqft_p25": 78,
+      "per_sqft_median": 89,
+      "per_sqft_p75": 103,
+      "median_house_sqft": 1904
+    },
+    "range_widened_by": 0.1,
+    "basis": "appraisal district values"
+  }
+}
