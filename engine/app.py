@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse, Response
 
 from core import errors
 from core.db import connect
-from engine import accounts, areas, basemap, billing, deals, feedback
+from engine import accounts, areas, basemap, billing, deals, feedback, sources
 from engine.accounts import export_gate
 from engine.auth import Caller, caller, check_rate
 from engine.comps import RULES_DIR, Target, estimate, miles, params_from_files
@@ -22,6 +22,7 @@ from engine.rents import rent
 from engine.rules import Rules
 from engine.sites import site_by_pin
 from engine.zoning import evaluate
+from jobs.report import count_drops
 
 
 def _warm() -> None:
@@ -42,6 +43,7 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(title="25x125 engine", version="0.1.0", lifespan=lifespan)
 app.include_router(deals.router)
 app.include_router(areas.router)
+app.include_router(sources.router)
 app.include_router(accounts.router)
 app.include_router(billing.router)
 app.include_router(feedback.router)
@@ -87,7 +89,9 @@ def health(response: Response) -> dict:
         with connect() as conn:
             postgis = conn.execute("select postgis_version()").fetchone()[0]
             fresh = freshness(conn)
-        return {"status": "stale" if fresh["stale"] else "ok", "database": "ok", "postgis": postgis, **fresh}
+            drops = count_drops(conn)
+        return {"status": "stale" if fresh["stale"] else "ok", "database": "ok", "postgis": postgis, **fresh,
+                "count_drops": drops}  # fmt: skip
     except (psycopg.Error, OSError) as e:  # report, don't crash, so the host can see what's wrong
         response.status_code = 503
         return {"status": "degraded", "database": f"error: {type(e).__name__}"}
@@ -227,6 +231,7 @@ def list_lots(
     for_sale: bool = False,
     vacant: bool = False,
     fast_path: bool = False,
+    tax_sale: bool = False,
     sort: Annotated[str, Query(pattern="^(score|return|upside|lot)$")] = "score",
     limit: int = 100,
     offset: int = 0,
@@ -240,7 +245,7 @@ def list_lots(
         check_rate("search", c.key)
     with connect() as conn:
         rows = lots(conn, community_area=community_area, zone_prefix=zone, min_score=min_score, min_units=min_units,
-                    signal=signal, for_sale=for_sale, vacant=vacant, fast_path=fast_path, sort=sort,
+                    signal=signal, for_sale=for_sale, vacant=vacant, fast_path=fast_path, tax_sale=tax_sale, sort=sort,
                     limit=min(limit, 5000 if format == "csv" else 500), offset=offset)  # fmt: skip
     if format == "json":
         return rows

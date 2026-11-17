@@ -274,6 +274,9 @@ async function mapChecks(browser) {
   await mapIdleAfter(page, t);
   const mapMs = Date.now() - t;
   check(listMs < 2000 && mapMs < 2000, `min score 50: list updated in ${listMs} ms, map in ${mapMs} ms (target under 2,000)`);
+  // The address bar follows 300 ms after typing stops; when the top lots already score 50 the list check above
+  // passes before that, so wait for it.
+  await page.waitForFunction(() => window.location.search.includes("min_score=50"), null, { timeout: 3000 }).catch(() => {});
   check(page.url().includes("min_score=50"), "filters are kept in the address bar");
 
   // Chip filter: vacant land only.

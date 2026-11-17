@@ -82,6 +82,8 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 
 ## Step 6: Map search and deals
 
+- [x] Tax sale flag on screen (2026-11-17, after PR #28 loaded the list): parcel page card with each PIN, year and amount due; "In the next county tax sale" filter on the list and map (migration 0094); tag in the list and side panel. 4,302 lots carry the flag for the 2026-12-15 sale. The parcel page also shows the city or land bank listing and the Assessor's market value.
+
 - [x] Parcel vector tiles; map and list matching `mockups/Main.dc.html`; filters and sorts; under 2 seconds. (Filter changes 0.1-0.9 s; first open of the map 2.9-4.0 s with a cold basemap, 2026-11-01.)
 - [x] Fast-path filter, land value map layer, and city lots for sale (ChiBlockBuilder) layer.
 - [x] Deals screen matching `mockups/Deals.dc.html`: pipeline counts, deal table, outreach log, CSV export.
@@ -93,26 +95,26 @@ Nine steps from `docs/v1-spec.md` (Build plan), revised 2026-10-29. Finish and t
 - [x] Stripe Checkout, customer portal, plan webhook, 14-day Pro trial, Stripe Tax. Code done 2026-11-01 (migration 0025, `engine/billing.py`, `data/rules/plans.json`: Pro $129, founding $79), webhook tested with a fixture event and a locally computed signature. Waits on Marlon's Stripe account and test-mode keys to run against Stripe.
 - [ ] Chicago cloud tax (lease transaction tax, 15% since 2026-01-01) on invoices; accountant confirms registration.
 - [ ] Hosting: managed Postgres with PostGIS and point-in-time restore, engine and jobs host, front-end host, PMTiles on object storage and CDN; staging and production. Deploy config done 2026-11-01 (`docs/deploy.md`): Supabase Pro us-east-1 (daily backups, 7 days; point-in-time restore is a paid add-on), Fly.io `iad` for the engine, web, Martin and the daily nightly Machine; Dockerfiles in `deploy/`, `python -m scripts.deploy`, GitHub deploy workflow. Open: Marlon's accounts and first deploy, staging, PMTiles.
-- [ ] Error tracking, uptime checks, nightly-job alerts (failed pull or count drop over 10%), stale-data note on screen, tested restore. Done 2026-11-01: error-tracking hook (`SENTRY_DSN`, engine, nightly job and web; no-op when empty), `/health` with freshness per source (503 when the database is down, for an uptime check), stale-data note on every screen. Open: uptime service, count-drop alerts, tested restore (need the hosting accounts).
+- [ ] Error tracking, uptime checks, nightly-job alerts (failed pull or count drop over 10%), stale-data note on screen, tested restore. Done 2026-11-17: count-drop alert (`jobs/report.py count_drops`: a source whose newest pull has over 10% fewer rows than the pull before it with the same query is printed in the load report, sent through the error hook and listed under `count_drops` on `/health`). Done 2026-11-01: error-tracking hook (`SENTRY_DSN`, engine, nightly job and web; no-op when empty), `/health` with freshness per source (503 when the database is down, for an uptime check), stale-data note on every screen. Open: uptime service, tested restore (need the hosting accounts).
 - [x] Security: secrets out of the repo, rate limits on search and PDF, audit log of overrides and exports, dependency scanning in CI, data deletion on request. Done 2026-11-01 (migration 0026): Postgres token buckets, `audit_log` under row-level security, `dependency-scan` CI job (pip-audit; npm audit reports maplibre-gl 5.x critical and next 15.x/postcss high, which need a major upgrade; upgraded to maplibre-gl 6.15.0 and next 16.4.2 the same day, npm audit now clean), delete on `/account` or `python -m jobs.delete_account`.
-- [ ] Data licensing review: attribution for portals and basemap, Zillow internal only, no MLS.
-- [ ] Onboarding: free address check, guided first parcel, sample deal, help pages, 2-minute video, support inbox.
+- [ ] Data licensing review: attribution for portals and basemap, Zillow internal only, no MLS. Done 2026-11-17: `/sources` page lists all 52 datasets with publisher, link and last copy date, and carries the City of Chicago data disclaimer (wording checked against chicago.gov on 2026-11-17), Cook County, Treasurer, Census, FHFA, City Clerk and OpenStreetMap lines (`data/rules/source_notes.json`); the footer links to it and credits OpenStreetMap. Zillow shows as growth rates only. Open: the lawyer's read of the terms (docs/launch/lawyer-questions.md).
+- [ ] Onboarding: free address check, guided first parcel, sample deal, help pages, 2-minute video, support inbox. Done 2026-11-17: address check works signed out (`/search`); a first-visit strip on the search screen points to the sample lot (624 N Troy St), the address check and `/help`; `/help` has the four steps and seven questions; the empty deals screen links to the sample lot. Open: the video (script in docs/launch/video-script.md) and a support inbox (needs a domain or Marlon's address).
 
 ## Step 7: Private test
 
-- [ ] Staging host; family company and 5-10 brokers on real parcels; report-an-error button.
+- [ ] Staging host; family company and 5-10 brokers on real parcels; report-an-error button. Done 2026-11-17: "Report an error on this page" on every parcel page opens the feedback form with the lot attached (the feasibility screen already had "Check these numbers"). Open: staging host and testers.
 - [ ] Fix list closed; at least 3 testers say they would pay.
 
 ## Step 8: Launch
 
 - [ ] Billing, terms of use (lawyer reviewed), support inbox.
-- [ ] Landing page, free address check, community-area pages.
+- [ ] Landing page, free address check, community-area pages. Done 2026-11-17: `/areas` and `/areas/{number}` for the 77 community areas (new-construction sale medians, cost index, land value, top 15 lots, lots in the next tax sale), open without sign-in. The landing page is `site/index.html` (GitHub Pages); its "Open the app" link waits on a host.
 - [ ] First paying users.
 
 ## Version 1.1 (after launch)
 
 - [ ] Saved searches with alerts; CSV import; teams and shared deals; comps drawer; sensitivity sliders; lender Excel export.
-- [ ] Rezoning history near each parcel from City Council ordinances since 2011 (DataMade nightly database, chicago-council-scrapers), shown as facts: map amendments within half a mile in 5 years, share passed, median days to pass.
+- [x] Rezoning history near each parcel, shown as facts: map amendments within half a mile in 5 years, share passed, median days to pass. Done 2026-11-17 on the parcel page from the City Clerk eLMS load (`engine/parcels.py extras`): the newest 12 applications with districts, date, status and distance. Only applications whose address matched a lot are counted (the source note gives the share).
 - [ ] Appeals (y282-6ig3, 7pny-nedm), HMDA lending on 2-4 unit buildings by tract, CPS attendance zones (x72b-38qv, xg7c-d8rm), incentive awards nearby (mex4-ppfc, wy5s-xrw5, rym7-49n8), RentCast per-address rents.
 - [ ] Records from the FOIA requests in `docs/launch/foia-requests.md` (permit applications, map amendments, ZBA log, tax sale lists, Clerk recordings index, land bank inventory), once they arrive.
 

@@ -1,4 +1,5 @@
 import { getCommunityAreas, settle } from "../../lib/engine";
+import { FirstVisitGuide } from "../../components/FirstVisitGuide";
 import { MapScreen } from "./MapScreen";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +10,7 @@ export default async function MapPage({ searchParams }: { searchParams: Promise<
   const areas = await settle(getCommunityAreas());
   return (
     <>
+      <FirstVisitGuide />
       {!areas.ok && <p className="err" style={{ padding: "8px 24px" }}>Could not load community areas: {areas.error}</p>}
       <MapScreen areas={areas.ok ? areas.value : []} initial={sp} />
     </>
