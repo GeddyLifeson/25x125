@@ -50,3 +50,4 @@ Foreclosure auctions (Judicial Sales Corporation),TJSC,UpcomingSales/CompletedSa
 Foreclosure auctions (Cook County Sheriff),Sheriff,previoussale,https://foreclosure.ccsheriff.org/,daily,2026-11-01 yes,foreclosure_auction signals
 Zoning map amendments (City Clerk eLMS),City Clerk,search,https://api.chicityclerkelms.chicago.gov/,daily,2026-11-01 yes,rezoning history (2010 on); rezoning signals
 Annual Tax Sale lists by ward (free),Cook County Treasurer,delinquenttaxes.aspx,https://www.cookcountytreasurer.com/delinquenttaxes.aspx,nightly before each sale,2026-11-16 yes,"tax sale flag on the lot until the sale starts; owner names not stored; paid cooktaxsale.com list not used"
+"FHFA House Price Index (metro, ZIP, tract)",FHFA,quarterly_datasets/hpi_at_metro.csv,https://www.fhfa.gov/data/hpi/datasets,quarterly,2026-10-30 yes,"time adjustment of comparable sales (metro index chosen, see docs/research/step3-comps-2026-10-30.md)"

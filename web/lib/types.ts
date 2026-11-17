@@ -16,6 +16,58 @@ export type Signal = {
   match: string | null;
 };
 
+export type TaxSale = {
+  sale_date: string;
+  total_due: number | null;
+  pins: number | null;
+  rows: { pin: string; tax_year: number; tax_type: string | null; tax_due: number | null; total_due: number | null; classification: string | null }[];
+  listed_through: string | null;
+  source: string;
+  source_url: string;
+  note: string;
+};
+
+export type CityListing = {
+  source: string;
+  status: string | null;
+  for_sale: boolean;
+  asking_price: number | null;
+  minimum_bid: number | null;
+  city_land_value: number | null;
+  deadline: string | null;
+  offer_round: string | null;
+  apply_url: string | null;
+  listed_on: string | null;
+  pulled_at: string | null;
+};
+
+export type AssessorValue = {
+  market_value: number;
+  land_market_value: number | null;
+  assessed_value: number | null;
+  tax_year: number;
+  stages: string | null;
+  pins: number;
+  pins_without_value: number;
+  source: string;
+};
+
+export type RezoningsNearby = {
+  count: number;
+  decided: number;
+  passed: number;
+  share_passed: number | null;
+  median_days_to_pass: number | null;
+  timed: number;
+  placed?: number;
+  citywide?: number;
+  radius_mi: number;
+  years: number;
+  list: { record: string; address: string | null; introduced: string | null; decided: string | null; status: string | null; from: string | null; to: string | null; feet: number | null }[];
+  source: string;
+  label: string;
+};
+
 export type Parcel = {
   pin: string;
   pin10: string;
@@ -66,6 +118,19 @@ export type Parcel = {
   environmental_hold: string | boolean | null;
   foreclosed_rental_date: string | null;
   exempt_owner: string | null;
+  foreclosure_auction_date: string | null;
+  foreclosure_auction_status: string | null;
+  public_sale_source: string | null;
+  public_sale_price: number | null;
+  last_rezoning_date: string | null;
+  last_rezoning_status: string | null;
+  tax_sale_date: string | null;
+  tax_sale_due: number | null;
+  tax_sale_pins: number | null;
+  tax_sale: TaxSale | null;
+  city_listing: CityListing | null;
+  assessor_value: AssessorValue | null;
+  rezonings_nearby: RezoningsNearby | null;
   use_now: string | null;
   units_now: number | null;
   block_face_lots: number | null;
@@ -330,6 +395,8 @@ export type Lot = {
   computed_on: string;
   lat: number | null;
   lon: number | null;
+  tax_sale_date?: string | null;
+  tax_sale_due?: number | null;
 };
 
 export type CommunityArea = { num: number; name: string; bounds: [number, number, number, number] };
@@ -415,4 +482,11 @@ export type Freshness = {
   status: "ok" | "stale" | "degraded";
   stale_after_hours?: number;
   stale?: { dataset_id: string; label: string; finished_at: string; hours_old: number }[];
+};
+
+export type SourceList = {
+  sources: { name: string; publisher: string; id: string; url: string; refresh: string; used_for: string; last_pulled: string | null; rows: number | null; display: string }[];
+  attribution: { name: string; text: string; url: string; verified_on: string }[];
+  not_used: string[];
+  label: string;
 };

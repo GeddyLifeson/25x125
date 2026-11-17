@@ -76,6 +76,16 @@ export function LotPanel({ lot, onClose }: { lot: Lot; onClose: () => void }) {
           <span>Incentives counted</span>
           <span>{(d.incentives ?? []).map((s) => INCENTIVE_LABELS[s] ?? s).join(", ") || "none"}</span>
         </li>
+        {lot.tax_sale_date && (
+          <li>
+            <span>
+              County tax sale <Source>Cook County Treasurer, Annual Tax Sale delinquent lists by ward. Owners can pay until the sale; the parcel page lists each PIN and year.</Source>
+            </span>
+            <span>
+              Listed for {lot.tax_sale_date}; {usd(lot.tax_sale_due)} due
+            </span>
+          </li>
+        )}
         <li>
           <span>Fast path</span>
           <span>{d.fast_path ? "Yes: by right, no zoning relief, 2-8 units" : "No"}</span>

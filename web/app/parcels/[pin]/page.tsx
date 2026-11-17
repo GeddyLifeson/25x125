@@ -44,6 +44,12 @@ function rezoneTargets(notes: string[]): string[] {
 
 function checks(p: Parcel, f: Feasibility | null): string[] {
   const out: string[] = [];
+  if (p.tax_sale)
+    out.push(
+      `Listed for the county tax sale starting ${day(p.tax_sale.sale_date)}: ${usd(p.tax_sale.total_due)} due on ${p.tax_sale.pins ?? 1} PIN(s) on this lot. Confirm the balance with the Treasurer`,
+    );
+  if (p.foreclosure_auction_date)
+    out.push(`Foreclosure auction ${day(p.foreclosure_auction_date)}${p.foreclosure_auction_status ? ` (${p.foreclosure_auction_status.toLowerCase()})` : ""}`);
   if (p.environmental_hold) out.push(`Environmental hold on file: ${p.environmental_hold}`);
   if (p.demolition_notice_date) out.push(`Demolition notice dated ${day(p.demolition_notice_date)}`);
   if (p.open_violations) out.push(`${p.open_violations} open building violation(s); last ${day(p.last_violation_date)}`);
@@ -94,6 +100,10 @@ export default async function ParcelPage({ params, searchParams }: Props) {
   const targets = rezPath ? [rezPath.district, ...rezoneTargets(rezPath.notes)] : [];
   const compDates = sv?.comp_list.map((c) => c.sale_date).sort() ?? [];
   const lastSale = p.recent_sales[0];
+  const ts = p.tax_sale;
+  const listing = p.city_listing;
+  const av = p.assessor_value;
+  const rz = p.rezonings_nearby;
 
   // Incentives at maximum value across the two exits (CLAUDE.md rule 6).
   const inc = new Map<string, { i: Incentive; exit: string }>();
@@ -246,6 +256,78 @@ export default async function ParcelPage({ params, searchParams }: Props) {
         />
       </section>
 
+      {(ts || listing) && (
+        <section className="card warn" aria-label="Sale notices" data-testid="sale-notices" style={{ marginBottom: 16 }}>
+          {ts && (
+            <div data-testid="tax-sale">
+              <h2 style={{ marginBottom: 6 }}>Listed for the county tax sale starting {day(ts.sale_date)}</h2>
+              <div className="sub" style={{ margin: "0 0 14px", color: "var(--muted)" }}>
+                {usd(ts.total_due)} due with interest{ts.listed_through ? ` through ${day(ts.listed_through)}` : ""}, on {ts.pins ?? ts.rows.length} PIN
+                {(ts.pins ?? ts.rows.length) === 1 ? "" : "s"}. {ts.note}{" "}
+                <Source>
+                  {ts.source}; pulled {pulled}.{" "}
+                  <a href={ts.source_url} target="_blank" rel="noreferrer">
+                    Ward report
+                  </a>
+                </Source>
+              </div>
+              <div className="scroll">
+                <table className="t">
+                  <thead>
+                    <tr>
+                      <th>PIN</th>
+                      <th>Tax year</th>
+                      <th>Class</th>
+                      <th className="num">Tax due</th>
+                      <th className="num">Total due with interest</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ts.rows.map((r) => (
+                      <tr key={`${r.pin}-${r.tax_year}-${r.tax_type}`}>
+                        <td className="mono">{formatPin(r.pin)}</td>
+                        <td>{r.tax_year}</td>
+                        <td>{r.classification ?? "n/a"}</td>
+                        <td className="num">{usd(r.tax_due)}</td>
+                        <td className="num">{usd(r.total_due)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          {listing && (
+            <div data-testid="city-listing" style={{ marginTop: ts ? 16 : 0 }}>
+              <h2 style={{ marginBottom: 6 }}>
+                {listing.source === "land_bank" ? "Cook County Land Bank listing" : listing.for_sale ? "City-owned lot offered for sale" : "City-owned lot"}
+              </h2>
+              <div className="sub" style={{ margin: 0, color: "var(--muted)" }}>
+                {[
+                  listing.status ? `Status: ${listing.status}` : null,
+                  listing.asking_price ? `asking ${usd(listing.asking_price)}` : null,
+                  listing.minimum_bid ? `minimum bid ${usd(listing.minimum_bid)}` : null,
+                  listing.city_land_value ? `city's land value ${usd(listing.city_land_value)}` : null,
+                  listing.offer_round ? `round: ${listing.offer_round}` : null,
+                  listing.deadline ? `apply by ${day(listing.deadline)}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || "No price or status on file."}{" "}
+                {listing.apply_url && (
+                  <a href={listing.apply_url} target="_blank" rel="noreferrer">
+                    Listing
+                  </a>
+                )}{" "}
+                <Source>
+                  {listing.source === "land_bank" ? "Cook County Land Bank Authority inventory" : "City of Chicago ChiBlockBuilder and city-owned land inventory (aksk-kvfp)"}
+                  ; pulled {day(listing.pulled_at) || pulled}
+                </Source>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
       <div className="cols">
         <div className="main">
           <section className="card">
@@ -326,11 +408,11 @@ export default async function ParcelPage({ params, searchParams }: Props) {
 
           <section className="card">
             <h2>Nearby comparables</h2>
-            <p className="sub">
+            <div className="sub">
               {sv
                 ? `New-construction first sales, ${sv.same_size_group ? `same size group (${priceUnits} units)` : "any unit count"}, within ${sv.radius_mi} mi · ${sv.comps} sales from ${day(compDates[0])} to ${day(compDates[compDates.length - 1])} · top ${sv.comp_list.length} by weight shown`
                 : "No comparable sales found."}
-            </p>
+            </div>
             {sv && (
               <div className="scroll">
                 <table className="t">
@@ -370,6 +452,53 @@ export default async function ParcelPage({ params, searchParams }: Props) {
             )}
           </section>
 
+          <section className="card" data-testid="rezonings">
+            <h2>Rezoning applications nearby</h2>
+            <div className="sub">
+              {rz && rz.count > 0
+                ? `${rz.count} map amendment application${rz.count === 1 ? "" : "s"} within ${rz.radius_mi} mile in ${rz.years} years · ${rz.passed} of ${rz.decided} decided passed${rz.share_passed !== null ? ` (${pct(rz.share_passed, 0)})` : ""}${rz.median_days_to_pass !== null ? ` · median ${num(rz.median_days_to_pass)} days from introduction to passage (${rz.timed} applications)` : ""}`
+                : "No map amendment applications within half a mile in 5 years."}{" "}
+              {rz && (
+                <Source>
+                  {rz.source}; pulled {pulled}.
+                  {rz.citywide ? ` ${num(rz.placed)} of ${num(rz.citywide)} applications citywide in ${rz.years} years have an address we could place on a lot; the rest are not counted here.` : ""}{" "}
+                  {rz.label}
+                </Source>
+              )}
+            </div>
+            {rz && rz.list.length > 0 && (
+              <div className="scroll">
+                <table className="t">
+                  <thead>
+                    <tr>
+                      <th>Address</th>
+                      <th>Change</th>
+                      <th>Introduced</th>
+                      <th>Status</th>
+                      <th className="num">Distance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rz.list.map((r) => (
+                      <tr key={r.record}>
+                        <td>
+                          {titleCase(r.address) || r.record}
+                          <div className="basis mono">{r.record}</div>
+                        </td>
+                        <td>{r.from && r.to ? `${r.from} to ${r.to}` : "Districts not read"}</td>
+                        <td>{r.introduced ?? "n/a"}</td>
+                        <td>{r.status ?? "n/a"}</td>
+                        <td className="num">{r.feet !== null ? feet(r.feet) : "n/a"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {rz && rz.count > rz.list.length && <p className="small muted" style={{ marginTop: 8 }}>Newest {rz.list.length} of {rz.count} shown.</p>}
+            {rz && <p className="small muted" style={{ marginTop: 8 }}>{rz.label}</p>}
+          </section>
+
           <section className="card">
             <h2>Violation, 311 and sale history</h2>
             <div className="sub">
@@ -405,6 +534,37 @@ export default async function ParcelPage({ params, searchParams }: Props) {
             </ul>
           </section>
 
+          <section className="card" data-testid="assessor-value">
+            <h2 style={{ marginBottom: 14 }}>Assessor&apos;s value</h2>
+            {av ? (
+              <ul className="plain">
+                <li>
+                  <span>
+                    Market value, tax year {av.tax_year}{" "}
+                    <Source>
+                      {`${av.source}; stage ${av.stages ?? "n/a"}; assessed value ${usd(av.assessed_value)}${av.pins_without_value ? `; ${av.pins_without_value} PIN(s) on the lot have no value yet` : ""}; pulled ${pulled}. The Assessor's value for tax purposes, not a sale price.`}
+                    </Source>
+                  </span>
+                  <span className="mono right">{usd(av.market_value)}</span>
+                </li>
+                {av.land_market_value ? (
+                  <li>
+                    <span>Land part</span>
+                    <span className="mono right">{usd(av.land_market_value)}</span>
+                  </li>
+                ) : null}
+                {av.pins > 1 && (
+                  <li>
+                    <span>PINs on the lot</span>
+                    <span className="mono right">{av.pins}</span>
+                  </li>
+                )}
+              </ul>
+            ) : (
+              <p className="muted small">No assessed value on file for this lot.</p>
+            )}
+          </section>
+
           <section className="card">
             <h2>Incentives that may apply</h2>
             <p className="sub small">Maximum values, scenario by scenario. Toggle what applies on the feasibility screen.</p>
@@ -431,6 +591,11 @@ export default async function ParcelPage({ params, searchParams }: Props) {
             </ul>
           </section>
 
+          <p className="small">
+            <Link href={`/feedback?pin=${p.pin}&from=${encodeURIComponent(`/parcels/${p.pin}`)}`} data-testid="report-error">
+              Report an error on this page
+            </Link>
+          </p>
           <p className="small muted">
             {fs?.label ?? "Estimates, not tax, legal, zoning or appraisal advice."} Parcel data pulled {pulled}.
           </p>

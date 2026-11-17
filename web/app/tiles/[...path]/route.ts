@@ -23,11 +23,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ path: st
   // Lot tiles change once a night, after the score run; the background map once a week.
   headers.set("cache-control", layer === "basemap" ? "public, max-age=86400" : "public, max-age=3600");
   let body = new Uint8Array(await res.arrayBuffer());
-  // The app server does not compress protobuf on its own; a lot tile shrinks about 3 times with gzip.
-  if (/\bgzip\b/.test(req.headers.get("accept-encoding") ?? "")) {
+  // A lot tile shrinks about 4 times with gzip. The app server drops a content-encoding header set here (Next.js
+  // 16.4.5 and later), so the map asks for ?gz=1 and unpacks the body itself (lib/tiles.ts). x-tile-encoding
+  // says what the body is; without ?gz=1 the tile goes out plain.
+  if (new URL(req.url).searchParams.get("gz") === "1") {
     body = new Uint8Array(gzipSync(body, { level: 4 }));
-    headers.set("content-encoding", "gzip");
-    headers.set("vary", "accept-encoding");
+    headers.set("x-tile-encoding", "gzip");
   }
   return new Response(body, { status: 200, headers });
 }

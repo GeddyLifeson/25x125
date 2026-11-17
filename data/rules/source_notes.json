@@ -1,0 +1,68 @@
+{
+  "_about": "Attribution and display rules for the data sources page (engine/sources.py, web /sources). Verified 2026-11-17.",
+  "label": "Public records copied into the 25x125 database. Estimates built from them are not tax, legal, zoning or appraisal advice.",
+  "display": {
+    "zori": "used for rent growth rates only; no Zillow figure is shown",
+    "safmr": "not loaded yet",
+    "csik-bsws": "used to check the rent factor; not shown per parcel"
+  },
+  "attribution": [
+    {
+      "name": "City of Chicago Data Portal",
+      "text": "This site provides applications using data that has been modified for use from its original source, www.cityofchicago.org, the official website of the City of Chicago. The City of Chicago makes no claims as to the content, accuracy, timeliness, or completeness of any of the data provided at this site. The data provided at this site is subject to change at any time. It is understood that the data provided at this site is being used at one's own risk.",
+      "url": "https://www.chicago.gov/city/en/narr/foia/data_disclaimer.html",
+      "verified_on": "2026-11-17"
+    },
+    {
+      "name": "Cook County Open Data and Cook County Assessor",
+      "text": "Parcel, sale, value and building records come from the Cook County data catalog and the Cook County Assessor's Office. The County does not guarantee their accuracy or completeness.",
+      "url": "https://datacatalog.cookcountyil.gov/",
+      "verified_on": "2026-11-17"
+    },
+    {
+      "name": "Cook County Treasurer",
+      "text": "Annual Tax Sale lists are the Treasurer's free ward reports. Amounts change as owners pay; confirm any balance with the Treasurer. Owner names and mailing addresses are not stored.",
+      "url": "https://www.cookcountytreasurer.com/delinquenttaxes.aspx",
+      "verified_on": "2026-11-17"
+    },
+    {
+      "name": "U.S. Census Bureau",
+      "text": "This product uses Census Bureau data but is not endorsed or certified by the Census Bureau.",
+      "url": "https://www.census.gov/data/developers/about/terms-of-service.html",
+      "verified_on": "2026-11-17"
+    },
+    {
+      "name": "Federal Housing Finance Agency",
+      "text": "House price indexes are from the FHFA House Price Index, a public data set.",
+      "url": "https://www.fhfa.gov/data/hpi",
+      "verified_on": "2026-11-17"
+    },
+    {
+      "name": "Background map",
+      "text": "Map data © OpenStreetMap contributors, available under the Open Database License. Tiles cut with Protomaps.",
+      "url": "https://www.openstreetmap.org/copyright",
+      "verified_on": "2026-11-17"
+    },
+    {
+      "name": "Chicago City Clerk",
+      "text": "Zoning map amendment records are from the Office of the City Clerk's legislative system. District changes were read from the ordinance scans by software and checked against the record; rows that failed a check show no districts.",
+      "url": "https://chicityclerkelms.chicago.gov/",
+      "verified_on": "2026-11-17"
+    }
+  ],
+  "not_used": [
+    "MLS (MRED) listings and sold data: not in this version.",
+    "Paid cost books and paid data feeds: not in this version.",
+    "Zillow rent figures: growth rates are used inside the rent estimate; no Zillow number is shown."
+  ],
+  "pull_ids": {
+    "_about": "Catalog id -> text found in source_pull.dataset_id, where the two differ.",
+    "gtfs/schedule.zip (stops.txt)": "gtfs/stops.txt",
+    "acs/acs5": "acsdt5y",
+    "zori": "zori",
+    "parcelHistorical/MapServer/2025": "parcelHistorical/2025",
+    "UpcomingSales/CompletedSales/CancelledSales": "foreclosure auctions",
+    "previoussale": "foreclosure auctions",
+    "13-116-010 (traced to data/rules/fire_limits.geojson)": "fire_limits.geojson"
+  }
+}

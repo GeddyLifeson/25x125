@@ -47,7 +47,7 @@ jobs:
 
   # Dependency scanning: Python packages from pyproject.toml (pip-audit) and the web app's npm packages.
   # pip-audit fails the job on any known vulnerability. npm audit fails on high or critical advisories in
-  # runtime packages and lists the rest. The 2026-11-01 upgrade (maplibre-gl 6.15.0, next 16.4.2) cleared
+  # runtime packages and lists the rest. The 2026-11-01 upgrade (maplibre-gl 6.15.0, next 16.4.2; next 16.4.6 on 2026-11-17) cleared
   # every npm advisory.
   dependency-scan:
     runs-on: ubuntu-latest

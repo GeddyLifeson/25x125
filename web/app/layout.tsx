@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 // IBM Plex, as in the mockups. Bundled with the app (no font request at run time, so it works offline on the desktop).
 import "@fontsource/ibm-plex-sans/latin-400.css";
@@ -29,7 +30,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         {children}
         <footer className="foot">
           Estimates, not tax, legal, zoning or appraisal advice. Data from the Chicago Data Portal, the Cook County data
-          catalog, the U.S. Census Bureau and FHFA, copied nightly into the 25x125 database.
+          catalog, the U.S. Census Bureau and FHFA, copied nightly into the 25x125 database. Map data ©
+          OpenStreetMap contributors. <Link href="/sources">Data sources</Link> · <Link href="/areas">Community areas</Link> ·{" "}
+          <Link href="/help">Help</Link>
         </footer>
       </body>
     </html>
