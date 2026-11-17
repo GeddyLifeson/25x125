@@ -30,6 +30,7 @@
     "tested_on": "2026-11-17",
     "note": "Houston has no zoning map. This is the City of Houston city limit layer (Houston Open Data, owner cohgis_ago, 751 polygons). SERVICE_TY has 2 values: FULL (2 polygons, the full-purpose city, about 599 sq mi) and LIMITED (749 limited purpose annexation areas, not matched). Inside FULL the Chapter 42 'within the city' rules apply (3,500 sq ft lots). The same layer is at https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Administrative_Boundary/MapServer/0. The ETJ is a separate layer: https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Administrative_Boundary/MapServer/1, field Class, values 'ETJ' and 'SB 2038' (land released from the ETJ). A parcel outside FULL and inside Class = 'ETJ' gets the ETJ row.",
     "subdivide": true,
+    "key": "OBJECTID_1",
     "where": "SERVICE_TY = 'FULL'"
   },
   "overlay_layers": [
