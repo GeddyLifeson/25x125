@@ -210,3 +210,22 @@ def test_florida_countywide_comps_only_newer_homes():
     assert not load_fl_dor.in_region({**outside, "DOR_UC": "000"}, county, set())
     assert not load_fl_dor.in_region({**outside, "NO_RES_UNTS": "12"}, county, set())
     assert not load_fl_dor.in_region(outside, {"tax_auth_prefixes": ["01"]}, set())
+
+
+def test_city_step_paths_orlando(in_region):
+    from engine import zoning
+    from engine.rules import Rules
+
+    in_region("orlando")
+    rules = Rules.from_files()
+    d = rules.district_for("R-2B")
+    assert d is not None and d.lot_area_per_unit_sqft
+    big = zoning._step_paths(
+        zoning.Site(pin="1", zone_class="R-2B", lot_sqft=20000, frontage_ft=60), rules, d, 20000
+    )
+    ids = {p.id: p.units for p in big}
+    assert ids["duplex_lot"] == 2 and 3 <= ids["multiplex"] <= 5
+    small = zoning._step_paths(
+        zoning.Site(pin="1", zone_class="R-2B", lot_sqft=4000, frontage_ft=40), rules, d, 4000
+    )
+    assert "duplex_lot" not in {p.id for p in small}

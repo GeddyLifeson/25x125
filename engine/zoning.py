@@ -180,6 +180,55 @@ def _district_units(lot: float, d, rules: Rules) -> int:
     return int(lot * (d.far or 0) // _far_unit_sqft(rules))
 
 
+def _by_district(value, district: str):
+    """A step parameter given once for all districts, or as {district: value}."""
+    return value.get(district) if isinstance(value, dict) else value
+
+
+def _step_paths(site: Site, rules: Rules, d: District, lot: float) -> list[Path]:
+    """City steps that add a housing type on certain districts (Orlando duplex lots and multiplexes, for
+    example). A step takes part when its params carry `engine_path`:
+    {"units": 2} for a fixed count, or {"units": "density"} for lot area / the district's lot area per unit,
+    with optional "min_units", "max_units", "max_units_by_district" and "round_up_from" (0.5 rounds halves up).
+    Eligibility: the district is in `by_district` (or a key of `min_lot_sqft`), the lot meets `min_lot_sqft`
+    and, when the frontage is known, `min_lot_width_ft`."""
+    out = []
+    for sid, step in rules.steps.items():
+        prm = (step or {}).get("params") or {}
+        ep = prm.get("engine_path")
+        if not ep:
+            continue
+        districts = prm.get("by_district") or (
+            list(prm["min_lot_sqft"]) if isinstance(prm.get("min_lot_sqft"), dict) else []
+        )
+        if d.name not in districts:
+            continue
+        min_lot = _by_district(prm.get("min_lot_sqft"), d.name)
+        min_w = _by_district(prm.get("min_lot_width_ft"), d.name)
+        if min_lot and lot < min_lot:
+            continue
+        if min_w and site.frontage_ft and site.frontage_ft < min_w - 0.5:
+            continue
+        if ep.get("units") == "density":
+            if not d.lot_area_per_unit_sqft:
+                continue
+            raw = lot / d.lot_area_per_unit_sqft
+            n = int(raw + (1 - ep["round_up_from"])) if ep.get("round_up_from") else int(raw)
+        else:
+            n = int(ep["units"])
+        cap = (ep.get("max_units_by_district") or {}).get(d.name, ep.get("max_units"))
+        n = min(n, cap) if cap else n
+        if n < ep.get("min_units", 1):
+            continue
+        notes = [step.get("rule", "")[:300]] if step.get("rule") else []
+        p = _path(rules, site, d, sid, ep.get("name", sid.replace("_", " ").capitalize()),
+                  step.get("approval") or ep.get("approval", "none (permit only)"), n, notes=notes)  # fmt: skip
+        if step.get("section"):
+            p.citations.append(step["section"])
+        out.append(p)
+    return out
+
+
 def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Result:
     d = rules.district_for(site.zone_class)
     res = Result(site.pin, site.zone_class, d is not None, site.lot_sqft, site.frontage_ft)
@@ -216,6 +265,7 @@ def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Re
                               f" {d.min_lot_width_ft:g} ft. A lot of record may still be buildable; check with the city.",
                               d.cite.section))  # fmt: skip
     res.paths.append(_path(rules, site, d, "by_right", "By right", "none (permit only)", units, notes=notes))
+    res.paths.extend(_step_paths(site, rules, d, lot))
 
     # 3. RS-3 two-flat.
     rs3 = rules.steps.get("rs3_two_flat_exception", {}).get("params") or {"district": None}
