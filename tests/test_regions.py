@@ -197,3 +197,16 @@ def test_tcad_fixed_width_row():
     assert row["address"] == "1105 LAMAR BLVD" and row["zip"] == "78704" and row["nbhd"] == "SC"
     put(13, "P")
     assert load_tcad.prop_row("".join(line)) is None
+
+
+def test_florida_countywide_comps_only_newer_homes():
+    from jobs import load_fl_dor
+
+    county = {"tax_auth_prefixes": ["01"], "comps_countywide": {"built_since": 2014}}
+    assert load_fl_dor.in_region({"TAX_AUTH_CD": "0100", "DOR_UC": "017"}, county, set())
+    outside = {"TAX_AUTH_CD": "2200", "DOR_UC": "001", "ACT_YR_BLT": "2020", "NO_RES_UNTS": "1"}
+    assert load_fl_dor.in_region(outside, county, set())
+    assert not load_fl_dor.in_region({**outside, "ACT_YR_BLT": "1990"}, county, set())
+    assert not load_fl_dor.in_region({**outside, "DOR_UC": "000"}, county, set())
+    assert not load_fl_dor.in_region({**outside, "NO_RES_UNTS": "12"}, county, set())
+    assert not load_fl_dor.in_region(outside, {"tax_auth_prefixes": ["01"]}, set())
