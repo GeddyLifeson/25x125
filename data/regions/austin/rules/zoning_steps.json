@@ -32,7 +32,11 @@
         "three_unit_min_floor_area_sqft": 4350,
         "max_unit_far": 0.4,
         "max_unit_floor_area_sqft": 2300,
-        "tiny_home_max_sqft": 400
+        "tiny_home_max_sqft": 400,
+        "engine_path": {
+          "units": 3,
+          "name": "Two or three units (HOME)"
+        }
       },
       "approval": "building permit",
       "section": "25-2-773; 25-2-492(D); Ord. 20231207-001",

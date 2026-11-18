@@ -229,3 +229,15 @@ def test_city_step_paths_orlando(in_region):
         zoning.Site(pin="1", zone_class="R-2B", lot_sqft=4000, frontage_ft=40), rules, d, 4000
     )
     assert "duplex_lot" not in {p.id for p in small}
+
+
+def test_city_step_paths_austin_home(in_region):
+    from engine import zoning
+    from engine.rules import Rules
+
+    in_region("austin")
+    rules = Rules.from_files()
+    d = rules.district_for("SF-3")
+    site = zoning.Site(pin="1", zone_class="SF-3", lot_sqft=6000, frontage_ft=50)
+    assert {p.id: p.units for p in zoning._step_paths(site, rules, d, 6000)}["home_two_and_three_units"] == 3
+    assert not zoning._step_paths(zoning.Site(pin="1", zone_class="SF-3", lot_sqft=5000), rules, d, 5000)

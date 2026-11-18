@@ -198,12 +198,15 @@ def _step_paths(site: Site, rules: Rules, d: District, lot: float) -> list[Path]
         ep = prm.get("engine_path")
         if not ep:
             continue
-        districts = prm.get("by_district") or (
-            list(prm["min_lot_sqft"]) if isinstance(prm.get("min_lot_sqft"), dict) else []
+        lot_rule = prm.get("min_lot_sqft", prm.get("min_lot_area_sqft"))
+        districts = (
+            prm.get("by_district")
+            or prm.get("districts")
+            or (list(lot_rule) if isinstance(lot_rule, dict) else [])
         )
         if d.name not in districts:
             continue
-        min_lot = _by_district(prm.get("min_lot_sqft"), d.name)
+        min_lot = _by_district(lot_rule, d.name)
         min_w = _by_district(prm.get("min_lot_width_ft"), d.name)
         if min_lot and lot < min_lot:
             continue
