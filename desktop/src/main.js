@@ -132,6 +132,15 @@ async function waitFor(url, label, timeoutS) {
   throw new Error(`${label} did not answer at ${url} within ${timeoutS} seconds. See the logs folder.`);
 }
 
+function regionId() {
+  const r = String(config.region || "chicago").toLowerCase();
+  return /^[a-z_]+$/.test(r) ? r : "chicago";
+}
+
+function regionDb() {
+  return regionId() === "chicago" ? "x25x125" : `x25_${regionId()}`;
+}
+
 function baseEnv() {
   const pgsql = path.join(runtime, "pgsql");
   const env = {
@@ -143,7 +152,10 @@ function baseEnv() {
     PYTHONUNBUFFERED: "1",
     PYTHONDONTWRITEBYTECODE: "1",
     PYTHONPATH: R.app,
-    DATABASE_URL: `postgresql://postgres:${config.pgPassword}@127.0.0.1:${ports.pg}/x25x125`,
+    // One install serves one region (docs/regions.md). Set "region" in config.json, e.g. "tampa";
+    // each region keeps its own database, so switching back keeps the Chicago data.
+    REGION: regionId(),
+    DATABASE_URL: `postgresql://postgres:${config.pgPassword}@127.0.0.1:${ports.pg}/${regionDb()}`,
     ENGINE_SHARED_SECRET: config.secret,
     LOCAL_MODE: "1",
     APP_ENV: "development",
