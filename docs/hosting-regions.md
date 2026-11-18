@@ -25,8 +25,8 @@ The free options are a machine Marlon already owns, or a free cloud VM with its 
 
 ## Option 1: Marlon's PC (works today)
 
-The desktop app already serves Chicago to the internet through Tailscale Funnel (free). From desktop 0.1.4
-on, `"region": "tampa"` in `%APPDATA%\25x125\config.json` points the app at that region and its own database
+The desktop app already serves Chicago to the internet through Tailscale Funnel (free). From the next desktop release
+(after 0.1.5), `"region": "tampa"` in `%APPDATA%\25x125\config.json` points the app at that region and its own database
 (`x25_tampa`). Chicago's data stays in `x25x125` and comes back when the setting is removed.
 
 - Cost: $0.
