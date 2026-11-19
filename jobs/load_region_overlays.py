@@ -73,7 +73,7 @@ def run(url: str | None = None, client_for=ArcGIS, only: str | None = None) -> d
                     )
                 finish_pull(conn, pull_id, n)
             except (ArcGISError, OSError) as e:
-                finish_pull(conn, pull_id, n, status="error", note=str(e)[:500])
+                finish_pull(conn, pull_id, n, status="failed", note=str(e)[:500])
                 print(f"overlay {layer['kind']} failed: {e}")
             conn.commit()
             out[f"{layer['kind']} ({i})"] = n
