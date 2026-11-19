@@ -14,6 +14,7 @@ from core.db import connect
 from core.sources import finish_pull, start_pull
 from jobs.common import text, upsert
 
+POINT_HALF_DEG = 0.00003  # about 3 m each side of the point
 COLUMNS = ["kind", "source_id", "name", "rating", "attrs", "the_geom", "source_pull_id"]
 GEOM = {
     "geom": "st_multi(st_collectionextract(st_makevalid(st_setsrid(st_geomfromgeojson(the_geom), 4326)), 3))"
@@ -25,11 +26,20 @@ def to_rows(page: list[dict], layer: dict, key: str, prefix: str, pull_id: int):
     for f in page:
         props = f.get("properties") or {}
         g = f.get("geometry")
+        attrs = {"layer": layer["url"]}
+        if g and g.get("type") == "Point":
+            # Point layers (Austin's 689 city landmarks): store a 6 m square; build_region matches it to the lot
+            # whose outline it touches.
+            x, y = g["coordinates"][:2]
+            d = POINT_HALF_DEG
+            g = {"type": "Polygon", "coordinates": [[[x - d, y - d], [x + d, y - d], [x + d, y + d], [x - d, y + d],
+                                                      [x - d, y - d]]]}  # fmt: skip
+            attrs["point"] = True
         if not g or g.get("type") not in ("Polygon", "MultiPolygon"):
             continue
         name = text(props.get(field)) if field else None
         yield (layer["kind"], f"{prefix}{props.get(key)}", name or layer.get("label") or layer["kind"], None,
-               json.dumps({"layer": layer["url"]}), json.dumps(g), pull_id)  # fmt: skip
+               json.dumps(attrs), json.dumps(g), pull_id)  # fmt: skip
 
 
 def region_bbox(conn) -> str | None:

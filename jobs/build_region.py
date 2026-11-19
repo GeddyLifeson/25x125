@@ -115,9 +115,18 @@ create index on region_overlay_part using gist (geom);
 analyze region_overlay_part;
 update parcel_site ps set overlays = x.o
 from (
-  select p.pin, jsonb_agg(distinct jsonb_build_object('kind', o.kind, 'name', o.name)) as o
-  from parcel p join region_overlay_part o on st_contains(o.geom, p.geom)
-  group by p.pin
+  select pin, jsonb_agg(distinct jsonb_build_object('kind', kind, 'name', name)) as o
+  from (
+    select p.pin, o.kind, o.name from parcel p join region_overlay_part o on st_contains(o.geom, p.geom)
+    union
+    -- point layers (landmarks): the lot whose outline the point touches
+    select s.pin, o.kind, o.name
+    from overlay o
+    join parcel_shape sh on st_intersects(sh.geom, o.geom)
+    join parcel_site s on s.pin10 = sh.pin10
+    where (o.attrs->>'point')::boolean
+  ) m
+  group by pin
 ) x where ps.pin = x.pin;
 """
 

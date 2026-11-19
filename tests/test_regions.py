@@ -325,3 +325,27 @@ def test_tampa_adu_needs_the_eligible_area(in_region):
     )
     assert "adu" not in {p.id for p in out.paths}
     assert "adu" in {p.id for p in inside.paths}
+
+
+def test_overlay_points_become_small_squares():
+    from jobs.load_region_overlays import to_rows
+
+    page = [
+        {
+            "properties": {"OBJECTID": 7, "NAME": "Old Mill"},
+            "geometry": {"type": "Point", "coordinates": [-97.7, 30.2]},
+        },
+        {
+            "properties": {"OBJECTID": 8, "NAME": "Line"},
+            "geometry": {"type": "LineString", "coordinates": [[0, 0], [1, 1]]},
+        },
+    ]
+    rows = list(
+        to_rows(page, {"kind": "historic_landmark", "url": "u", "name_field": "NAME"}, "OBJECTID", "1-", 5)
+    )
+    assert len(rows) == 1
+    kind, source_id, name, _, attrs, geom, _ = rows[0]
+    assert (kind, source_id, name) == ("historic_landmark", "1-7", "Old Mill")
+    assert json.loads(attrs)["point"] is True
+    ring = json.loads(geom)["coordinates"][0]
+    assert len(ring) == 5 and abs(ring[0][0] - (-97.7)) < 0.0001
