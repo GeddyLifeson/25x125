@@ -233,7 +233,32 @@
   "comps": {
     "built_since": 2019,
     "price_floor_per_unit": 100000,
-    "source": "none yet: the free parcel layers have no year built or floor area, and Fulton's free sale file stops in 2022",
-    "status": "no comp pool; users enter a sale price"
+    "source": "Fulton County appraised market value (City of Atlanta tax parcel layer, TOT_APPR) of 1-6 unit buildings on lots with a finished new-building permit, 2019 on (City of Atlanta permit export); no floor area, so no size adjustment"
+  },
+  "permits_year_built": {
+    "url": "https://www.arcgis.com/sharing/rest/content/items/655f985f43cc40b4bf2ab7bc73d2169b/data",
+    "item_page": "https://www.arcgis.com/home/item.html?id=655f985f43cc40b4bf2ab7bc73d2169b",
+    "publisher": "City of Atlanta Department of City Planning (Accela permit export, ArcGIS Online owner gpickren2)",
+    "covers": "permits opened 2019-01-02 to 2024; 9,489 new-building permits, 38,107 permits in all",
+    "types": [
+      "Residential New"
+    ],
+    "done_statuses": [
+      "CO Issued",
+      "Complete",
+      "Closed",
+      "No CO Required"
+    ],
+    "fields": {
+      "id": "RECORD ID",
+      "type": "RECORD TYPE",
+      "status": "RECORD STATUS",
+      "status_date": "RECORD STATUS DATE",
+      "lat": "latitude",
+      "lon": "longitude"
+    },
+    "tested_on": "2026-11-19",
+    "note": "The city's live layer (Building_Permit_latest, 36,115 permits from late 2022 on) has the same fields and can extend this past 2024.",
+    "why_types": "Multi Family New covers apartment and condo buildings; every condo unit parcel under one would take the building's year and pull high-rise unit values into a pool of houses (tested 2026-11-19: 44% median error with both types)."
   }
 }
