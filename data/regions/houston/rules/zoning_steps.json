@@ -15,7 +15,17 @@
           "etj": 5000
         },
         "units_per_single_family_lot": 2,
-        "min_lot_width_ft": 20
+        "min_lot_width_ft": 20,
+        "applies_to": [
+          "City of Houston (no zoning)"
+        ],
+        "engine_path": {
+          "units": "density",
+          "units_per_lot": 2,
+          "min_lot_sqft": 3500,
+          "name": "Two units on each 3,500 sq ft lot",
+          "approval": "none on one lot; a replat to split the tract into more lots"
+        }
       },
       "section": "Sec. 42-181(a); Sec. 42-185(a); Sec. 42-1 (Single-family residential); Sec. 42-190(a)",
       "source_url": "https://www.houstontx.gov/planning/Commissions/docs_pdfs/Livable%20Places_Chapter%2042%20amend.%20Ord.%202023-801_Approved.pdf"
@@ -34,7 +44,14 @@
         "max_units_per_gross_acre": 27,
         "max_units_per_gross_acre_rear_or_side_access": 35,
         "lot_area_per_unit_sqft_at_27_per_acre": 1613,
-        "lot_area_per_unit_sqft_at_35_per_acre": 1245
+        "lot_area_per_unit_sqft_at_35_per_acre": 1245,
+        "engine_path": {
+          "units": "density",
+          "lot_area_per_unit_sqft": 1613,
+          "min_units": 2,
+          "min_lot_sqft": 3226,
+          "name": "Small lots, 27 per acre"
+        }
       },
       "approval": "subdivision plat (replat); no variance needed when the standards are met",
       "section": "Sec. 42-181(b); Sec. 42-184",
@@ -107,7 +124,13 @@
         "building_line_ft": 5,
         "building_line_major_thoroughfare_ft": 15,
         "max_driveway_width_ft": 16,
-        "guest_spaces_per_units": "1 per 6"
+        "guest_spaces_per_units": "1 per 6",
+        "engine_path": {
+          "units": 4,
+          "min_lot_sqft": 3500,
+          "min_lot_width_ft": 50,
+          "name": "Multi-unit residential (4 units on a local street)"
+        }
       },
       "approval": "development plat and building permit; the tract must be a reserve or unrestricted land, not a lot restricted to single-family use",
       "section": "Sec. 42-1 (Multi-unit residential); Sec. 42-237(c); Sec. 42-190(c) (MUR reserve)",
@@ -222,7 +245,8 @@
           "text": "Texas SB 15 (Local Government Code ch. 211 subch. D, effective 2025-09-01) applies to cities over 150,000 in counties over 300,000, but only to a tract of 5 acres or more with no recorded plat that will be platted in an area zoned for single-family homes. There a city may not require a lot larger than 3,000 sq ft, wider than 30 ft or deeper than 75 ft. Houston has no area zoned for single-family homes, and its own rule already allows lots averaging 1,400 sq ft, so this is not expected to change results for 1 to 6 unit infill. Not confirmed from a city document. The law leaves deed restrictions and HOA rules in force.",
           "source_url": "https://capitol.texas.gov/tlodocs/89R/billtext/html/SB00015F.htm"
         }
-      ]
+      ],
+      "params": {}
     },
     {
       "id": "flags",
@@ -268,7 +292,8 @@
           "id": "detention_and_wastewater",
           "text": "The 3,500 and 5,000 sq ft minimums assume wastewater collection service. Lots on septic follow state (TCEQ) minimums. Stormwater detention rules in the Infrastructure Design Manual can limit building coverage; not modeled."
         }
-      ]
+      ],
+      "params": {}
     }
   ]
 }

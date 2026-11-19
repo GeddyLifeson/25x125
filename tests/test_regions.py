@@ -265,3 +265,111 @@ def test_permits_year_built_keeps_finished_new_buildings():
         {"id": "D", "t": "Residential New", "s": "CO Issued", "d": "", "y": "33.7", "x": "-84.4"},
     ]
     assert lp.finished(rows, cfg) == [("A", 2022, 33.7, -84.4)]
+
+
+def test_city_step_paths_houston(in_region):
+    from engine import zoning
+    from engine.rules import Rules
+
+    in_region("houston")
+    rules = Rules.from_files()
+    d = rules.district_for("FULL")
+    assert d is not None and d.name == "City of Houston (no zoning)"
+
+    def paths(lot, width=None):
+        site = zoning.Site(pin="1", zone_class="FULL", lot_sqft=lot, frontage_ft=width)
+        return {p.id: p.units for p in zoning._step_paths(site, rules, d, lot)}
+
+    assert paths(5000, 50) == {"units_by_right": 2, "reduced_lot_size": 3, "multi_unit_residential": 4}
+    assert paths(7000, 40)["units_by_right"] == 4 and "multi_unit_residential" not in paths(7000, 40)
+    assert paths(3000) == {}
+
+
+def test_overlay_flags():
+    from engine import zoning
+
+    site = zoning.Site(pin="1", zone_class="RS-50", lot_sqft=5000, overlays=[
+        {"kind": "flood", "name": "AE"}, {"kind": "flood", "name": "X"}, {"kind": "historic", "name": "Hyde Park"},
+        {"kind": "subdivision", "name": "Montrose"}, {"kind": "special_minimum_lot_size", "name": "SMLS 12"},
+    ])  # fmt: skip
+    ids = [f.id for f in zoning._overlay_flags(site)]
+    assert ids == ["flood", "historic", "special_minimum_lot_size"]
+
+    def flags(*overlays):
+        return [
+            (f.id, f.text[:30])
+            for f in zoning._overlay_flags(
+                zoning.Site(pin="1", zone_class="R", lot_sqft=5000, overlays=list(overlays))
+            )
+        ]
+
+    assert flags({"kind": "flood", "name": "X, AE"}) == [("flood", "FEMA flood zone AE: flood insu")]
+    assert flags({"kind": "flood_floodway", "name": "FLOODWAY"})[0][0] == "floodway"
+    assert flags({"kind": "flood_500yr", "name": "X"}) == []
+    assert flags({"kind": "airport_military", "name": "NASJAX-1"})[0][0] == "airport"
+    assert (
+        flags({"kind": "flood", "name": "City of Austin Fully Developed 100-Year Floodplain"})[0][0]
+        == "flood"
+    )
+
+
+def test_tampa_adu_needs_the_eligible_area(in_region):
+    from engine import zoning
+    from engine.rules import Rules
+
+    in_region("tampa")
+    rules = Rules.from_files()
+    out = zoning.evaluate(zoning.Site(pin="1", zone_class="RS-50", lot_sqft=6000, frontage_ft=50), rules)
+    inside = zoning.evaluate(
+        zoning.Site(pin="1", zone_class="RS-50", lot_sqft=6000, frontage_ft=50, adu_zone="ADU Permitted"),
+        rules,
+    )
+    assert "adu" not in {p.id for p in out.paths}
+    assert "adu" in {p.id for p in inside.paths}
+
+
+def test_overlay_points_become_small_squares():
+    from jobs.load_region_overlays import to_rows
+
+    page = [
+        {
+            "properties": {"OBJECTID": 7, "NAME": "Old Mill"},
+            "geometry": {"type": "Point", "coordinates": [-97.7, 30.2]},
+        },
+        {
+            "properties": {"OBJECTID": 8, "NAME": "Points"},
+            "geometry": {"type": "MultiPoint", "coordinates": [[0, 0], [1, 1]]},
+        },
+    ]
+    rows = list(
+        to_rows(page, {"kind": "historic_landmark", "url": "u", "name_field": "NAME"}, "OBJECTID", "1-", 5)
+    )
+    assert len(rows) == 1
+    kind, source_id, name, _, attrs, geom, _ = rows[0]
+    assert (kind, source_id, name) == ("historic_landmark", "1-7", "Old Mill")
+    assert json.loads(attrs)["point"] is True
+    ring = json.loads(geom)["coordinates"][0]
+    assert len(ring) == 5 and abs(ring[0][0] - (-97.7)) < 0.0001
+
+
+def test_overlay_lines_are_kept_for_buffering():
+    from jobs.load_region_overlays import GEOM, to_rows
+
+    page = [{"properties": {"OBJECTID": 3, "ST": "Main"},
+             "geometry": {"type": "LineString", "coordinates": [[-95.36, 29.76], [-95.35, 29.76]]}}]  # fmt: skip
+    rows = list(
+        to_rows(
+            page, {"kind": "restricted_driveway_access", "url": "u", "name_field": "ST"}, "OBJECTID", "13-", 1
+        )
+    )
+    assert len(rows) == 1 and json.loads(rows[0][4])["line"] is True
+    assert "st_buffer" in GEOM["geom"]
+
+
+def test_overlay_name_from_several_fields():
+    from jobs.load_region_overlays import to_rows
+
+    page = [{"properties": {"OBJECTID": 1, "APZ": "NASJAX-42", "AICUZ": "NA"},
+             "geometry": {"type": "Polygon", "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 0]]]}}]  # fmt: skip
+    layer = {"kind": "airport_military", "url": "u", "name_field": ["APZ", "AICUZ"]}
+    assert next(to_rows(page, layer, "OBJECTID", "2-", 1))[2] == "NASJAX-42"

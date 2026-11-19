@@ -40,15 +40,18 @@
   "overlay_layers": [
     {
       "kind": "flood",
-      "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28",
+      "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Flood_Hazard_Reduced_Set_gdb/FeatureServer/0",
       "name_field": "FLD_ZONE",
-      "note": "FEMA National Flood Hazard Layer, flood hazard zones. Duval is DFIRM_ID 12031C. Tested with a point query. The server dropped 2 of 4 requests during testing; retry on failure."
+      "note": "FEMA National Flood Hazard Layer, special flood hazard areas, the copy Esri hosts for free (FEMA's own server, hazards.fema.gov NFHL MapServer/28, returned HTTP 500 or reset the connection on 2026-11-19). Clipped to the city's parcel extent. Earlier note: FEMA National Flood Hazard Layer, flood hazard zones. Duval is DFIRM_ID 12031C. Tested with a point query. The server dropped 2 of 4 requests during testing; retry on failure.",
+      "page_size": 200
     },
     {
       "kind": "flood",
       "url": "https://maps.coj.net/coj/rest/services/CityBiz/Parcels/MapServer/0",
       "name_field": "FLD_ZONE",
-      "note": "Same city parcel layer. FLD_ZONE lists every FEMA zone touching the parcel, comma separated."
+      "note": "Same city parcel layer. FLD_ZONE lists every FEMA zone touching the parcel, comma separated.",
+      "skip": true,
+      "why_skip": "Loading 409,714 parcel outlines as flood overlays ran past 90 minutes on 2026-11-19. The FEMA layer above covers the same zones; this one stays listed as a cross-check."
     },
     {
       "kind": "historic",
@@ -59,8 +62,14 @@
     {
       "kind": "airport_military",
       "url": "https://maps.coj.net/coj/rest/services/CityBiz/Parcels/MapServer/0",
-      "name_field": "APZ",
-      "note": "Same city parcel layer. Fields APZ, AICUZ, CVLSCHZ, MLTSCHZ and the notice fields mark airport and military zones (Part 10 of the Zoning Code). Field meanings not confirmed."
+      "name_field": [
+        "APZ",
+        "AICUZ"
+      ],
+      "note": "Same city parcel layer. Fields APZ, AICUZ, CVLSCHZ, MLTSCHZ and the notice fields mark airport and military zones (Part 10 of the Zoning Code). Field meanings not confirmed.",
+      "where": "APZ <> 'NA' OR AICUZ <> 'NA'",
+      "clip": false,
+      "why_where": "Only parcels inside an airport or military zone: 12,900 of 409,714 on 2026-11-19 (unmarked parcels read 'NA')."
     }
   ],
   "permit_source": {

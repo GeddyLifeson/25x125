@@ -58,6 +58,7 @@ def region_steps(skip_yearly: bool) -> list[tuple[str, Callable]]:
         load_dcad,
         load_fl_dor,
         load_permits_year_built,
+        load_region_overlays,
         load_tcad,
         load_zoning_layer,
     )
@@ -85,8 +86,9 @@ def region_steps(skip_yearly: bool) -> list[tuple[str, Callable]]:
         ("zoning", lambda: load_zoning_layer.run()),
         ("cost escalation", lambda: load_cost_escalation.run()),
         ("rules", lambda: seed_rules.run()),
+        ("map overlays (flood, historic, ADU areas)", lambda: load_region_overlays.run()),
         ("parcel sites", lambda: build_parcel_site.run()),
-        ("lot use, comps and land values", lambda: build_region.run()),
+        ("lot use, comps, land values and overlays per lot", lambda: build_region.run()),
         ("development score", lambda: score_parcels.run()),
     ]
 

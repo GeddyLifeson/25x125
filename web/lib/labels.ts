@@ -16,6 +16,11 @@ export const PENALTY_LABELS: Record<string, string> = {
   landmark_district: "Landmark district",
   "606_pilsen_surcharge": "606 or Pilsen demolition surcharge",
   fire_limits: "Inside the fire limits",
+  flood_zone: "FEMA flood zone or city floodplain",
+  floodway: "Regulatory floodway",
+  historic_overlay: "Historic district or landmark",
+  conservation_overlay: "Conservation or neighborhood overlay",
+  lot_size_overlay: "Special minimum lot size, building line or deed restrictions",
 };
 
 export const INCENTIVE_LABELS: Record<string, string> = {

@@ -33,7 +33,7 @@ from engine.parcel_feasibility import (
 )
 from engine.rules import Rules
 from engine.sites import FIELDS, _site
-from engine.zoning import evaluate
+from engine.zoning import _overlay_flags, evaluate
 
 CELL = 0.005
 
@@ -41,7 +41,7 @@ SQL = """
 select distinct on (ps.pin10)
        ps.pin, ps.zone_class, ps.zone_class_2, ps.zone_share_2, ps.lot_sqft, ps.frontage_ft, ps.lot_source,
        ps.zone_share, ps.transit_served, ps.adu_zone, ps.adu_limits, ps.special_district, ps.historic_rating,
-       ps.landmark_name, ps.fire_limits, lu.use_now, lu.units_now, bf.lots, bf.multi_lots, bf.single_lots,
+       ps.landmark_name, ps.fire_limits, ps.overlays, lu.use_now, lu.units_now, bf.lots, bf.multi_lots, bf.single_lots,
        bf.two_flat_lots, bf.vacant_lots,
        ps.pin10, st_y(p.geom), st_x(p.geom), p.nbhd_code, p.community_area_num, ps.enterprise_zone,
        ps.opportunity_zone_2018, ps.tif_name, ps.environmental_hold, ps.open_violations, ps.scofflaw, ps.demolition_notice_date,
@@ -149,6 +149,16 @@ def score_lot(row, w: dict, rules: Rules, ctx: dict, sale_for, sur_match: list[s
         "landmark_district": bool(site.landmark_name),
         "606_pilsen_surcharge": any(m in (site.special_district or "") for m in sur_match),
         "fire_limits": bool(site.fire_limits),
+    }
+    ov = {f.id for f in _overlay_flags(site)}
+    pen |= {
+        "flood_zone": "flood" in ov,
+        "floodway": "floodway" in ov,
+        "historic_overlay": "historic" in ov,
+        "conservation_overlay": "conservation" in ov,
+        "lot_size_overlay": bool(
+            ov & {"special_minimum_lot_size", "special_minimum_building_line", "deed_restrictions"}
+        ),
     }
     det["penalties"] = [k for k, v in pen.items() if v]
     pen_pts = max(sum(pp[k] for k in det["penalties"]), w["penalties"]["min_total"])

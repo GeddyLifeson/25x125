@@ -93,3 +93,23 @@ def test_fast_path():
     assert fast_path(z, None, None, "vacant", None, w)["weeks_to_permit"]["median"] == 7
     s = score_lot(row(), W, RULES, ctx(), sale_for, [], TODAY)
     assert s["details"]["fast_path"] is True
+
+
+def test_score_sql_lists_every_site_field():
+    from engine.sites import FIELDS
+    from jobs.score_parcels import SQL
+
+    cols = SQL.split("select distinct on (ps.pin10)")[1].split("ps.pin10,")[0]
+    names = [c.strip().split(".")[-1] for c in cols.replace("\n", " ").split(",") if c.strip()]
+    renamed = {"lots": "block_lots", "multi_lots": "block_multi_lots", "single_lots": "block_single_lots",
+               "two_flat_lots": "block_two_flat_lots", "vacant_lots": "block_vacant_lots"}  # fmt: skip
+    assert [renamed.get(n, n) for n in names] == FIELDS
+
+
+def test_region_overlays_add_penalties():
+    s = score_lot(row(overlays=[{"kind": "flood", "name": "AE"}, {"kind": "historic", "name": "Hyde Park"}]),
+                  W, RULES, ctx(), sale_for, [], TODAY)  # fmt: skip
+    assert set(s["details"]["penalties"]) == {"flood_zone", "historic_overlay"}
+    assert s["penalties"] == -15
+    s = score_lot(row(overlays=[{"kind": "flood", "name": "X"}]), W, RULES, ctx(), sale_for, [], TODAY)
+    assert s["penalties"] == 0

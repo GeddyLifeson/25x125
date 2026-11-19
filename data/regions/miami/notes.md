@@ -51,3 +51,9 @@ T3-R, T3-L, T3-O, T4-R, T4-L, T4-O, T5-R, T5-L, T5-O, T6-8-R, T6-8-L, T6-8-O, T6
 - Zoning layer: `M21_Zoning/FeatureServer/0` on the City's ArcGIS Online org, field `M21_ZONE`, 1,130 polygons, 36 values, last edited 2026-05-07.
 - Permits: `Building_Permits_Since_2014/FeatureServer/0`, 237,663 rows, issued dates 2012-03 to 2026-11-16. `ScopeofWork = 'NEW CONSTRUCTION'` returns 52,656 rows, which looks high for new buildings alone; it likely counts sub-permits. `TotalCost` is text. There is no unit count, so units must come from another source.
 - Rezoning fact for small developers: a rezoning needs 40,000 sq ft of land or 200 ft of frontage on one street, unless it extends an existing transect boundary. Most single 5,000 sq ft lots do not qualify alone.
+
+## Comp search radius (tested 2026-11-19)
+
+On the 196 new-build sales inside the city, leave-one-out median error is 16.0% with the default rings. A 0.3 mi
+first ring gives 15.3%, a 0.5 mi ring 16.7%, and a city-only pool 15.3%. None is worth a Miami-only setting. The
+error comes from mixed housing within blocks, not from search distance.

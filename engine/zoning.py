@@ -29,6 +29,7 @@ class Site:
     historic_rating: str | None = None
     landmark_name: str | None = None
     fire_limits: bool | None = None
+    overlays: list | None = None  # outside Chicago: [{"kind": "flood", "name": "AE"}, ...]
     use_now: str | None = None
     units_now: int | None = None
     block_lots: int | None = None
@@ -190,35 +191,41 @@ def _step_paths(site: Site, rules: Rules, d: District, lot: float) -> list[Path]
     example). A step takes part when its params carry `engine_path`:
     {"units": 2} for a fixed count, or {"units": "density"} for lot area / the district's lot area per unit,
     with optional "min_units", "max_units", "max_units_by_district" and "round_up_from" (0.5 rounds halves up).
-    Eligibility: the district is in `by_district` (or a key of `min_lot_sqft`), the lot meets `min_lot_sqft`
-    and, when the frontage is known, `min_lot_width_ft`."""
+    "lot_area_per_unit_sqft" replaces the district's figure for this path, and "units_per_lot" multiplies the
+    count (Houston: two units on each 3,500 sq ft lot). Eligibility: the district is in `by_district`,
+    `districts` or `applies_to` (or a key of `min_lot_sqft`), the lot meets `min_lot_sqft` and, when the
+    frontage is known, `min_lot_width_ft`. "min_lot_sqft" and "min_lot_width_ft" inside engine_path take
+    precedence over the step's own."""
     out = []
     for sid, step in rules.steps.items():
         prm = (step or {}).get("params") or {}
         ep = prm.get("engine_path")
         if not ep:
             continue
-        lot_rule = prm.get("min_lot_sqft", prm.get("min_lot_area_sqft"))
+        lot_rule = ep.get("min_lot_sqft", prm.get("min_lot_sqft", prm.get("min_lot_area_sqft")))
         districts = (
             prm.get("by_district")
             or prm.get("districts")
+            or prm.get("applies_to")
             or (list(lot_rule) if isinstance(lot_rule, dict) else [])
         )
         if d.name not in districts:
             continue
         min_lot = _by_district(lot_rule, d.name)
-        min_w = _by_district(prm.get("min_lot_width_ft"), d.name)
+        min_w = _by_district(ep.get("min_lot_width_ft", prm.get("min_lot_width_ft")), d.name)
         if min_lot and lot < min_lot:
             continue
         if min_w and site.frontage_ft and site.frontage_ft < min_w - 0.5:
             continue
         if ep.get("units") == "density":
-            if not d.lot_area_per_unit_sqft:
+            lapu = ep.get("lot_area_per_unit_sqft") or d.lot_area_per_unit_sqft
+            if not lapu:
                 continue
-            raw = lot / d.lot_area_per_unit_sqft
+            raw = lot / lapu
             n = int(raw + (1 - ep["round_up_from"])) if ep.get("round_up_from") else int(raw)
         else:
             n = int(ep["units"])
+        n *= int(ep.get("units_per_lot", 1))
         cap = (ep.get("max_units_by_district") or {}).get(d.name, ep.get("max_units"))
         n = min(n, cap) if cap else n
         if n < ep.get("min_units", 1):
@@ -313,8 +320,12 @@ def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Re
     if adu_ok:
         base = max(p.units for p in res.paths if p.approval == "none (permit only)")
         by_map = d.name in by_map_list
-        note = f"ADU zone {site.adu_zone}: {site.adu_limits}" if by_map else "ADU allowed in this district"
-        if by_map:
+        note = (
+            f"ADU zone {site.adu_zone}" + (f": {site.adu_limits}" if site.adu_limits else "")
+            if by_map
+            else "ADU allowed in this district"
+        )
+        if by_map and region.is_chicago():
             cap = adu["annual_cap_per_block_face"].get(d.name)
             note += f"; yearly cap of {cap} per block face and opposite face" if cap else ""
             note += "; owner must live on site if the main building is a house"
@@ -323,7 +334,9 @@ def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Re
                 note += f", up to {adu['max_sqft']:,.0f} sq ft"
             if adu.get("owner_occupancy"):
                 note += "; owner must live on site"
-        approval = adu["by_map_approval"] if by_map else adu.get("approval", "ADU permit (as of right)")
+        approval = (
+            adu.get("by_map_approval", adu.get("approval")) if by_map else adu.get("approval")
+        ) or "ADU permit (as of right)"
         p = _path(
             rules, site, d, "adu", "By right plus ADU", approval, base + adu.get("units", 1), notes=[note]
         )
@@ -412,8 +425,58 @@ def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Re
     return res
 
 
-def _flags(site: Site, rules: Rules) -> list[Flag]:
+# FEMA zones inside the special flood hazard area (the 1% annual chance flood): flood insurance is required
+# with a federally backed mortgage, and the lowest floor must sit at or above the base flood elevation.
+SFHA_ZONES = ("A", "AE", "AH", "AO", "AR", "A99", "V", "VE")
+
+
+def _overlay_flags(site: Site) -> list[Flag]:
+    """Flags for the region overlays that limit building or add cost. Other overlays are listed on the
+    parcel page but raise no flag."""
     out = []
+    for o in site.overlays or []:
+        kind, name = o.get("kind") or "", (o.get("name") or "").strip()
+        # Jacksonville's parcel layer lists every zone touching the lot, comma separated ("AE, X").
+        zones = [z.strip().upper() for z in name.split(",")]
+        sfha = [z for z in zones if z in SFHA_ZONES]
+        if kind.startswith("flood") and ("FLOODWAY" in name.upper() or kind == "flood_floodway"):
+            out.append(Flag("floodway", "In the regulatory floodway: new buildings are usually not allowed.",
+                            "FEMA flood map"))  # fmt: skip
+        elif kind.startswith("flood") and sfha:
+            out.append(Flag("flood", f"FEMA flood zone {', '.join(sfha)}: flood insurance is required with most"
+                            " mortgages, and the lowest floor must be at or above the base flood elevation.",
+                            "FEMA flood map"))  # fmt: skip
+        elif kind.startswith("flood") and ("100-YEAR" in name.upper() or "25-YEAR" in name.upper()):
+            out.append(Flag("flood", f"{name}: the city limits building in its own floodplain, which can be wider"
+                            " than FEMA's.", "city floodplain map"))  # fmt: skip
+        elif kind.startswith("historic") or kind == "landmark":
+            out.append(Flag("historic", f"Historic district or landmark: {name}. Demolition and exterior changes"
+                            " need review by the city's historic commission.", kind.replace("_", " ")))  # fmt: skip
+        elif kind.startswith("conservation") or kind in ("nccd", "nso"):
+            out.append(Flag("conservation", f"Conservation or neighborhood overlay: {name}. It can change lot size,"
+                            " height and design rules; check the overlay text.", kind.replace("_", " ")))  # fmt: skip
+        elif kind in ("special_minimum_lot_size", "special_minimum_building_line", "deed_restrictions"):
+            out.append(Flag(kind, f"{kind.replace('_', ' ').capitalize()} area ({name}): smaller lots or added"
+                            " units may not be allowed here.", kind.replace("_", " ")))  # fmt: skip
+        elif kind in ("restricted_driveway_access", "walkable_places_tod"):
+            out.append(Flag("driveway", f"Next to a street with restricted lot driveway access ({name}; corner lots included): new lots may need"
+                            " access from another street or a shared drive.", kind.replace("_", " ")))  # fmt: skip
+        elif kind in ("airport_military", "airport", "military"):
+            out.append(Flag("airport", f"Airport or military zone ({name}): housing density and building height can"
+                            " be limited; check the zone's rules.", kind.replace("_", " ")))  # fmt: skip
+        elif kind == "coastal_high_hazard":
+            out.append(Flag(kind, "Coastal high hazard area: added building and density limits apply.",
+                            kind.replace("_", " ")))  # fmt: skip
+    seen, uniq = set(), []
+    for f in out:
+        if (f.id, f.text) not in seen:
+            seen.add((f.id, f.text))
+            uniq.append(f)
+    return uniq
+
+
+def _flags(site: Site, rules: Rules) -> list[Flag]:
+    out = _overlay_flags(site)
     if site.historic_rating in ("Red", "Orange"):
         out.append(Flag("historic", f"Historic survey rating {site.historic_rating}: 90-day hold on a demolition permit.",
                         "Demolition Delay Ordinance (Chicago Historic Resources Survey)"))  # fmt: skip

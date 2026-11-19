@@ -106,6 +106,31 @@ from (
 """
 
 
+# Overlays on each lot: those that cover the lot's inside point. Large polygons (county flood zones) are split
+# first so the point tests stay fast.
+OVERLAYS = """
+create temp table region_overlay_part on commit drop as
+select kind, name, st_subdivide(geom, 256) as geom from overlay;
+create index on region_overlay_part using gist (geom);
+analyze region_overlay_part;
+update parcel_site ps set overlays = x.o
+from (
+  select pin, jsonb_agg(distinct jsonb_build_object('kind', kind, 'name', name)) as o
+  from (
+    select p.pin, o.kind, o.name from parcel p join region_overlay_part o on st_contains(o.geom, p.geom)
+    union
+    -- point and street layers (landmarks, driveway access streets): the lots whose outlines they touch
+    select s.pin, o.kind, o.name
+    from overlay o
+    join parcel_shape sh on st_intersects(sh.geom, o.geom)
+    join parcel_site s on s.pin10 = sh.pin10
+    where (o.attrs->>'point')::boolean or (o.attrs->>'line')::boolean
+  ) m
+  group by pin
+) x where ps.pin = x.pin;
+"""
+
+
 def run(url: str | None = None) -> dict:
     r = region.current()
     c = r.get("comps") or {}
@@ -125,7 +150,14 @@ def run(url: str | None = None) -> dict:
         conn.execute("truncate land_sale")
         conn.execute(LAND, args)
         conn.execute(LAND_VALUE)
+        conn.execute("update parcel_site set overlays = null")
+        for stmt in OVERLAYS.split(";"):
+            if stmt.strip():
+                conn.execute(stmt)
         out = {"lots": conn.execute("select count(*) from lot_use").fetchone()[0]}
+        out["lots with overlays"] = conn.execute(
+            "select count(*) from parcel_site where overlays is not null"
+        ).fetchone()[0]
         for e, n in conn.execute("select coalesce(excluded, 'kept'), count(*) from comp group by 1"):
             out[f"comps {e}"] = n
         out["land sales"] = conn.execute("select count(*) from land_sale").fetchone()[0]
