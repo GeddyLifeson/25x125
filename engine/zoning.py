@@ -436,12 +436,19 @@ def _overlay_flags(site: Site) -> list[Flag]:
     out = []
     for o in site.overlays or []:
         kind, name = o.get("kind") or "", (o.get("name") or "").strip()
-        if kind.startswith("flood") and name.upper() in SFHA_ZONES:
-            out.append(Flag("flood", f"FEMA flood zone {name}: flood insurance is required with most mortgages, and"
-                            " the lowest floor must be at or above the base flood elevation.", "FEMA flood map"))  # fmt: skip
-        elif kind.startswith("flood") and name.upper() == "FLOODWAY":
+        # Jacksonville's parcel layer lists every zone touching the lot, comma separated ("AE, X").
+        zones = [z.strip().upper() for z in name.split(",")]
+        sfha = [z for z in zones if z in SFHA_ZONES]
+        if kind.startswith("flood") and ("FLOODWAY" in name.upper() or kind == "flood_floodway"):
             out.append(Flag("floodway", "In the regulatory floodway: new buildings are usually not allowed.",
                             "FEMA flood map"))  # fmt: skip
+        elif kind.startswith("flood") and sfha:
+            out.append(Flag("flood", f"FEMA flood zone {', '.join(sfha)}: flood insurance is required with most"
+                            " mortgages, and the lowest floor must be at or above the base flood elevation.",
+                            "FEMA flood map"))  # fmt: skip
+        elif kind.startswith("flood") and ("100-YEAR" in name.upper() or "25-YEAR" in name.upper()):
+            out.append(Flag("flood", f"{name}: the city limits building in its own floodplain, which can be wider"
+                            " than FEMA's.", "city floodplain map"))  # fmt: skip
         elif kind.startswith("historic") or kind == "landmark":
             out.append(Flag("historic", f"Historic district or landmark: {name}. Demolition and exterior changes"
                             " need review by the city's historic commission.", kind.replace("_", " ")))  # fmt: skip

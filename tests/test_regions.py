@@ -295,6 +295,22 @@ def test_overlay_flags():
     ids = [f.id for f in zoning._overlay_flags(site)]
     assert ids == ["flood", "historic", "special_minimum_lot_size"]
 
+    def flags(*overlays):
+        return [
+            (f.id, f.text[:30])
+            for f in zoning._overlay_flags(
+                zoning.Site(pin="1", zone_class="R", lot_sqft=5000, overlays=list(overlays))
+            )
+        ]
+
+    assert flags({"kind": "flood", "name": "X, AE"}) == [("flood", "FEMA flood zone AE: flood insu")]
+    assert flags({"kind": "flood_floodway", "name": "FLOODWAY"})[0][0] == "floodway"
+    assert flags({"kind": "flood_500yr", "name": "X"}) == []
+    assert (
+        flags({"kind": "flood", "name": "City of Austin Fully Developed 100-Year Floodplain"})[0][0]
+        == "flood"
+    )
+
 
 def test_tampa_adu_needs_the_eligible_area(in_region):
     from engine import zoning
