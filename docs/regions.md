@@ -141,6 +141,13 @@ to the month.
 market_value, land_value, year_built, living_sqft, units, land_sqft or land_acres, nbhd) and `use_groups`, which
 maps the layer's use codes (longest prefix wins) to vacant, single, condo, multi or other.
 
+A region whose parcel layer has no year built can date buildings from finished new-construction permits:
+`permits_year_built` in region.json (url, types, done_statuses, fields) and `jobs/load_permits_year_built.py`,
+which `jobs.nightly` runs after the parcel loader. Atlanta uses it.
+
+A Florida county can set `comps_countywide` to load newer 1-6 unit homes outside the city as comps only. When a
+region has such comps, `jobs.check_region` also measures error on in-city sales and fits the range on those.
+
 ### Texas and Georgia: appraised values, not sale prices
 
 Texas does not publish sale prices (Government Code 552.148). A region with `"price_basis"` set to appraisal
