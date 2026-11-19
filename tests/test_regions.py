@@ -283,3 +283,14 @@ def test_city_step_paths_houston(in_region):
     assert paths(5000, 50) == {"units_by_right": 2, "reduced_lot_size": 3, "multi_unit_residential": 4}
     assert paths(7000, 40)["units_by_right"] == 4 and "multi_unit_residential" not in paths(7000, 40)
     assert paths(3000) == {}
+
+
+def test_overlay_flags():
+    from engine import zoning
+
+    site = zoning.Site(pin="1", zone_class="RS-50", lot_sqft=5000, overlays=[
+        {"kind": "flood", "name": "AE"}, {"kind": "flood", "name": "X"}, {"kind": "historic", "name": "Hyde Park"},
+        {"kind": "subdivision", "name": "Montrose"}, {"kind": "special_minimum_lot_size", "name": "SMLS 12"},
+    ])  # fmt: skip
+    ids = [f.id for f in zoning._overlay_flags(site)]
+    assert ids == ["flood", "historic", "special_minimum_lot_size"]

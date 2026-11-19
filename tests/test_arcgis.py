@@ -15,7 +15,8 @@ class FakeResponse(io.BytesIO):
 def test_features_pages_by_key():
     bodies = [
         {"features": [{"properties": {"OBJECTID": 1}}, {"properties": {"OBJECTID": 2}}]},
-        {"features": [{"properties": {"OBJECTID": 3}}]},
+        {"features": [{"properties": {"OBJECTID": 3}}]},  # short page: the server may cap below page_size
+        {"features": []},
     ]
     urls = []
 
@@ -28,6 +29,7 @@ def test_features_pages_by_key():
     )
     got = [f["properties"]["OBJECTID"] for page in client.features("1=1", "PIN10", page_size=2) for f in page]
     assert got == [1, 2, 3]
+    assert len(urls) == 3 and "OBJECTID+%3E+3" in urls[2]
     assert "OBJECTID+%3E+2" in urls[1]
     assert "outFields=PIN10%2COBJECTID" in urls[0]
     assert "outSR=4326" in urls[0]

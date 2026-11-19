@@ -48,14 +48,37 @@ class ArcGIS:
             except urllib.error.HTTPError as e:
                 if e.code not in RETRY_STATUS or attempt == self.retries:
                     raise ArcGISError(f"{self.layer_url}: HTTP {e.code}") from e
-            except (urllib.error.URLError, http.client.HTTPException, ConnectionError, TimeoutError) as e:
+            except (
+                urllib.error.URLError,
+                http.client.HTTPException,
+                ConnectionError,
+                TimeoutError,
+                ValueError,
+            ) as e:
+                # ValueError: a body that is not JSON (an HTML error page from an overloaded server).
                 if attempt == self.retries:
                     raise ArcGISError(f"{self.layer_url}: {e}") from e
             self._sleep(self.backoff * 2**attempt)
         raise ArcGISError(f"{self.layer_url}: retries exhausted")
 
+    def object_id_field(self) -> str:
+        """The layer's own object ID field (OBJECTID, OBJECTID_1, FID, ...), from its metadata."""
+        url = f"{self.layer_url}?f=json"
+        with self._open(url, timeout=self.timeout) as resp:
+            meta = json.loads(resp.read())
+        if meta.get("objectIdField"):
+            return meta["objectIdField"]
+        return next(
+            (f["name"] for f in meta.get("fields", []) if f.get("type") == "esriFieldTypeOID"), "OBJECTID"
+        )
+
     def features(
-        self, where: str, out_fields: str, key: str = "OBJECTID", page_size: int = 2000
+        self,
+        where: str,
+        out_fields: str,
+        key: str = "OBJECTID",
+        page_size: int = 2000,
+        extra: dict | None = None,
     ) -> Iterator[list[dict]]:
         """Yield pages of GeoJSON features in lon/lat (EPSG:4326).
 
@@ -73,6 +96,7 @@ class ArcGIS:
                     "orderByFields": key,
                     "resultRecordCount": page_size,
                     "f": "geojson",
+                    **(extra or {}),
                 }
             )
             feats = body.get("features", [])
@@ -80,5 +104,6 @@ class ArcGIS:
                 return
             yield feats
             last = feats[-1]["properties"][key]
-            if len(feats) < page_size and not body.get("properties", {}).get("exceededTransferLimit"):
-                return
+            # Some servers cap pages below the size asked for (Hillsborough County returns 999 of 1,000) and
+            # never set exceededTransferLimit in GeoJSON, so only an empty page ends the layer. That costs one
+            # extra request per layer.

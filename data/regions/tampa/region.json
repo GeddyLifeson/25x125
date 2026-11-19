@@ -59,7 +59,8 @@
       "kind": "adu_area",
       "url": "https://arcgis.tampagov.net/arcgis/rest/services/OpenData/Planning/MapServer/37",
       "name_field": "CRITERIA",
-      "note": "ADU eligible areas. CRITERIA is 'ADU Permitted', 'ADU - Special Use Required' or 'ADU Not Permitted'; NAME says which standards apply."
+      "note": "ADU eligible areas. CRITERIA is 'ADU Permitted', 'ADU - Special Use Required' or 'ADU Not Permitted'; NAME says which standards apply.",
+      "where": "CRITERIA <> 'ADU Not Permitted'"
     },
     {
       "kind": "flood",

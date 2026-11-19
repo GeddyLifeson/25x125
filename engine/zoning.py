@@ -29,6 +29,7 @@ class Site:
     historic_rating: str | None = None
     landmark_name: str | None = None
     fire_limits: bool | None = None
+    overlays: list | None = None  # outside Chicago: [{"kind": "flood", "name": "AE"}, ...]
     use_now: str | None = None
     units_now: int | None = None
     block_lots: int | None = None
@@ -418,8 +419,45 @@ def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Re
     return res
 
 
-def _flags(site: Site, rules: Rules) -> list[Flag]:
+# FEMA zones inside the special flood hazard area (the 1% annual chance flood): flood insurance is required
+# with a federally backed mortgage, and the lowest floor must sit at or above the base flood elevation.
+SFHA_ZONES = ("A", "AE", "AH", "AO", "AR", "A99", "V", "VE")
+
+
+def _overlay_flags(site: Site) -> list[Flag]:
+    """Flags for the region overlays that limit building or add cost. Other overlays are listed on the
+    parcel page but raise no flag."""
     out = []
+    for o in site.overlays or []:
+        kind, name = o.get("kind") or "", (o.get("name") or "").strip()
+        if kind.startswith("flood") and name.upper() in SFHA_ZONES:
+            out.append(Flag("flood", f"FEMA flood zone {name}: flood insurance is required with most mortgages, and"
+                            " the lowest floor must be at or above the base flood elevation.", "FEMA flood map"))  # fmt: skip
+        elif kind.startswith("flood") and name.upper() == "FLOODWAY":
+            out.append(Flag("floodway", "In the regulatory floodway: new buildings are usually not allowed.",
+                            "FEMA flood map"))  # fmt: skip
+        elif kind.startswith("historic") or kind == "landmark":
+            out.append(Flag("historic", f"Historic district or landmark: {name}. Demolition and exterior changes"
+                            " need review by the city's historic commission.", kind.replace("_", " ")))  # fmt: skip
+        elif kind.startswith("conservation") or kind in ("nccd", "nso"):
+            out.append(Flag("conservation", f"Conservation or neighborhood overlay: {name}. It can change lot size,"
+                            " height and design rules; check the overlay text.", kind.replace("_", " ")))  # fmt: skip
+        elif kind in ("special_minimum_lot_size", "special_minimum_building_line", "deed_restrictions"):
+            out.append(Flag(kind, f"{kind.replace('_', ' ').capitalize()} area ({name}): smaller lots or added"
+                            " units may not be allowed here.", kind.replace("_", " ")))  # fmt: skip
+        elif kind == "coastal_high_hazard":
+            out.append(Flag(kind, "Coastal high hazard area: added building and density limits apply.",
+                            kind.replace("_", " ")))  # fmt: skip
+    seen, uniq = set(), []
+    for f in out:
+        if (f.id, f.text) not in seen:
+            seen.add((f.id, f.text))
+            uniq.append(f)
+    return uniq
+
+
+def _flags(site: Site, rules: Rules) -> list[Flag]:
+    out = _overlay_flags(site)
     if site.historic_rating in ("Red", "Orange"):
         out.append(Flag("historic", f"Historic survey rating {site.historic_rating}: 90-day hold on a demolition permit.",
                         "Demolition Delay Ordinance (Chicago Historic Resources Survey)"))  # fmt: skip
