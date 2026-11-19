@@ -16,8 +16,11 @@ from jobs.common import text, upsert
 
 POINT_HALF_DEG = 0.00003  # about 3 m each side of the point
 COLUMNS = ["kind", "source_id", "name", "rating", "attrs", "the_geom", "source_pull_id"]
+LINE_BUFFER_M = 15  # street lines: reaches the front of the lots on both sides of a 50 to 60 ft right of way
+_G = "st_setsrid(st_geomfromgeojson(the_geom), 4326)"
 GEOM = {
-    "geom": "st_multi(st_collectionextract(st_makevalid(st_setsrid(st_geomfromgeojson(the_geom), 4326)), 3))"
+    "geom": f"st_multi(st_collectionextract(st_makevalid(case when geometrytype({_G}) like '%LINESTRING' "
+    f"then st_buffer({_G}::geography, {LINE_BUFFER_M})::geometry else {_G} end), 3))"
 }
 
 
@@ -35,7 +38,11 @@ def to_rows(page: list[dict], layer: dict, key: str, prefix: str, pull_id: int):
             g = {"type": "Polygon", "coordinates": [[[x - d, y - d], [x + d, y - d], [x + d, y + d], [x - d, y + d],
                                                       [x - d, y - d]]]}  # fmt: skip
             attrs["point"] = True
-        if not g or g.get("type") not in ("Polygon", "MultiPolygon"):
+        if g and g.get("type") in ("LineString", "MultiLineString"):
+            # Street layers (Houston's restricted driveway access streets): GEOM buffers the line, and
+            # build_region matches it to the lots whose outlines it touches.
+            attrs["line"] = True
+        elif not g or g.get("type") not in ("Polygon", "MultiPolygon"):
             continue
         name = text(props.get(field)) if field else None
         yield (layer["kind"], f"{prefix}{props.get(key)}", name or layer.get("label") or layer["kind"], None,

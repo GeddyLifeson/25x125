@@ -458,6 +458,9 @@ def _overlay_flags(site: Site) -> list[Flag]:
         elif kind in ("special_minimum_lot_size", "special_minimum_building_line", "deed_restrictions"):
             out.append(Flag(kind, f"{kind.replace('_', ' ').capitalize()} area ({name}): smaller lots or added"
                             " units may not be allowed here.", kind.replace("_", " ")))  # fmt: skip
+        elif kind in ("restricted_driveway_access", "walkable_places_tod"):
+            out.append(Flag("driveway", f"Fronts a street with limited driveway access ({name}): new lots may need"
+                            " access from another street or a shared drive.", kind.replace("_", " ")))  # fmt: skip
         elif kind == "coastal_high_hazard":
             out.append(Flag(kind, "Coastal high hazard area: added building and density limits apply.",
                             kind.replace("_", " ")))  # fmt: skip

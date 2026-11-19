@@ -119,12 +119,12 @@ from (
   from (
     select p.pin, o.kind, o.name from parcel p join region_overlay_part o on st_contains(o.geom, p.geom)
     union
-    -- point layers (landmarks): the lot whose outline the point touches
+    -- point and street layers (landmarks, driveway access streets): the lots whose outlines they touch
     select s.pin, o.kind, o.name
     from overlay o
     join parcel_shape sh on st_intersects(sh.geom, o.geom)
     join parcel_site s on s.pin10 = sh.pin10
-    where (o.attrs->>'point')::boolean
+    where (o.attrs->>'point')::boolean or (o.attrs->>'line')::boolean
   ) m
   group by pin
 ) x where ps.pin = x.pin;

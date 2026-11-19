@@ -336,8 +336,8 @@ def test_overlay_points_become_small_squares():
             "geometry": {"type": "Point", "coordinates": [-97.7, 30.2]},
         },
         {
-            "properties": {"OBJECTID": 8, "NAME": "Line"},
-            "geometry": {"type": "LineString", "coordinates": [[0, 0], [1, 1]]},
+            "properties": {"OBJECTID": 8, "NAME": "Points"},
+            "geometry": {"type": "MultiPoint", "coordinates": [[0, 0], [1, 1]]},
         },
     ]
     rows = list(
@@ -349,3 +349,17 @@ def test_overlay_points_become_small_squares():
     assert json.loads(attrs)["point"] is True
     ring = json.loads(geom)["coordinates"][0]
     assert len(ring) == 5 and abs(ring[0][0] - (-97.7)) < 0.0001
+
+
+def test_overlay_lines_are_kept_for_buffering():
+    from jobs.load_region_overlays import GEOM, to_rows
+
+    page = [{"properties": {"OBJECTID": 3, "ST": "Main"},
+             "geometry": {"type": "LineString", "coordinates": [[-95.36, 29.76], [-95.35, 29.76]]}}]  # fmt: skip
+    rows = list(
+        to_rows(
+            page, {"kind": "restricted_driveway_access", "url": "u", "name_field": "ST"}, "OBJECTID", "13-", 1
+        )
+    )
+    assert len(rows) == 1 and json.loads(rows[0][4])["line"] is True
+    assert "st_buffer" in GEOM["geom"]
