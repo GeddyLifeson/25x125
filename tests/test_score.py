@@ -104,3 +104,12 @@ def test_score_sql_lists_every_site_field():
     renamed = {"lots": "block_lots", "multi_lots": "block_multi_lots", "single_lots": "block_single_lots",
                "two_flat_lots": "block_two_flat_lots", "vacant_lots": "block_vacant_lots"}  # fmt: skip
     assert [renamed.get(n, n) for n in names] == FIELDS
+
+
+def test_region_overlays_add_penalties():
+    s = score_lot(row(overlays=[{"kind": "flood", "name": "AE"}, {"kind": "historic", "name": "Hyde Park"}]),
+                  W, RULES, ctx(), sale_for, [], TODAY)  # fmt: skip
+    assert set(s["details"]["penalties"]) == {"flood_zone", "historic_overlay"}
+    assert s["penalties"] == -15
+    s = score_lot(row(overlays=[{"kind": "flood", "name": "X"}]), W, RULES, ctx(), sale_for, [], TODAY)
+    assert s["penalties"] == 0

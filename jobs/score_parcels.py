@@ -33,7 +33,7 @@ from engine.parcel_feasibility import (
 )
 from engine.rules import Rules
 from engine.sites import FIELDS, _site
-from engine.zoning import evaluate
+from engine.zoning import _overlay_flags, evaluate
 
 CELL = 0.005
 
@@ -149,6 +149,16 @@ def score_lot(row, w: dict, rules: Rules, ctx: dict, sale_for, sur_match: list[s
         "landmark_district": bool(site.landmark_name),
         "606_pilsen_surcharge": any(m in (site.special_district or "") for m in sur_match),
         "fire_limits": bool(site.fire_limits),
+    }
+    ov = {f.id for f in _overlay_flags(site)}
+    pen |= {
+        "flood_zone": "flood" in ov,
+        "floodway": "floodway" in ov,
+        "historic_overlay": "historic" in ov,
+        "conservation_overlay": "conservation" in ov,
+        "lot_size_overlay": bool(
+            ov & {"special_minimum_lot_size", "special_minimum_building_line", "deed_restrictions"}
+        ),
     }
     det["penalties"] = [k for k, v in pen.items() if v]
     pen_pts = max(sum(pp[k] for k in det["penalties"]), w["penalties"]["min_total"])
