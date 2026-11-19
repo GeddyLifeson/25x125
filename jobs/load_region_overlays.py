@@ -57,7 +57,7 @@ def region_bbox(conn) -> str | None:
 
 
 def run(url: str | None = None, client_for=ArcGIS, only: str | None = None) -> dict:
-    layers = [x for x in region.current().get("overlay_layers") or [] if x.get("url")]
+    layers = [x for x in region.current().get("overlay_layers") or [] if x.get("url") and not x.get("skip")]
     out = {}
     with connect(url) as conn:
         bbox = region_bbox(conn)

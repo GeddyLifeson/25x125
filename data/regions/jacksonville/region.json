@@ -49,7 +49,9 @@
       "kind": "flood",
       "url": "https://maps.coj.net/coj/rest/services/CityBiz/Parcels/MapServer/0",
       "name_field": "FLD_ZONE",
-      "note": "Same city parcel layer. FLD_ZONE lists every FEMA zone touching the parcel, comma separated."
+      "note": "Same city parcel layer. FLD_ZONE lists every FEMA zone touching the parcel, comma separated.",
+      "skip": true,
+      "why_skip": "Loading 409,714 parcel outlines as flood overlays ran past 90 minutes on 2026-11-19. The FEMA layer above covers the same zones; this one stays listed as a cross-check."
     },
     {
       "kind": "historic",
@@ -61,7 +63,9 @@
       "kind": "airport_military",
       "url": "https://maps.coj.net/coj/rest/services/CityBiz/Parcels/MapServer/0",
       "name_field": "APZ",
-      "note": "Same city parcel layer. Fields APZ, AICUZ, CVLSCHZ, MLTSCHZ and the notice fields mark airport and military zones (Part 10 of the Zoning Code). Field meanings not confirmed."
+      "note": "Same city parcel layer. Fields APZ, AICUZ, CVLSCHZ, MLTSCHZ and the notice fields mark airport and military zones (Part 10 of the Zoning Code). Field meanings not confirmed.",
+      "skip": true,
+      "why_skip": "Loading 409,714 parcel outlines as flood overlays ran past 90 minutes on 2026-11-19. The FEMA layer above covers the same zones; this one stays listed as a cross-check."
     }
   ],
   "permit_source": {
