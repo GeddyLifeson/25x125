@@ -216,9 +216,16 @@ def run(url: str | None = None, limit: int | None = None) -> dict:
             for r in out:
                 cp.write_row([json.dumps(r[c]) if c == "details" else r.get(c) for c in COLUMNS])
         conn.commit()
-    res = {"lots": len(out), "errors": errors, "sale_cells": len(sales), "seconds": round(time.time() - t0)}
+    res = {
+        "lots": len(out),
+        "errors": errors,
+        "sale_cells": len(sales),
+        "sale_estimates": sum(v is not None for v in sales.values()),
+        "seconds": round(time.time() - t0),
+    }
     print(
-        f"scored {res['lots']:,} lots ({errors} errors), {res['sale_cells']:,} sale estimates, {res['seconds']}s"
+        f"scored {res['lots']:,} lots ({errors} errors), {res['sale_cells']:,} map cells searched for comps,"
+        f" {res['sale_estimates']:,} with a sale estimate, {res['seconds']}s"
     )
     return res
 

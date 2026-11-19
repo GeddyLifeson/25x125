@@ -197,3 +197,47 @@ def test_tcad_fixed_width_row():
     assert row["address"] == "1105 LAMAR BLVD" and row["zip"] == "78704" and row["nbhd"] == "SC"
     put(13, "P")
     assert load_tcad.prop_row("".join(line)) is None
+
+
+def test_florida_countywide_comps_only_newer_homes():
+    from jobs import load_fl_dor
+
+    county = {"tax_auth_prefixes": ["01"], "comps_countywide": {"built_since": 2014}}
+    assert load_fl_dor.in_region({"TAX_AUTH_CD": "0100", "DOR_UC": "017"}, county, set())
+    outside = {"TAX_AUTH_CD": "2200", "DOR_UC": "001", "ACT_YR_BLT": "2020", "NO_RES_UNTS": "1"}
+    assert load_fl_dor.in_region(outside, county, set())
+    assert not load_fl_dor.in_region({**outside, "ACT_YR_BLT": "1990"}, county, set())
+    assert not load_fl_dor.in_region({**outside, "DOR_UC": "000"}, county, set())
+    assert not load_fl_dor.in_region({**outside, "NO_RES_UNTS": "12"}, county, set())
+    assert not load_fl_dor.in_region(outside, {"tax_auth_prefixes": ["01"]}, set())
+
+
+def test_city_step_paths_orlando(in_region):
+    from engine import zoning
+    from engine.rules import Rules
+
+    in_region("orlando")
+    rules = Rules.from_files()
+    d = rules.district_for("R-2B")
+    assert d is not None and d.lot_area_per_unit_sqft
+    big = zoning._step_paths(
+        zoning.Site(pin="1", zone_class="R-2B", lot_sqft=20000, frontage_ft=60), rules, d, 20000
+    )
+    ids = {p.id: p.units for p in big}
+    assert ids["duplex_lot"] == 2 and 3 <= ids["multiplex"] <= 5
+    small = zoning._step_paths(
+        zoning.Site(pin="1", zone_class="R-2B", lot_sqft=4000, frontage_ft=40), rules, d, 4000
+    )
+    assert "duplex_lot" not in {p.id for p in small}
+
+
+def test_city_step_paths_austin_home(in_region):
+    from engine import zoning
+    from engine.rules import Rules
+
+    in_region("austin")
+    rules = Rules.from_files()
+    d = rules.district_for("SF-3")
+    site = zoning.Site(pin="1", zone_class="SF-3", lot_sqft=6000, frontage_ft=50)
+    assert {p.id: p.units for p in zoning._step_paths(site, rules, d, 6000)}["home_two_and_three_units"] == 3
+    assert not zoning._step_paths(zoning.Site(pin="1", zone_class="SF-3", lot_sqft=5000), rules, d, 5000)

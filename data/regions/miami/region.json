@@ -13,7 +13,11 @@
       "shape_epsg": 2881,
       "tax_auth_prefixes": [
         "01"
-      ]
+      ],
+      "comps_countywide": {
+        "built_since": 2014,
+        "note": "Miami proper had 197 new-build sales on the 2026 roll. Newer 1-6 unit homes elsewhere in Miami-Dade are loaded as comps only: they have no zoning area, so they are never scored, and the comp rings still prefer sales within 0.75 and 1.5 miles."
+      }
     }
   ],
   "city_filter": {

@@ -70,12 +70,26 @@ def fetch(url: str, opener=urllib.request.urlopen) -> Path:
     return folder
 
 
-def in_region(row: dict, county: dict, cities: set[str]) -> bool:
+def in_city(row: dict, county: dict, cities: set[str]) -> bool:
     codes, prefixes = county.get("tax_auth_codes") or [], tuple(county.get("tax_auth_prefixes") or [])
     if codes or prefixes:
         code = (row.get("TAX_AUTH_CD") or "").strip()
         return code in codes or bool(prefixes and code.startswith(prefixes))
     return not cities or (row.get("PHY_CITY") or "").strip().upper() in cities
+
+
+def comp_only(row: dict, county: dict) -> bool:
+    """A newer 1-6 unit home elsewhere in the county, loaded only so it can serve as a comp
+    (county `comps_countywide`: {"built_since": year}). It has no zoning area, so it is never scored."""
+    wide = county.get("comps_countywide")
+    if not wide or use_group(row.get("DOR_UC")) not in ("single", "multi", "condo"):
+        return False
+    built = integer(row.get("ACT_YR_BLT")) or 0
+    return built >= wide.get("built_since", 0) and (integer(row.get("NO_RES_UNTS")) or 1) <= 6
+
+
+def in_region(row: dict, county: dict, cities: set[str]) -> bool:
+    return in_city(row, county, cities) or comp_only(row, county)
 
 
 def sales_of(row: dict) -> Iterator[tuple]:
