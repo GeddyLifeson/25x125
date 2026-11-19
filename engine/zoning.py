@@ -190,35 +190,41 @@ def _step_paths(site: Site, rules: Rules, d: District, lot: float) -> list[Path]
     example). A step takes part when its params carry `engine_path`:
     {"units": 2} for a fixed count, or {"units": "density"} for lot area / the district's lot area per unit,
     with optional "min_units", "max_units", "max_units_by_district" and "round_up_from" (0.5 rounds halves up).
-    Eligibility: the district is in `by_district` (or a key of `min_lot_sqft`), the lot meets `min_lot_sqft`
-    and, when the frontage is known, `min_lot_width_ft`."""
+    "lot_area_per_unit_sqft" replaces the district's figure for this path, and "units_per_lot" multiplies the
+    count (Houston: two units on each 3,500 sq ft lot). Eligibility: the district is in `by_district`,
+    `districts` or `applies_to` (or a key of `min_lot_sqft`), the lot meets `min_lot_sqft` and, when the
+    frontage is known, `min_lot_width_ft`. "min_lot_sqft" and "min_lot_width_ft" inside engine_path take
+    precedence over the step's own."""
     out = []
     for sid, step in rules.steps.items():
         prm = (step or {}).get("params") or {}
         ep = prm.get("engine_path")
         if not ep:
             continue
-        lot_rule = prm.get("min_lot_sqft", prm.get("min_lot_area_sqft"))
+        lot_rule = ep.get("min_lot_sqft", prm.get("min_lot_sqft", prm.get("min_lot_area_sqft")))
         districts = (
             prm.get("by_district")
             or prm.get("districts")
+            or prm.get("applies_to")
             or (list(lot_rule) if isinstance(lot_rule, dict) else [])
         )
         if d.name not in districts:
             continue
         min_lot = _by_district(lot_rule, d.name)
-        min_w = _by_district(prm.get("min_lot_width_ft"), d.name)
+        min_w = _by_district(ep.get("min_lot_width_ft", prm.get("min_lot_width_ft")), d.name)
         if min_lot and lot < min_lot:
             continue
         if min_w and site.frontage_ft and site.frontage_ft < min_w - 0.5:
             continue
         if ep.get("units") == "density":
-            if not d.lot_area_per_unit_sqft:
+            lapu = ep.get("lot_area_per_unit_sqft") or d.lot_area_per_unit_sqft
+            if not lapu:
                 continue
-            raw = lot / d.lot_area_per_unit_sqft
+            raw = lot / lapu
             n = int(raw + (1 - ep["round_up_from"])) if ep.get("round_up_from") else int(raw)
         else:
             n = int(ep["units"])
+        n *= int(ep.get("units_per_lot", 1))
         cap = (ep.get("max_units_by_district") or {}).get(d.name, ep.get("max_units"))
         n = min(n, cap) if cap else n
         if n < ep.get("min_units", 1):

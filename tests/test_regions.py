@@ -265,3 +265,21 @@ def test_permits_year_built_keeps_finished_new_buildings():
         {"id": "D", "t": "Residential New", "s": "CO Issued", "d": "", "y": "33.7", "x": "-84.4"},
     ]
     assert lp.finished(rows, cfg) == [("A", 2022, 33.7, -84.4)]
+
+
+def test_city_step_paths_houston(in_region):
+    from engine import zoning
+    from engine.rules import Rules
+
+    in_region("houston")
+    rules = Rules.from_files()
+    d = rules.district_for("FULL")
+    assert d is not None and d.name == "City of Houston (no zoning)"
+
+    def paths(lot, width=None):
+        site = zoning.Site(pin="1", zone_class="FULL", lot_sqft=lot, frontage_ft=width)
+        return {p.id: p.units for p in zoning._step_paths(site, rules, d, lot)}
+
+    assert paths(5000, 50) == {"units_by_right": 2, "reduced_lot_size": 3, "multi_unit_residential": 4}
+    assert paths(7000, 40)["units_by_right"] == 4 and "multi_unit_residential" not in paths(7000, 40)
+    assert paths(3000) == {}
