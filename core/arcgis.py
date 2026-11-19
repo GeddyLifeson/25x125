@@ -88,6 +88,7 @@ class ArcGIS:
         Pages by key (`key > last seen`), which stays fast deep into a large layer where offsets slow down.
         """
         last = None
+        empty_tries = 0
         fields = out_fields if out_fields == "*" or key in out_fields.split(",") else f"{out_fields},{key}"
         while True:
             page_where = where if last is None else f"({where}) and {key} > {last}"
@@ -111,9 +112,23 @@ class ArcGIS:
                 continue
             feats = body.get("features", [])
             if not feats:
-                return
+                # Some servers now and then answer a page with no rows although rows remain (Houston's flood
+                # layer did on 2026-11-19). Ask for the count before ending the layer.
+                count_params = {k: v for k, v in params.items() if k not in ("outFields", "outSR", "orderByFields",
+                                                                             "resultRecordCount")}  # fmt: skip
+                left = self.query({**count_params, "returnCountOnly": "true", "f": "json"}).get("count", 0)
+                if not left:
+                    return
+                empty_tries += 1
+                if empty_tries > 3:
+                    raise ArcGISError(
+                        f"{self.layer_url}: empty pages while {left} rows remain past {key} {last}"
+                    )
+                self._sleep(self.backoff * 2**empty_tries)
+                continue
+            empty_tries = 0
             yield feats
             last = feats[-1]["properties"][key]
             # Some servers cap pages below the size asked for (Hillsborough County returns 999 of 1,000) and
-            # never set exceededTransferLimit in GeoJSON, so only an empty page ends the layer. That costs one
-            # extra request per layer.
+            # never set exceededTransferLimit in GeoJSON, so only an empty page ends the layer, and only once a count
+            # confirms nothing is left. That costs two extra requests per layer.
