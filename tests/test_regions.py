@@ -306,6 +306,7 @@ def test_overlay_flags():
     assert flags({"kind": "flood", "name": "X, AE"}) == [("flood", "FEMA flood zone AE: flood insu")]
     assert flags({"kind": "flood_floodway", "name": "FLOODWAY"})[0][0] == "floodway"
     assert flags({"kind": "flood_500yr", "name": "X"}) == []
+    assert flags({"kind": "airport_military", "name": "NASJAX-1"})[0][0] == "airport"
     assert (
         flags({"kind": "flood", "name": "City of Austin Fully Developed 100-Year Floodplain"})[0][0]
         == "flood"

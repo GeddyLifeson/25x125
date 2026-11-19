@@ -62,10 +62,11 @@
     {
       "kind": "airport_military",
       "url": "https://maps.coj.net/coj/rest/services/CityBiz/Parcels/MapServer/0",
-      "name_field": "APZ",
+      "name_field": "AICUZ",
       "note": "Same city parcel layer. Fields APZ, AICUZ, CVLSCHZ, MLTSCHZ and the notice fields mark airport and military zones (Part 10 of the Zoning Code). Field meanings not confirmed.",
-      "skip": true,
-      "why_skip": "Loading 409,714 parcel outlines as flood overlays ran past 90 minutes on 2026-11-19. The FEMA layer above covers the same zones; this one stays listed as a cross-check."
+      "where": "APZ <> 'NA' OR AICUZ <> 'NA'",
+      "clip": false,
+      "why_where": "Only parcels inside an airport or military zone: 12,900 of 409,714 on 2026-11-19 (unmarked parcels read 'NA')."
     }
   ],
   "permit_source": {
