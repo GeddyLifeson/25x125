@@ -62,7 +62,10 @@
     {
       "kind": "airport_military",
       "url": "https://maps.coj.net/coj/rest/services/CityBiz/Parcels/MapServer/0",
-      "name_field": "AICUZ",
+      "name_field": [
+        "APZ",
+        "AICUZ"
+      ],
       "note": "Same city parcel layer. Fields APZ, AICUZ, CVLSCHZ, MLTSCHZ and the notice fields mark airport and military zones (Part 10 of the Zoning Code). Field meanings not confirmed.",
       "where": "APZ <> 'NA' OR AICUZ <> 'NA'",
       "clip": false,

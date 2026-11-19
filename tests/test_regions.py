@@ -364,3 +364,12 @@ def test_overlay_lines_are_kept_for_buffering():
     )
     assert len(rows) == 1 and json.loads(rows[0][4])["line"] is True
     assert "st_buffer" in GEOM["geom"]
+
+
+def test_overlay_name_from_several_fields():
+    from jobs.load_region_overlays import to_rows
+
+    page = [{"properties": {"OBJECTID": 1, "APZ": "NASJAX-42", "AICUZ": "NA"},
+             "geometry": {"type": "Polygon", "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 0]]]}}]  # fmt: skip
+    layer = {"kind": "airport_military", "url": "u", "name_field": ["APZ", "AICUZ"]}
+    assert next(to_rows(page, layer, "OBJECTID", "2-", 1))[2] == "NASJAX-42"

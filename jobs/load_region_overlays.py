@@ -44,7 +44,12 @@ def to_rows(page: list[dict], layer: dict, key: str, prefix: str, pull_id: int):
             attrs["line"] = True
         elif not g or g.get("type") not in ("Polygon", "MultiPolygon"):
             continue
-        name = text(props.get(field)) if field else None
+        if isinstance(field, list):  # several fields: join the ones that hold a value ("NA" counts as none)
+            name = (
+                ", ".join(v for v in (text(props.get(f)) for f in field) if v and v.upper() != "NA") or None
+            )
+        else:
+            name = text(props.get(field)) if field else None
         yield (layer["kind"], f"{prefix}{props.get(key)}", name or layer.get("label") or layer["kind"], None,
                json.dumps(attrs), json.dumps(g), pull_id)  # fmt: skip
 
