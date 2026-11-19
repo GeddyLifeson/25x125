@@ -64,6 +64,8 @@
     },
     {
       "kind": "flood",
+      "page_size": 100,
+      "why_page_size": "Pages of 300 large flood polygons time out on the county server (tested 2026-11-19).",
       "url": "https://maps.hillsboroughcounty.org/arcgis/rest/services/FEMA_DFIRM/DSD_Flood_Hazard_Layers2022/FeatureServer/7",
       "name_field": "FLD_ZONE",
       "note": "Hillsborough County copy of the FEMA flood hazard zones effective 2022 (detailed). SFHA_TF marks the special flood hazard area."

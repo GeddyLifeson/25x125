@@ -11,6 +11,9 @@ from collections.abc import Callable, Iterator
 RETRY_STATUS = {429, 500, 502, 503, 504}
 
 
+MIN_PAGE = 25
+
+
 class ArcGISError(RuntimeError):
     pass
 
@@ -88,17 +91,24 @@ class ArcGIS:
         fields = out_fields if out_fields == "*" or key in out_fields.split(",") else f"{out_fields},{key}"
         while True:
             page_where = where if last is None else f"({where}) and {key} > {last}"
-            body = self.query(
-                {
-                    "where": page_where,
-                    "outFields": fields,
-                    "outSR": 4326,
-                    "orderByFields": key,
-                    "resultRecordCount": page_size,
-                    "f": "geojson",
-                    **(extra or {}),
-                }
-            )
+            params = {
+                "where": page_where,
+                "outFields": fields,
+                "outSR": 4326,
+                "orderByFields": key,
+                "resultRecordCount": page_size,
+                "f": "geojson",
+                **(extra or {}),
+            }
+            try:
+                body = self.query(params)
+            except ArcGISError:
+                # A page of large polygons can time out on the server (Hillsborough flood zones return an HTML
+                # error page after about 40 seconds at 300 rows). Halve the page and try again.
+                if page_size <= MIN_PAGE:
+                    raise
+                page_size = max(MIN_PAGE, page_size // 2)
+                continue
             feats = body.get("features", [])
             if not feats:
                 return

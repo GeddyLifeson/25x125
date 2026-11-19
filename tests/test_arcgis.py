@@ -34,3 +34,23 @@ def test_features_pages_by_key():
     assert "outFields=PIN10%2COBJECTID" in urls[0]
     assert "outSR=4326" in urls[0]
     assert client.host == "gis.example.org"
+
+
+def test_features_halves_the_page_when_the_server_fails():
+    sizes = []
+
+    def opener(url, timeout):
+        size = int(url.split("resultRecordCount=")[1].split("&")[0])
+        sizes.append(size)
+        if size > 100:
+            return FakeResponse(b"<html>timeout</html>")
+        if len(sizes) > 6:
+            return FakeResponse(json.dumps({"features": []}).encode())
+        return FakeResponse(json.dumps({"features": [{"properties": {"OBJECTID": len(sizes)}}]}).encode())
+
+    client = ArcGIS(
+        "https://gis.example.org/rest/services/x/MapServer/1", opener=opener, sleep=lambda s: None, retries=0
+    )
+    pages = list(client.features("1=1", "*", page_size=400))
+    assert sizes[:3] == [400, 200, 100]
+    assert len(pages) >= 1 and all(s == 100 for s in sizes[2:])
