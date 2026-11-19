@@ -104,6 +104,7 @@ def main(argv=None) -> int:
     with connect() as conn:
         pool, index = pool_from_db(conn), index_from_db(conn)
         land, cost = land_ratio(conn), implied_cost(conn)
+        zoned = {r[0] for r in conn.execute("select pin10 from parcel_site where zone_class is not null")}
     if len(pool) < 40:
         print(f"{r['name']}: only {len(pool)} comps; nothing fitted")
         return 1
@@ -119,7 +120,11 @@ def main(argv=None) -> int:
     best = min(by_e, key=lambda e: by_e[e]["median_abs_error"])
     params = replace(params, size_elasticity={**params.size_elasticity, "building": best})
     results = loo(pool, index, params, targets, as_of)
-    band = fit_band(results)
+    # Comps outside the zoned area (county comps loaded for pricing only) are never scored, so measure the
+    # lots that are: sales inside the city. The range is fitted on those when there are 30 or more.
+    in_city = [c for c in ordered if c.pin in zoned][: a.sample]
+    city_results = loo(pool, index, params, in_city, as_of) if len(in_city) < len(pool) else None
+    band = fit_band(city_results if city_results and len(city_results) >= 30 else results)
     extra = 0.0
     if r.get("price_basis") == "appraisal district values":
         # Appraised values are smoother than sale prices, so the fitted range is too narrow. Widen it.
@@ -139,6 +144,7 @@ def main(argv=None) -> int:
         "test_set_inside_range": round(sum(inside) / len(inside), 3) if inside else None,
         "appraiser_land": land, "implied_construction_cost": cost, "range_widened_by": extra,
         "basis": r.get("price_basis"),
+        "leave_one_out_in_city": summary(city_results) if city_results is not None else "same as leave_one_out",
     }  # fmt: skip
     print(json.dumps(report, indent=2))
     if a.write:

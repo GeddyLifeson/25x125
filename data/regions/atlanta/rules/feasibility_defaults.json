@@ -1,0 +1,39 @@
+{
+  "extends": true,
+  "sale_comps": {
+    "method": {
+      "size_elasticity": {
+        "building": 0.0,
+        "condo": 0.5
+      }
+    }
+  },
+  "calibration": {
+    "region": "atlanta",
+    "computed_on": "2026-11-19",
+    "comps": 2189,
+    "sales_from": "2025-01-01",
+    "sales_to": "2025-01-01",
+    "size_elasticity": 0.0,
+    "leave_one_out": {
+      "n": 800,
+      "median_abs_error": 0.4269,
+      "within_15pct": 0.182
+    },
+    "test_set": {
+      "n": 35,
+      "median_abs_error": 0.3879,
+      "within_15pct": 0.171
+    },
+    "test_set_inside_range": 0.943,
+    "appraiser_land": null,
+    "implied_construction_cost": null,
+    "range_widened_by": 0.1,
+    "basis": "appraisal district values",
+    "leave_one_out_in_city": {
+      "n": 800,
+      "median_abs_error": 0.4269,
+      "within_15pct": 0.182
+    }
+  }
+}

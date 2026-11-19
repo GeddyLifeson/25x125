@@ -241,3 +241,27 @@ def test_city_step_paths_austin_home(in_region):
     site = zoning.Site(pin="1", zone_class="SF-3", lot_sqft=6000, frontage_ft=50)
     assert {p.id: p.units for p in zoning._step_paths(site, rules, d, 6000)}["home_two_and_three_units"] == 3
     assert not zoning._step_paths(zoning.Site(pin="1", zone_class="SF-3", lot_sqft=5000), rules, d, 5000)
+
+
+def test_permits_year_built_keeps_finished_new_buildings():
+    from jobs import load_permits_year_built as lp
+
+    cfg = {
+        "types": ["Residential New"],
+        "done_statuses": ["CO Issued"],
+        "fields": {"id": "id", "type": "t", "status": "s", "status_date": "d", "lat": "y", "lon": "x"},
+    }
+    rows = [
+        {"id": "A", "t": "Residential New", "s": "CO Issued", "d": "3/4/2022", "y": "33.7", "x": "-84.4"},
+        {"id": "B", "t": "Residential New", "s": "Issued", "d": "3/4/2022", "y": "33.7", "x": "-84.4"},
+        {
+            "id": "C",
+            "t": "Residential Alteration",
+            "s": "CO Issued",
+            "d": "3/4/2022",
+            "y": "33.7",
+            "x": "-84.4",
+        },
+        {"id": "D", "t": "Residential New", "s": "CO Issued", "d": "", "y": "33.7", "x": "-84.4"},
+    ]
+    assert lp.finished(rows, cfg) == [("A", 2022, 33.7, -84.4)]

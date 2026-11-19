@@ -82,3 +82,24 @@ Dead ends:
 - DeKalb County (the east part of Atlanta): no sales layer found.
 
 So for 2023 onward the options are appraised values (label them as values, with a wider range) or asking Fulton County for a newer copy of the yearly sales layer.
+
+## Comp pool (added 2026-11-19)
+
+Atlanta's free parcel layer has the appraised value and units but no year built or floor area. The comp pool now
+comes from the City of Atlanta permit export (2019-2024): a lot with a finished "Residential New" permit (CO issued,
+complete, closed or no CO required) takes the permit's status year as its year built, and its 2025 Fulton
+appraised value becomes an appraised-value comp, as in Texas (`jobs/load_permits_year_built.py`).
+
+Measured with `python -m jobs.check_region`:
+
+| | |
+|---|---|
+| Finished new-house permits | 1,734 |
+| Comps kept | 2,189 |
+| Leave-one-out median error (800) | 42.7%, 18.2% within 15% |
+| Fitted 80% range | -73% to +148% (after the 10-point appraisal widening) |
+
+The error is high because the pool has no floor area: a 1,600 sq ft townhome and a 4,500 sq ft house a few blocks
+apart are priced as the same unit. Counting "Multi Family New" permits too made it worse (43.7%), because condo unit
+parcels under a new building took the building's year. A free per-parcel floor area source would fix most of this;
+none has been found (Fulton's qPublic pages show it but are not a bulk download).

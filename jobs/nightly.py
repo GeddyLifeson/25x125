@@ -52,7 +52,15 @@ from jobs import (
 
 def region_steps(skip_yearly: bool) -> list[tuple[str, Callable]]:
     """A region outside Chicago: its parcel loader, its zoning layer, then the shared builders."""
-    from jobs import build_region, load_arcgis_parcels, load_dcad, load_fl_dor, load_tcad, load_zoning_layer
+    from jobs import (
+        build_region,
+        load_arcgis_parcels,
+        load_dcad,
+        load_fl_dor,
+        load_permits_year_built,
+        load_tcad,
+        load_zoning_layer,
+    )
 
     r = region.current()
     loaders = {
@@ -68,7 +76,12 @@ def region_steps(skip_yearly: bool) -> list[tuple[str, Callable]]:
         ("parcels, values, sales and lot shapes", lambda: loader()),
         ("house price index", lambda: load_hpi.run()),
     ]
-    return ([] if skip_yearly else yearly) + [
+    permits = (
+        [("year built from finished permits", lambda: load_permits_year_built.run())]
+        if r.get("permits_year_built")
+        else []
+    )
+    return ([] if skip_yearly else yearly + permits) + [
         ("zoning", lambda: load_zoning_layer.run()),
         ("cost escalation", lambda: load_cost_escalation.run()),
         ("rules", lambda: seed_rules.run()),
