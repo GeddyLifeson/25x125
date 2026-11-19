@@ -90,6 +90,16 @@ MRED data isn't in version 1. Marlon is handling the license separately. Don't b
 
 25x125 is the development pipeline. Interim (short-term space for film productions and pop-up stores) and the wholesale tools are separate brands with their own names, sites and pricing on a shared account system. Keep them apart in code (separate app routes or apps, shared core packages). None of them are in version 1.
 
+## Three-step verification (every change, every session)
+
+Nothing is called done, fixed, loaded or working until all three steps pass and their output is shown. Source: Marlon's master CLAUDE.md (https://github.com/GeddyLifeson/DiaithirRPG/blob/engine/docs/MASTER_CLAUDE.md, branch `engine`, commit 2d6d29c, read 2026-11-19): section 4a "Test steps before anything is called ready" (install check, boot check, real join at spawn) and section 9 "Done means proven: show the command, its output and exit code". Marlon asked on 2026-11-19 that it apply to everything in 25x125.
+
+1. **Checks pass.** Run the tests and checks for what changed (`python -m pytest tests/...`, `npm run build` or the type check in `web/`, a loader's row count against the source). Show the command, its output and the exit code. A nonzero exit or a stall gets diagnosed before the next step; after two failed fixes, stop and change approach.
+2. **It runs for real.** Start the real thing, not a mock: run the loader or nightly job against Postgres, start the FastAPI engine, build and start the web app or desktop app. Read the log. It must finish, and show no new ERROR lines compared with the run you started from. For data, check the row count and a few rows against the portal.
+3. **A real-world check.** Look at the result the way a user would: open the screen or call the endpoint for a real Chicago parcel (the acceptance set in `data/reference/test_parcels.csv` first) and confirm the number, its source and its date. Check only the thing that changed. If a live check can't run in this session, say so plainly ("no live check: <reason>") and don't call it done.
+
+Report the three results in the reply or PR. Skipping a step is reported as skipped, never as passed.
+
 ## Writing
 
 Anything user-facing (UI copy, README, docs, commit messages) is plain English. No filler, no hype, no "not X, it's Y" phrasing. Short sentences. Numbers over adjectives.
