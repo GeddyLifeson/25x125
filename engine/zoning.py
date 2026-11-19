@@ -320,8 +320,12 @@ def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Re
     if adu_ok:
         base = max(p.units for p in res.paths if p.approval == "none (permit only)")
         by_map = d.name in by_map_list
-        note = f"ADU zone {site.adu_zone}: {site.adu_limits}" if by_map else "ADU allowed in this district"
-        if by_map:
+        note = (
+            f"ADU zone {site.adu_zone}" + (f": {site.adu_limits}" if site.adu_limits else "")
+            if by_map
+            else "ADU allowed in this district"
+        )
+        if by_map and region.is_chicago():
             cap = adu["annual_cap_per_block_face"].get(d.name)
             note += f"; yearly cap of {cap} per block face and opposite face" if cap else ""
             note += "; owner must live on site if the main building is a house"
@@ -330,7 +334,9 @@ def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Re
                 note += f", up to {adu['max_sqft']:,.0f} sq ft"
             if adu.get("owner_occupancy"):
                 note += "; owner must live on site"
-        approval = adu["by_map_approval"] if by_map else adu.get("approval", "ADU permit (as of right)")
+        approval = (
+            adu.get("by_map_approval", adu.get("approval")) if by_map else adu.get("approval")
+        ) or "ADU permit (as of right)"
         p = _path(
             rules, site, d, "adu", "By right plus ADU", approval, base + adu.get("units", 1), notes=[note]
         )

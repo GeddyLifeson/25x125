@@ -294,3 +294,18 @@ def test_overlay_flags():
     ])  # fmt: skip
     ids = [f.id for f in zoning._overlay_flags(site)]
     assert ids == ["flood", "historic", "special_minimum_lot_size"]
+
+
+def test_tampa_adu_needs_the_eligible_area(in_region):
+    from engine import zoning
+    from engine.rules import Rules
+
+    in_region("tampa")
+    rules = Rules.from_files()
+    out = zoning.evaluate(zoning.Site(pin="1", zone_class="RS-50", lot_sqft=6000, frontage_ft=50), rules)
+    inside = zoning.evaluate(
+        zoning.Site(pin="1", zone_class="RS-50", lot_sqft=6000, frontage_ft=50, adu_zone="ADU Permitted"),
+        rules,
+    )
+    assert "adu" not in {p.id for p in out.paths}
+    assert "adu" in {p.id for p in inside.paths}

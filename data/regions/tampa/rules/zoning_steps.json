@@ -6,7 +6,18 @@
       "rule": "+1 accessory dwelling unit on a lot with a single-family house, only inside the city's ADU eligible areas: west of North Boulevard, south of Dr. Martin Luther King Jr. Boulevard and east and north of the Hillsborough River; between Busch Boulevard and Hillsborough Avenue; south of Hillsborough Avenue, east of Armenia Avenue, west of the river and north of Dr. Martin Luther King Jr. Boulevard; the East Tampa Overlay; the Tampa Heights Overlay. Up to 950 sq ft of living space. The owner must live on the property (main house or ADU). No more than 2 unrelated occupants. S-1 special use permit from the zoning administrator, reviewed yearly; permitted use (no special use permit) in the Tampa Heights Overlay. Outside the eligible areas only an Extended Family Residence is allowed (600 sq ft, relatives only, no rent).",
       "params": {
         "units": 1,
-        "by_district": [
+        "max_sqft": 950,
+        "owner_occupancy": true,
+        "approval": "S-1 special use permit (zoning administrator); permitted use in the Tampa Heights Overlay",
+        "max_unrelated_occupants": 2,
+        "eligible_area_layer": "https://arcgis.tampagov.net/arcgis/rest/services/OpenData/Planning/MapServer/37",
+        "eligible_area_field": "CRITERIA",
+        "eligible_area_values": [
+          "ADU - Special Use Required",
+          "ADU Permitted"
+        ],
+        "not_eligible_value": "ADU Not Permitted",
+        "by_map": [
           "RS-150",
           "RS-100",
           "RS-75",
@@ -22,17 +33,8 @@
           "CN",
           "SH-RS"
         ],
-        "max_sqft": 950,
-        "owner_occupancy": true,
-        "approval": "S-1 special use permit (zoning administrator); permitted use in the Tampa Heights Overlay",
-        "max_unrelated_occupants": 2,
-        "eligible_area_layer": "https://arcgis.tampagov.net/arcgis/rest/services/OpenData/Planning/MapServer/37",
-        "eligible_area_field": "CRITERIA",
-        "eligible_area_values": [
-          "ADU - Special Use Required",
-          "ADU Permitted"
-        ],
-        "not_eligible_value": "ADU Not Permitted"
+        "by_district": [],
+        "by_map_note": "Districts move from by_district to by_map on 2026-11-19: an ADU needs both the district and the city's ADU eligible area layer (loaded as overlay kind adu_area, CRITERIA other than 'ADU Not Permitted')."
       },
       "section": "Sec. 27-156 Table 4-1 note 17; Sec. 27-132 (Accessory dwelling unit); Sec. 27-211.8 Table SH-25.1; Sec. 27-244 (Tampa Heights Overlay)",
       "source_url": "https://www.zoneomics.com/code/tampa-FL/chapter_3",
