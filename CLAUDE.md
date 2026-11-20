@@ -92,7 +92,7 @@ MRED data isn't in version 1. Marlon is handling the license separately. Don't b
 
 ## Triple-check everything (every diagnosis, fix and "done")
 
-Source: essential 10 of Marlon's master CLAUDE.md (`E:\\mnt\\project-files\\CLAUDE.md` on his PC; read 2026-11-20). Marlon set it on 2026-11-17 and on 2026-11-19 made it standing "for everything", including 25x125. The master's words:
+Source: essential 10 of Marlon's master CLAUDE.md (`E:\mnt\project-files\CLAUDE.md` on his PC; read 2026-11-20). Marlon set it on 2026-11-17 and on 2026-11-19 made it standing "for everything", including 25x125. The master's words:
 
 > Every diagnosis, fix and "done" is confirmed three independent ways before it is reported: for example the log or test, a direct measurement or record (the server, API or file it changed), and the output itself as the user will see it (screenshot, frames, a real client). One source agreeing is not proof, reading the code is not a check, and a checking script is itself checked before its result counts. When something is slow, stuck or failing, sweep the whole system before forming a theory (GPU and VRAM including desktop apps; RAM, disk and CPU plus `hogs.py`; your own code's retries and loops, suspected first; the tool's config and logs; network and security software last), fix everything found in one batch, re-measure and show the before and after numbers.
 
