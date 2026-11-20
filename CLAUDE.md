@@ -90,15 +90,23 @@ MRED data isn't in version 1. Marlon is handling the license separately. Don't b
 
 25x125 is the development pipeline. Interim (short-term space for film productions and pop-up stores) and the wholesale tools are separate brands with their own names, sites and pricing on a shared account system. Keep them apart in code (separate app routes or apps, shared core packages). None of them are in version 1.
 
-## Three-step verification (every change, every session)
+## Triple-check everything (every diagnosis, fix and "done")
 
-Nothing is called done, fixed, loaded or working until all three steps pass and their output is shown. Source: Marlon's master CLAUDE.md (https://github.com/GeddyLifeson/DiaithirRPG/blob/engine/docs/MASTER_CLAUDE.md, branch `engine`, commit 2d6d29c, read 2026-11-19): section 4a "Test steps before anything is called ready" (install check, boot check, real join at spawn) and section 9 "Done means proven: show the command, its output and exit code". Marlon asked on 2026-11-19 that it apply to everything in 25x125.
+Source: essential 10 of Marlon's master CLAUDE.md (`E:\\mnt\\project-files\\CLAUDE.md` on his PC; read 2026-11-20). Marlon set it on 2026-11-17 and on 2026-11-19 made it standing "for everything", including 25x125. The master's words:
 
-1. **Checks pass.** Run the tests and checks for what changed (`python -m pytest tests/...`, `npm run build` or the type check in `web/`, a loader's row count against the source). Show the command, its output and the exit code. A nonzero exit or a stall gets diagnosed before the next step; after two failed fixes, stop and change approach.
-2. **It runs for real.** Start the real thing, not a mock: run the loader or nightly job against Postgres, start the FastAPI engine, build and start the web app or desktop app. Read the log. It must finish, and show no new ERROR lines compared with the run you started from. For data, check the row count and a few rows against the portal.
-3. **A real-world check.** Look at the result the way a user would: open the screen or call the endpoint for a real Chicago parcel (the acceptance set in `data/reference/test_parcels.csv` first) and confirm the number, its source and its date. Check only the thing that changed. If a live check can't run in this session, say so plainly ("no live check: <reason>") and don't call it done.
+> Every diagnosis, fix and "done" is confirmed three independent ways before it is reported: for example the log or test, a direct measurement or record (the server, API or file it changed), and the output itself as the user will see it (screenshot, frames, a real client). One source agreeing is not proof, reading the code is not a check, and a checking script is itself checked before its result counts. When something is slow, stuck or failing, sweep the whole system before forming a theory (GPU and VRAM including desktop apps; RAM, disk and CPU plus `hogs.py`; your own code's retries and loops, suspected first; the tool's config and logs; network and security software last), fix everything found in one batch, re-measure and show the before and after numbers.
 
-Report the three results in the reply or PR. Skipping a step is reported as skipped, never as passed.
+How it applies here:
+
+1. **Log or test.** Run the tests or checks for what changed (`python -m pytest tests/...`, `npm run build` or the type check in `web/`, a loader's log). Show the command, its output and the exit code.
+2. **Direct measurement or record.** Look at the thing the change touched: query Postgres for the rows a loader wrote (count and a few rows against the portal), call the FastAPI engine, open the file or setting it changed.
+3. **The output as the user sees it.** Open the screen in the web or desktop app for a real Chicago parcel (the acceptance set in `data/reference/test_parcels.csv` first), or take a screenshot, and confirm the number, its source and its date.
+
+The three must be independent: one source agreeing is not proof, reading the code is not a check, and a checking script is checked before its result counts. If a check can't run in this session, report it as not done with the reason, and don't call the work done.
+
+When something is slow, stuck or failing, sweep the whole system before forming a theory: our own code's retries and loops first, then RAM, disk and CPU, the tool's config and logs (Postgres, Docker, Next.js, the nightly job), then network and security software. Fix everything found in one batch, re-measure, and show the before and after numbers.
+
+Report the three checks in every reply and PR.
 
 ## Writing
 
