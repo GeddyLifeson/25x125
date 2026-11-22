@@ -409,3 +409,25 @@ def test_san_antonio_adu_only_under_five_units(in_region):
     assert paths("RM-4", 4000, 40) == {"by_right": 4, "adu": 5, "rezoning": 1}
     assert "adu" not in paths("MF-33", 10000, 70)  # 7 units by right
     assert paths("MF-18", 5000, 50)["adu"] == 3
+
+
+def test_region_impact_fee_components():
+    from engine.feasibility import region_impact_fees
+
+    f = {"components": [
+        {"single_family": [[1500, 2000], [None, 3000]], "multifamily": 1700},
+        {"all_units": [[900, 1645], [1300, 3891], [None, 7027]]},
+    ]}  # fmt: skip
+    assert region_impact_fees(f, 1, 1600) == 3000 + 7027
+    assert region_impact_fees(f, 3, 1000) == 3 * (1700 + 3891)
+    assert region_impact_fees({"per_unit": 500}, 2, 1000) == 1000
+    assert region_impact_fees({}, 2, 1000) == 0
+
+
+def test_tampa_impact_fees_load(in_region):
+    from core import region
+    from engine.feasibility import region_impact_fees
+
+    in_region("tampa")
+    f = region.rules_json("feasibility_defaults.json")["impact_fees"]
+    assert region_impact_fees(f, 1, 2000) == round(2817.20 + 8227)
