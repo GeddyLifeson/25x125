@@ -17,7 +17,7 @@ RR-Acre, RLD-120, RLD-100A, RLD-100B, RLD-90, RLD-80, RLD-70, RLD-60, RLD-50, RL
 
 - RLD districts allow one single-family house per lot. Lot area per unit is the minimum lot area. No duplexes.
 - The code has no duplex use. "Dwelling, multiple-family" means any building with more than one unit, so a duplex follows the multiple-family rule.
-- RMD-B, RMD-C, RMD-D: 6,000 sq ft for the first two units, then 2,900 / 2,100 / 1,340 sq ft per added unit, capped at 15 / 20 / 30 units per acre. The CSV has one number per district, so `lot_area_per_unit_sqft` is 43,560 divided by the cap (2,904 / 2,178 / 1,452). This is within one unit of the stepped rule on small lots. Known gap: the CSV gives 2 units on a 5,808 sq ft RMD-B lot; the code needs 6,000. The exact steps are in `zoning_steps.json` under `multifamily_minimums`.
+- RMD-B, RMD-C, RMD-D: 6,000 sq ft for the first two units, then 2,900 / 2,100 / 1,340 sq ft per added unit, capped at 15 / 20 / 30 units per acre. The CSV has one number per district, so `lot_area_per_unit_sqft` is 43,560 divided by the cap (2,904 / 2,178 / 1,452). This is within one unit of the stepped rule on small lots. Since 2026-11-22 the engine reads the exact steps from `multifamily_minimums` in `zoning_steps.json` (6,000 sq ft for two, then the added area, capped per acre), so a 5,808 sq ft RMD-B lot gets 1 unit and a 12,000 sq ft RMD-D lot gets 6, not 8.
 - RMD-B/C/D `min_lot_area_sqft` (4,000) and `min_lot_width_ft` (40) are the single-family minimums. Two or more units need 6,000 sq ft and 60 ft.
 - RMD-C carries the words "only where the density requirements of the Comprehensive Plan are met".
 - RHD-A: 1,100 sq ft per unit but no more than 32 units per acre. The cap is tighter (1,361 sq ft per unit), so the CSV uses 1,361. RHD-B: 735 sq ft per unit (60 per acre cap is looser).
@@ -56,7 +56,7 @@ RR-Acre, RLD-120, RLD-100A, RLD-100B, RLD-90, RLD-80, RLD-70, RLD-60, RLD-50, RL
 - Impervious surface ratios (Sec. 654.129). Not read. They can limit coverage below the zoning figure.
 - Land use category density caps for each parcel. The Comprehensive Plan caps gross density and no free land use layer was found.
 - Whether Ord. 2026-0311 passed and what it changed.
-- Townhome density in RMD-A and RLD-TNH (the code points to the land use category).
+- Townhome density in RMD-A (the code points to the land use category). RLD-TNH is now counted at the Low Density Residential cap, 7 units per acre (Sec. 656.305), as the `townhomes` path.
 - A free layer of local historic districts. Only National Register boundaries (NPS) were found and tested.
 - A bulk building permit source. JaxEPICS has no public download or documented API. `permit_source.kind` is `none`.
 - The rezoning approval path (Planning Commission, Land Use and Zoning Committee, City Council) was not read from Part 1 of the code.

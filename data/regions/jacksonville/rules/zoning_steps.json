@@ -79,7 +79,18 @@
           "RMD-B",
           "RMD-C",
           "RMD-D"
-        ]
+        ],
+        "engine_path": {
+          "units": "density",
+          "lot_area_per_unit_sqft": 6223,
+          "min_units": 2,
+          "districts": [
+            "RLD-TNH"
+          ],
+          "name": "Townhomes on their own lots",
+          "approval": "a plat that splits the lot into townhome lots (1,500 sq ft, 15 ft wide)",
+          "why": "Sec. 656.305 A.II (h): gross density in an RLD district may not exceed the land use category density. Sec. 656.305 (Low Density Residential Category): up to seven units per acre with full urban services. 43,560 / 7 = 6,223 sq ft per unit. Only RLD-TNH, the townhome district; RMD-A density for townhomes is not stated. Read 2026-11-22 from the Zoneomics copy of Chapter 656 Part 3."
+        }
       },
       "section": "Sec. 656.414(a); Sec. 656.305 A.II (a)(2); Sec. 656.306 A.II (a)(3)",
       "source_url": "https://www.zoneomics.com/code/jacksonville-FL/chapter_4"

@@ -373,3 +373,39 @@ def test_overlay_name_from_several_fields():
              "geometry": {"type": "Polygon", "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 0]]]}}]  # fmt: skip
     layer = {"kind": "airport_military", "url": "u", "name_field": ["APZ", "AICUZ"]}
     assert next(to_rows(page, layer, "OBJECTID", "2-", 1))[2] == "NASJAX-42"
+
+
+def test_jacksonville_stepped_density_and_townhomes(in_region):
+    from engine import zoning
+    from engine.rules import Rules
+
+    in_region("jacksonville")
+    rules = Rules.from_files()
+
+    def paths(zone, lot, width):
+        res = zoning.evaluate(zoning.Site(pin="1", zone_class=zone, lot_sqft=lot, frontage_ft=width), rules)
+        return {p.id: p.units for p in res.paths}
+
+    assert paths("RMD-B", 5808, 60)["by_right"] == 1  # 6,000 sq ft for the first two units
+    assert paths("RMD-B", 8900, 60)["by_right"] == 3  # + 2,900 for the third
+    assert paths("RMD-D", 12000, 80)["by_right"] == 6  # 2 + 4 at 1,340; the 30 per acre cap allows 8
+    assert paths("CRO", 10200, 60)["by_right"] == 4
+    assert paths("RLD-TNH", 12446, 80)["townhomes"] == 2  # 7 units per acre
+    assert "townhomes" not in paths("RLD-TNH", 6000, 50)
+    assert "townhomes" not in paths("RMD-A", 13000, 80)
+
+
+def test_san_antonio_adu_only_under_five_units(in_region):
+    from engine import zoning
+    from engine.rules import Rules
+
+    in_region("san_antonio")
+    rules = Rules.from_files()
+
+    def paths(zone, lot, width):
+        res = zoning.evaluate(zoning.Site(pin="1", zone_class=zone, lot_sqft=lot, frontage_ft=width), rules)
+        return {p.id: p.units for p in res.paths}
+
+    assert paths("RM-4", 4000, 40) == {"by_right": 4, "adu": 5, "rezoning": 1}
+    assert "adu" not in paths("MF-33", 10000, 70)  # 7 units by right
+    assert paths("MF-18", 5000, 50)["adu"] == 3

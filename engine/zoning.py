@@ -176,9 +176,28 @@ def _far_unit_sqft(rules: Rules) -> float:
 
 def _district_units(lot: float, d, rules: Rules) -> int:
     """Units from lot area per unit; in a district that limits floor area only, floor area / an assumed unit size."""
+    stepped = _stepped_density(lot, d, rules)
+    if stepped is not None:
+        return stepped
     if d.lot_area_per_unit_sqft:
         return _units(lot, d.lot_area_per_unit_sqft)
     return int(lot * (d.far or 0) // _far_unit_sqft(rules))
+
+
+def _stepped_density(lot: float, d, rules: Rules) -> int | None:
+    """Districts that ask a set area for the first two units and less for each added one (Jacksonville RMD-B to
+    RMD-D, CRO, RO: 6,000 sq ft for two, then 2,900 / 2,100 / 1,340), capped at units per acre. Read from any city
+    step whose params hold first_two_units_sqft and added_unit_sqft. None when no such step covers the district."""
+    for step in rules.steps.values():
+        prm = step.get("params") or {}
+        added = (prm.get("added_unit_sqft") or {}).get(d.name) if prm.get("first_two_units_sqft") else None
+        if not added:
+            continue
+        first = prm["first_two_units_sqft"]
+        n = 1 if lot < first else 2 + int((lot - first) // added)
+        cap = (prm.get("max_units_per_acre") or {}).get(d.name)
+        return max(1, min(n, int(lot * cap // 43560))) if cap else n
+    return None
 
 
 def _by_district(value, district: str):
@@ -194,7 +213,8 @@ def _step_paths(site: Site, rules: Rules, d: District, lot: float) -> list[Path]
     "lot_area_per_unit_sqft" replaces the district's figure for this path, and "units_per_lot" multiplies the
     count (Houston: two units on each 3,500 sq ft lot). Eligibility: the district is in `by_district`,
     `districts` or `applies_to` (or a key of `min_lot_sqft`), the lot meets `min_lot_sqft` and, when the
-    frontage is known, `min_lot_width_ft`. "min_lot_sqft" and "min_lot_width_ft" inside engine_path take
+    frontage is known, `min_lot_width_ft`. "districts" inside engine_path narrows the path to those districts.
+    "min_lot_sqft" and "min_lot_width_ft" inside engine_path take
     precedence over the step's own."""
     out = []
     for sid, step in rules.steps.items():
@@ -204,7 +224,8 @@ def _step_paths(site: Site, rules: Rules, d: District, lot: float) -> list[Path]
             continue
         lot_rule = ep.get("min_lot_sqft", prm.get("min_lot_sqft", prm.get("min_lot_area_sqft")))
         districts = (
-            prm.get("by_district")
+            ep.get("districts")
+            or prm.get("by_district")
             or prm.get("districts")
             or prm.get("applies_to")
             or (list(lot_rule) if isinstance(lot_rule, dict) else [])
@@ -317,8 +338,11 @@ def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Re
     adu = adu_step.get("params") or {}
     by_map_list = adu.get("by_map", [])
     adu_ok = d.name in adu.get("by_district", []) or (d.name in by_map_list and site.adu_zone)
+    base = max((p.units for p in res.paths if p.approval == "none (permit only)"), default=0)
+    under = adu.get("multi_family_total_units_under")
+    if adu_ok and under and base >= under:
+        adu_ok = False  # San Antonio: an ADU only where the lot has fewer than 5 units
     if adu_ok:
-        base = max(p.units for p in res.paths if p.approval == "none (permit only)")
         by_map = d.name in by_map_list
         note = (
             f"ADU zone {site.adu_zone}" + (f": {site.adu_limits}" if site.adu_limits else "")
