@@ -15,6 +15,7 @@ Run: python -m jobs.build_region
 
 from core import region
 from core.db import connect
+from jobs.load_region_overlays import LINE_BUFFER_M
 
 LOT_USE = """
 truncate lot_use;
@@ -131,6 +132,71 @@ from (
 """
 
 
+# A street-line overlay (Houston's driveway-restricted streets) stays on a lot unless the lot's address is on a
+# different street from every restricted street within `frontage_reach_m` of its outline (a corner lot that
+# fronts an open street). Lots with no usable address, or near a restricted segment with no name, keep it.
+# An outline-only test was tried first on 2026-11-22: 48 of 60 lots it dropped had their address on the
+# restricted street.
+FRONTAGE_CANDIDATES = """
+select ps.pin10, a.address, array_agg(distinct coalesce(nullif(o.name, %(kind)s), ''))
+from parcel_site ps
+join parcel_shape sh on sh.pin10 = ps.pin10
+left join parcel_address a on a.pin = ps.pin
+join overlay o on o.kind = %(kind)s and o.geom && st_expand(sh.geom, 0.0005)
+              and st_dwithin(o.geom::geography, sh.geom::geography, %(extra)s)
+where ps.overlays @> jsonb_build_array(jsonb_build_object('kind', %(kind)s::text))
+group by ps.pin10, a.address
+"""
+DROP_OVERLAY = """
+update parcel_site ps
+set overlays = nullif((select coalesce(jsonb_agg(x), '[]'::jsonb) from jsonb_array_elements(ps.overlays) x
+                       where x->>'kind' <> %(kind)s), '[]'::jsonb)
+where ps.pin10 = any(%(pins)s)
+"""
+STREET_TYPES = {"ST", "STREET", "RD", "ROAD", "AVE", "AV", "AVENUE", "BLVD", "BV", "BOULEVARD", "DR", "DRIVE",
+                "LN", "LANE", "CT", "COURT", "PKWY", "PKY", "PARKWAY", "WAY", "PL", "PLACE", "CIR", "CIRCLE",
+                "TRL", "TRAIL", "FWY", "HWY", "TER", "VW", "LOOP", "PATH", "XING", "SQ"}  # fmt: skip
+DIRECTIONS = {"N", "S", "E", "W", "NORTH", "SOUTH", "EAST", "WEST"}
+NO_ADDRESS = {"", "PRIVATE STREETS", "EXEMPT", "UNKNOWN"}
+
+
+def street_core(name: str | None) -> str:
+    """The street's own name, without house number, unit, direction, street type or city: '0 W SAM HOUSTON
+    PKY S' and 'W SAM HOUSTON PKWY S' both give 'SAMHOUSTON'; 'SAINT CHARLES' and 'ST CHARLES' match."""
+    words = (name or "").upper().split(",")[0].replace(".", " ").split()
+    while words and any(ch.isdigit() for ch in words[0]):
+        words = words[1:]  # house number
+    while words and any(ch.isdigit() for ch in words[-1]):
+        words = words[:-1]  # unit number: '1501'
+    if len(words) > 2 and len(words[-1]) == 1 and words[-1] not in DIRECTIONS and words[-2] in STREET_TYPES:
+        words = words[:-1]  # unit letter after the street type: 'WYLIE RD A'
+    words = ["AVENUE" if w in ("AVE", "AV") else w for w in words]
+    if words and words[0] == "SAINT":
+        words[0] = "ST"
+    keep = [w for k, w in enumerate(words) if (k == 0 and w == "ST" and len(words) > 1)
+            or (w not in DIRECTIONS and w not in STREET_TYPES)]  # fmt: skip
+    if keep and all(len(w) == 1 for w in keep):
+        keep = [w for w in words if w not in DIRECTIONS]  # 'AVENUE I': the type is part of the name
+    words = keep
+    core = "".join(words)
+    return "" if core in {w.replace(" ", "") for w in NO_ADDRESS} else core
+
+
+def fronts_other_street(address: str | None, restricted_names: list[str]) -> bool:
+    """True when the address names a street and it differs from every restricted street name nearby
+    (spellings at least 80% alike count as the same street: LEFFINGWELL / LEPPINGWELL)."""
+    from difflib import SequenceMatcher
+
+    mine = street_core(address)
+    if not mine or any(not n for n in restricted_names):
+        return False
+    for n in restricted_names:
+        core = street_core(n)
+        if not core or core in mine or mine in core or SequenceMatcher(None, mine, core).ratio() >= 0.8:
+            return False
+    return True
+
+
 def run(url: str | None = None) -> dict:
     r = region.current()
     c = r.get("comps") or {}
@@ -154,7 +220,19 @@ def run(url: str | None = None) -> dict:
         for stmt in OVERLAYS.split(";"):
             if stmt.strip():
                 conn.execute(stmt)
+        dropped = {}
+        for layer in r.get("overlay_layers") or []:
+            rule = layer.get("drop_if_open_frontage")
+            if rule and not layer.get("skip"):
+                # The overlay buffer already reaches LINE_BUFFER_M from the street line.
+                extra = rule["frontage_reach_m"] - LINE_BUFFER_M
+                rows = conn.execute(FRONTAGE_CANDIDATES, {"kind": layer["kind"], "extra": extra}).fetchall()
+                pins = [pin for pin, address, names in rows if fronts_other_street(address, names)]
+                conn.execute(DROP_OVERLAY, {"kind": layer["kind"], "pins": pins})
+                dropped[layer["kind"]] = len(pins)
         out = {"lots": conn.execute("select count(*) from lot_use").fetchone()[0]}
+        for k, n in dropped.items():
+            out[f"{k} dropped (open frontage elsewhere)"] = n
         out["lots with overlays"] = conn.execute(
             "select count(*) from parcel_site where overlays is not null"
         ).fetchone()[0]

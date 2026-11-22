@@ -431,3 +431,18 @@ def test_tampa_impact_fees_load(in_region):
     in_region("tampa")
     f = region.rules_json("feasibility_defaults.json")["impact_fees"]
     assert region_impact_fees(f, 1, 2000) == round(2817.20 + 8227)
+
+
+def test_corner_lot_frontage_by_address():
+    from jobs.build_region import fronts_other_street, street_core
+
+    assert street_core("0 W SAM HOUSTON PKY S") == street_core("W SAM HOUSTON PKWY S") == "SAMHOUSTON"
+    assert street_core("2408 SAINT CHARLES ST") == street_core("ST CHARLES ST")
+    assert street_core("5415 Castle Creek LN, Houston, TX  77053") == street_core("CASTLECREEK LN")
+    assert street_core("0 PRIVATE STREETS") == ""
+    assert fronts_other_street("4702 IRVINGTON BLVD", ["CAVALCADE ST", "MOORE ST"])
+    assert not fronts_other_street("4701 LEFFINGWELL ST", ["LEPPINGWELL ST"])  # misspelt in one source
+    assert not fronts_other_street("7735 AVENUE I", ["AVENUE I"])
+    assert not fronts_other_street("6935 AVE O", ["AVENUE O"])
+    assert not fronts_other_street("0", ["X ST"])  # no usable address: keep the flag
+    assert not fronts_other_street("1 A ST", ["", "B ST"])  # an unnamed segment nearby: keep the flag

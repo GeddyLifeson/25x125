@@ -114,7 +114,11 @@
       "kind": "walkable_places_tod",
       "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Planning_and_Development/MapServer/37",
       "name_field": "",
-      "note": "Walkable Places streets (layer 37) and TOD streets (layer 38). New single-family lots may not take direct driveway access from these streets (Sec. 42-188(h))."
+      "note": "Walkable Places streets (layer 37) and TOD streets (layer 38). New single-family lots may not take direct driveway access from these streets (Sec. 42-188(h)).",
+      "drop_if_open_frontage": {
+        "frontage_reach_m": 25,
+        "why": "Marlon 2026-11-22: keep the flag informational and drop it for corner lots that front another, unrestricted street. A lot keeps the flag when its address is on a restricted street within 25 m of its outline, or a nearby restricted segment has no name; otherwise it fronts another street and the flag drops."
+      }
     },
     {
       "kind": "street_width_exception",
@@ -126,7 +130,11 @@
       "kind": "restricted_driveway_access",
       "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Planning_and_Development/MapServer/2",
       "name_field": "FULL_NAME",
-      "note": "Streets with restricted lot driveway access."
+      "note": "Streets with restricted lot driveway access.",
+      "drop_if_open_frontage": {
+        "frontage_reach_m": 25,
+        "why": "Marlon 2026-11-22: keep the flag informational and drop it for corner lots that front another, unrestricted street. A lot keeps the flag when its address is on a restricted street within 25 m of its outline, or a nearby restricted segment has no name; otherwise it fronts another street and the flag drops."
+      }
     }
   ],
   "parcel_layer": {
