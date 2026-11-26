@@ -103,3 +103,8 @@ The error is high because the pool has no floor area: a 1,600 sq ft townhome and
 apart are priced as the same unit. Counting "Multi Family New" permits too made it worse (43.7%), because condo unit
 parcels under a new building took the building's year. A free per-parcel floor area source would fix most of this;
 none has been found (Fulton's qPublic pages show it but are not a bulk download).
+
+Tried on 2026-11-19: floor area from Overture Maps building footprints (2026-11-18 release, 265,283 footprints in
+the city box, 95% from OpenStreetMap). Only 707 of 2,223 dated lots had a footprint, because the map data mostly
+predates the 2019-2024 houses, and leave-one-out error stayed at 42.7%. Not kept. A newer footprint source, or the
+county's per-parcel heated area, is still the fix.

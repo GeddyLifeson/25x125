@@ -14,7 +14,7 @@ SITE_FIELDS = [
     "stories", "footprint_units", "hearing_fines_3y", "vacant_building_fine_due", "environmental_hold",
     "foreclosed_rental_date", "exempt_owner", "foreclosure_auction_date", "foreclosure_auction_status",
     "public_sale_source", "public_sale_price", "last_rezoning_date", "last_rezoning_status", "tax_sale_date",
-    "tax_sale_due", "tax_sale_pins",
+    "tax_sale_due", "tax_sale_pins", "overlays",
 ]  # fmt: skip
 
 HALF_MILE_M = 804.67

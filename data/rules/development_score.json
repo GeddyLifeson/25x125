@@ -55,8 +55,14 @@
       "historic_orange_or_red": -10,
       "landmark_district": -15,
       "606_pilsen_surcharge": -10,
-      "fire_limits": -5
-    }
+      "fire_limits": -5,
+      "flood_zone": -5,
+      "floodway": -15,
+      "historic_overlay": -10,
+      "conservation_overlay": -5,
+      "lot_size_overlay": -10
+    },
+    "overlay_note": "Overlay penalties apply outside Chicago, from each region's map overlays (engine/zoning.py _overlay_flags). flood_zone: FEMA special flood hazard area or a city floodplain; floodway: regulatory floodway; historic_overlay: historic district or landmark; conservation_overlay: conservation or neighborhood overlay; lot_size_overlay: Houston special minimum lot size or building line, Dallas deed restrictions. Added 2026-11-19 at the same scale as the Chicago penalties."
   },
   "user_weights": true,
   "label": "a sorting aid built from the points shown; it does not rate investment quality",

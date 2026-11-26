@@ -191,4 +191,16 @@ percentile $128 to $200), so the national figure holds there. The feasibility-st
 Steps the city files describe that the engine does not compute: Tampa ADU eligible areas (map layer), Orlando
 duplex-lot, multiplex and townhome steps, Jacksonville cottages, Miami cottage housing, Houston's Chapter 42
 lot steps, Austin's small-lot rule. Each city's `notes.md` lists what could not be confirmed against the
-official code text. Flood, historic and overlay layers are recorded in each region.json and not loaded yet.
+official code text. Flood, historic and other overlay layers load with `python -m jobs.load_region_overlays` (all layers, or
+`--kind flood`), clipped to the region's parcel extent. `python -m jobs.build_region` then lists each lot's overlays
+in `parcel_site.overlays`, and the engine turns flood zones, floodways, historic districts, conservation overlays,
+special minimum lot size or building line, deed restrictions and driveway-restricted streets into flags. The scorer
+subtracts the overlay penalties in `data/rules/development_score.json`.
+
+Keys on each `overlay_layers` entry: `kind`, `url`, `name_field`, `where` (server filter), `key` (object ID field when
+the layer's own is wrong), `page_size` (smaller for servers that time out on large polygons), `clip: false` (skip the
+extent filter) and `skip: true` (keep the layer listed but don't load it, with `why_skip`). Point layers load as 6 m
+squares and street lines as 15 m buffers; both tag the lots whose outlines they touch.
+
+FEMA's own flood server (hazards.fema.gov NFHL) returned HTTP 500 or reset the connection on 2026-11-19. Use the copy
+Esri hosts for free: `services.arcgis.com/P3ePLMYs2RVChkJx/.../USA_Flood_Hazard_Reduced_Set_gdb/FeatureServer/0`.

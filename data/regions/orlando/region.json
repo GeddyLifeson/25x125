@@ -53,7 +53,7 @@
       "kind": "flood",
       "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Flood_Hazard_Reduced_Set_gdb/FeatureServer/0",
       "name_field": "FLD_ZONE",
-      "filter": "DFIRM_ID = '12095C'",
+      "where": "DFIRM_ID = '12095C'",
       "note": "FEMA National Flood Hazard Layer, special flood hazard areas, hosted by Esri. 3,792 polygons for Orange County; tested 2026-11-17. FEMA's own server (hazards.fema.gov NFHL MapServer/28) reset the connection from this network. A full copy with zone X sits in the city's ArcGIS org at https://services5.arcgis.com/mMuoPCaIYD4wEgDl/arcgis/rest/services/Flood_Hazard_Zone_Parcels/FeatureServer/0 (5,086 polygons, zones A, AE, AH, X, D), published by a staff account, not the open data account."
     },
     {

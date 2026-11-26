@@ -81,9 +81,10 @@
     },
     {
       "kind": "flood",
-      "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28",
+      "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Flood_Hazard_Reduced_Set_gdb/FeatureServer/0",
       "name_field": "FLD_ZONE",
-      "note": "FEMA National Flood Hazard Layer, flood hazard zones; SFHA_TF = 'T' marks the special flood hazard area; point query tested 2026-11-17. No city floodplain layer was found on gis.dallascityhall.com."
+      "note": "FEMA National Flood Hazard Layer, special flood hazard areas, the copy Esri hosts for free (FEMA's own server, hazards.fema.gov NFHL MapServer/28, returned HTTP 500 or reset the connection on 2026-11-19). Clipped to the city's parcel extent. Earlier note: FEMA National Flood Hazard Layer, flood hazard zones; SFHA_TF = 'T' marks the special flood hazard area; point query tested 2026-11-17. No city floodplain layer was found on gis.dallascityhall.com.",
+      "page_size": 200
     }
   ],
   "parcel_layer": {

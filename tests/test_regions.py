@@ -265,3 +265,184 @@ def test_permits_year_built_keeps_finished_new_buildings():
         {"id": "D", "t": "Residential New", "s": "CO Issued", "d": "", "y": "33.7", "x": "-84.4"},
     ]
     assert lp.finished(rows, cfg) == [("A", 2022, 33.7, -84.4)]
+
+
+def test_city_step_paths_houston(in_region):
+    from engine import zoning
+    from engine.rules import Rules
+
+    in_region("houston")
+    rules = Rules.from_files()
+    d = rules.district_for("FULL")
+    assert d is not None and d.name == "City of Houston (no zoning)"
+
+    def paths(lot, width=None):
+        site = zoning.Site(pin="1", zone_class="FULL", lot_sqft=lot, frontage_ft=width)
+        return {p.id: p.units for p in zoning._step_paths(site, rules, d, lot)}
+
+    assert paths(5000, 50) == {"units_by_right": 2, "reduced_lot_size": 3, "multi_unit_residential": 4}
+    assert paths(7000, 40)["units_by_right"] == 4 and "multi_unit_residential" not in paths(7000, 40)
+    assert paths(3000) == {}
+
+
+def test_overlay_flags():
+    from engine import zoning
+
+    site = zoning.Site(pin="1", zone_class="RS-50", lot_sqft=5000, overlays=[
+        {"kind": "flood", "name": "AE"}, {"kind": "flood", "name": "X"}, {"kind": "historic", "name": "Hyde Park"},
+        {"kind": "subdivision", "name": "Montrose"}, {"kind": "special_minimum_lot_size", "name": "SMLS 12"},
+    ])  # fmt: skip
+    ids = [f.id for f in zoning._overlay_flags(site)]
+    assert ids == ["flood", "historic", "special_minimum_lot_size"]
+
+    def flags(*overlays):
+        return [
+            (f.id, f.text[:30])
+            for f in zoning._overlay_flags(
+                zoning.Site(pin="1", zone_class="R", lot_sqft=5000, overlays=list(overlays))
+            )
+        ]
+
+    assert flags({"kind": "flood", "name": "X, AE"}) == [("flood", "FEMA flood zone AE: flood insu")]
+    assert flags({"kind": "flood_floodway", "name": "FLOODWAY"})[0][0] == "floodway"
+    assert flags({"kind": "flood_500yr", "name": "X"}) == []
+    assert flags({"kind": "airport_military", "name": "NASJAX-1"})[0][0] == "airport"
+    assert (
+        flags({"kind": "flood", "name": "City of Austin Fully Developed 100-Year Floodplain"})[0][0]
+        == "flood"
+    )
+
+
+def test_tampa_adu_needs_the_eligible_area(in_region):
+    from engine import zoning
+    from engine.rules import Rules
+
+    in_region("tampa")
+    rules = Rules.from_files()
+    out = zoning.evaluate(zoning.Site(pin="1", zone_class="RS-50", lot_sqft=6000, frontage_ft=50), rules)
+    inside = zoning.evaluate(
+        zoning.Site(pin="1", zone_class="RS-50", lot_sqft=6000, frontage_ft=50, adu_zone="ADU Permitted"),
+        rules,
+    )
+    assert "adu" not in {p.id for p in out.paths}
+    assert "adu" in {p.id for p in inside.paths}
+
+
+def test_overlay_points_become_small_squares():
+    from jobs.load_region_overlays import to_rows
+
+    page = [
+        {
+            "properties": {"OBJECTID": 7, "NAME": "Old Mill"},
+            "geometry": {"type": "Point", "coordinates": [-97.7, 30.2]},
+        },
+        {
+            "properties": {"OBJECTID": 8, "NAME": "Points"},
+            "geometry": {"type": "MultiPoint", "coordinates": [[0, 0], [1, 1]]},
+        },
+    ]
+    rows = list(
+        to_rows(page, {"kind": "historic_landmark", "url": "u", "name_field": "NAME"}, "OBJECTID", "1-", 5)
+    )
+    assert len(rows) == 1
+    kind, source_id, name, _, attrs, geom, _ = rows[0]
+    assert (kind, source_id, name) == ("historic_landmark", "1-7", "Old Mill")
+    assert json.loads(attrs)["point"] is True
+    ring = json.loads(geom)["coordinates"][0]
+    assert len(ring) == 5 and abs(ring[0][0] - (-97.7)) < 0.0001
+
+
+def test_overlay_lines_are_kept_for_buffering():
+    from jobs.load_region_overlays import GEOM, to_rows
+
+    page = [{"properties": {"OBJECTID": 3, "ST": "Main"},
+             "geometry": {"type": "LineString", "coordinates": [[-95.36, 29.76], [-95.35, 29.76]]}}]  # fmt: skip
+    rows = list(
+        to_rows(
+            page, {"kind": "restricted_driveway_access", "url": "u", "name_field": "ST"}, "OBJECTID", "13-", 1
+        )
+    )
+    assert len(rows) == 1 and json.loads(rows[0][4])["line"] is True
+    assert "st_buffer" in GEOM["geom"]
+
+
+def test_overlay_name_from_several_fields():
+    from jobs.load_region_overlays import to_rows
+
+    page = [{"properties": {"OBJECTID": 1, "APZ": "NASJAX-42", "AICUZ": "NA"},
+             "geometry": {"type": "Polygon", "coordinates": [[[0, 0], [1, 0], [1, 1], [0, 0]]]}}]  # fmt: skip
+    layer = {"kind": "airport_military", "url": "u", "name_field": ["APZ", "AICUZ"]}
+    assert next(to_rows(page, layer, "OBJECTID", "2-", 1))[2] == "NASJAX-42"
+
+
+def test_jacksonville_stepped_density_and_townhomes(in_region):
+    from engine import zoning
+    from engine.rules import Rules
+
+    in_region("jacksonville")
+    rules = Rules.from_files()
+
+    def paths(zone, lot, width):
+        res = zoning.evaluate(zoning.Site(pin="1", zone_class=zone, lot_sqft=lot, frontage_ft=width), rules)
+        return {p.id: p.units for p in res.paths}
+
+    assert paths("RMD-B", 5808, 60)["by_right"] == 1  # 6,000 sq ft for the first two units
+    assert paths("RMD-B", 8900, 60)["by_right"] == 3  # + 2,900 for the third
+    assert paths("RMD-D", 12000, 80)["by_right"] == 6  # 2 + 4 at 1,340; the 30 per acre cap allows 8
+    assert paths("CRO", 10200, 60)["by_right"] == 4
+    assert paths("RLD-TNH", 12446, 80)["townhomes"] == 2  # 7 units per acre
+    assert "townhomes" not in paths("RLD-TNH", 6000, 50)
+    assert "townhomes" not in paths("RMD-A", 13000, 80)
+
+
+def test_san_antonio_adu_only_under_five_units(in_region):
+    from engine import zoning
+    from engine.rules import Rules
+
+    in_region("san_antonio")
+    rules = Rules.from_files()
+
+    def paths(zone, lot, width):
+        res = zoning.evaluate(zoning.Site(pin="1", zone_class=zone, lot_sqft=lot, frontage_ft=width), rules)
+        return {p.id: p.units for p in res.paths}
+
+    assert paths("RM-4", 4000, 40) == {"by_right": 4, "adu": 5, "rezoning": 1}
+    assert "adu" not in paths("MF-33", 10000, 70)  # 7 units by right
+    assert paths("MF-18", 5000, 50)["adu"] == 3
+
+
+def test_region_impact_fee_components():
+    from engine.feasibility import region_impact_fees
+
+    f = {"components": [
+        {"single_family": [[1500, 2000], [None, 3000]], "multifamily": 1700},
+        {"all_units": [[900, 1645], [1300, 3891], [None, 7027]]},
+    ]}  # fmt: skip
+    assert region_impact_fees(f, 1, 1600) == 3000 + 7027
+    assert region_impact_fees(f, 3, 1000) == 3 * (1700 + 3891)
+    assert region_impact_fees({"per_unit": 500}, 2, 1000) == 1000
+    assert region_impact_fees({}, 2, 1000) == 0
+
+
+def test_tampa_impact_fees_load(in_region):
+    from core import region
+    from engine.feasibility import region_impact_fees
+
+    in_region("tampa")
+    f = region.rules_json("feasibility_defaults.json")["impact_fees"]
+    assert region_impact_fees(f, 1, 2000) == round(2817.20 + 8227)
+
+
+def test_corner_lot_frontage_by_address():
+    from jobs.build_region import fronts_other_street, street_core
+
+    assert street_core("0 W SAM HOUSTON PKY S") == street_core("W SAM HOUSTON PKWY S") == "SAMHOUSTON"
+    assert street_core("2408 SAINT CHARLES ST") == street_core("ST CHARLES ST")
+    assert street_core("5415 Castle Creek LN, Houston, TX  77053") == street_core("CASTLECREEK LN")
+    assert street_core("0 PRIVATE STREETS") == ""
+    assert fronts_other_street("4702 IRVINGTON BLVD", ["CAVALCADE ST", "MOORE ST"])
+    assert not fronts_other_street("4701 LEFFINGWELL ST", ["LEPPINGWELL ST"])  # misspelt in one source
+    assert not fronts_other_street("7735 AVENUE I", ["AVENUE I"])
+    assert not fronts_other_street("6935 AVE O", ["AVENUE O"])
+    assert not fronts_other_street("0", ["X ST"])  # no usable address: keep the flag
+    assert not fronts_other_street("1 A ST", ["", "B ST"])  # an unnamed segment nearby: keep the flag

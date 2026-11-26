@@ -70,21 +70,27 @@
     },
     {
       "kind": "flood",
-      "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Flood_Hazard/MapServer/1",
+      "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Flood_Hazard_Reduced_Set_gdb/FeatureServer/0",
       "name_field": "FLD_ZONE",
-      "note": "100-year floodplain, Harris County (FEMA data as served by the City), 3,957 polygons. Layer 0 = floodway (405), layer 6 = 500-year floodplain (5,201). Fields FLD_ZONE, SFHA_TF, ZONE_SUBTY."
+      "note": "The city's Flood_Hazard map service gave changing answers on 2026-11-19 (a count of 3,779 zones, then 0, on the same query; pages with no rows while rows remained), so the load stopped part way. This is FEMA's flood hazard layer as Esri hosts it for free, clipped to the parcel extent. Earlier source: https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Flood_Hazard/MapServer/1. 100-year floodplain, Harris County (FEMA data as served by the City), 3,957 polygons. Layer 0 = floodway (405), layer 6 = 500-year floodplain (5,201). Fields FLD_ZONE, SFHA_TF, ZONE_SUBTY.",
+      "where": "SFHA_TF = 'T' AND (ZONE_SUBTY IS NULL OR ZONE_SUBTY NOT LIKE '%Floodway%')",
+      "page_size": 200
     },
     {
       "kind": "flood_floodway",
-      "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Flood_Hazard/MapServer/0",
-      "name_field": "FLOOD",
-      "note": "Floodway, Harris County."
+      "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Flood_Hazard_Reduced_Set_gdb/FeatureServer/0",
+      "name_field": "ZONE_SUBTY",
+      "note": "The city's Flood_Hazard map service gave changing answers on 2026-11-19 (a count of 3,779 zones, then 0, on the same query; pages with no rows while rows remained), so the load stopped part way. This is FEMA's flood hazard layer as Esri hosts it for free, clipped to the parcel extent. Earlier source: https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Flood_Hazard/MapServer/0. Floodway, Harris County.",
+      "where": "ZONE_SUBTY LIKE '%Floodway%'",
+      "page_size": 200
     },
     {
       "kind": "flood_500yr",
-      "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Flood_Hazard/MapServer/6",
-      "name_field": "FLD_ZONE",
-      "note": "500-year floodplain, Harris County."
+      "url": "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/USA_Flood_Hazard_Reduced_Set_gdb/FeatureServer/0",
+      "name_field": "ZONE_SUBTY",
+      "note": "The city's Flood_Hazard map service gave changing answers on 2026-11-19 (a count of 3,779 zones, then 0, on the same query; pages with no rows while rows remained), so the load stopped part way. This is FEMA's flood hazard layer as Esri hosts it for free, clipped to the parcel extent. Earlier source: https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Flood_Hazard/MapServer/6. 500-year floodplain, Harris County.",
+      "where": "FLD_ZONE = 'X' AND ZONE_SUBTY LIKE '0.2%'",
+      "page_size": 200
     },
     {
       "kind": "subdivision",
@@ -108,7 +114,11 @@
       "kind": "walkable_places_tod",
       "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Planning_and_Development/MapServer/37",
       "name_field": "",
-      "note": "Walkable Places streets (layer 37) and TOD streets (layer 38). New single-family lots may not take direct driveway access from these streets (Sec. 42-188(h))."
+      "note": "Walkable Places streets (layer 37) and TOD streets (layer 38). New single-family lots may not take direct driveway access from these streets (Sec. 42-188(h)).",
+      "drop_if_open_frontage": {
+        "frontage_reach_m": 25,
+        "why": "Marlon 2026-11-22: keep the flag informational and drop it for corner lots that front another, unrestricted street. A lot keeps the flag when its address is on a restricted street within 25 m of its outline, or a nearby restricted segment has no name; otherwise it fronts another street and the flag drops."
+      }
     },
     {
       "kind": "street_width_exception",
@@ -120,7 +130,11 @@
       "kind": "restricted_driveway_access",
       "url": "https://mycity2.houstontx.gov/gisweb02/rest/services/HoustonMap/Planning_and_Development/MapServer/2",
       "name_field": "FULL_NAME",
-      "note": "Streets with restricted lot driveway access."
+      "note": "Streets with restricted lot driveway access.",
+      "drop_if_open_frontage": {
+        "frontage_reach_m": 25,
+        "why": "Marlon 2026-11-22: keep the flag informational and drop it for corner lots that front another, unrestricted street. A lot keeps the flag when its address is on a restricted street within 25 m of its outline, or a nearby restricted segment has no name; otherwise it fronts another street and the flag drops."
+      }
     }
   ],
   "parcel_layer": {

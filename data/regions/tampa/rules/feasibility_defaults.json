@@ -44,5 +44,65 @@
     "rule": "where no vacant-lot sales are nearby, land = the appraiser's land value / this ratio",
     "source": "python -m jobs.check_region",
     "verified_on": "2026-11-17"
+  },
+  "impact_fees": {
+    "basis": "City of Tampa multimodal transportation fee (middle of its 6 fee districts, July 1, 2026 rates) plus the Hillsborough County school impact fee by living area. Water and wastewater capacity fees are not included yet.",
+    "components": [
+      {
+        "name": "City of Tampa multimodal transportation impact fee",
+        "single_family": [
+          [
+            1500,
+            2113.24
+          ],
+          [
+            2500,
+            2817.2
+          ],
+          [
+            null,
+            3281.55
+          ]
+        ],
+        "multifamily": 1695.55,
+        "note": "Middle of the 6 districts (Central Business, Central East, Interbay, North Central, University North, Westshore) for detached single family by living area and low-rise multifamily not close to transit. Range across districts: $2,037 to $4,096 for a 1,500 to 2,499 sq ft house; $1,245 to $2,509 per low-rise apartment. Phased: higher rates start July 1, 2027 and July 1, 2028.",
+        "source_url": "https://www.tampa.gov/sites/default/files/document/2026/fee_schedule_dec_2025_july_1st_phase_in_0.pdf",
+        "effective": "2026-07-01 to 2027-05-30",
+        "verified_on": "2026-11-22"
+      },
+      {
+        "name": "Hillsborough County school impact fee (countywide)",
+        "all_units": [
+          [
+            900,
+            1645
+          ],
+          [
+            1300,
+            3891
+          ],
+          [
+            1800,
+            7027
+          ],
+          [
+            2500,
+            8227
+          ],
+          [
+            3400,
+            9369
+          ],
+          [
+            null,
+            10976
+          ]
+        ],
+        "source_url": "https://www.tampa.gov/sites/default/files/document/2026/hillsborough-county-school-impact-fees-ada.pdf",
+        "source_2": "https://assets.contentstack.io/v3/assets/blteea73b27b731f985/blt21e8accd2efe062b/67bdcaa5809db0e944b4eee8/Residential_Impact-Mobility_Fee_Assessment_10-1-2022.pdf",
+        "note": "Same table in the city's copy (updated 2020-06-05) and the county's 2022 residential sheet.",
+        "verified_on": "2026-11-22"
+      }
+    ]
   }
 }

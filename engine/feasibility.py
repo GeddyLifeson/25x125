@@ -61,10 +61,32 @@ def _lognormal_sigma(low_mult: float, high_mult: float) -> tuple[float, float]:
     return (lo + hi) / 2, (hi - lo) / (2 * z)
 
 
+def _band(table: list, sqft: float) -> float:
+    """[[upper_sqft, fee], ..., [null, fee]]: the fee of the first band whose upper bound is above sqft."""
+    for upper, fee in table:
+        if upper is None or sqft < upper:
+            return float(fee)
+    return float(table[-1][1])
+
+
+def region_impact_fees(f: dict, units: int, unit_sqft: float) -> float:
+    """Impact fees outside Chicago. `components` lists each fee (city transportation, county school, ...):
+    `single_family` (1 unit) and `multifamily` (2+ units) are a flat fee per unit or a living-area band table,
+    and `all_units` applies to both. Without components, a flat `per_unit`."""
+    comps = f.get("components")
+    if not comps:
+        return float(f.get("per_unit", 0)) * units
+    total = 0.0
+    for c in comps:
+        v = c.get("all_units", c.get("single_family" if units == 1 else "multifamily", 0))
+        total += _band(v, unit_sqft) if isinstance(v, list) else float(v or 0)
+    return round(total) * units
+
+
 def osif(d: dict, units: int, unit_sqft: float, year: int) -> float:
     """Open Space Impact Fee per the 2024 ordinance; 2026 table by unit size."""
     if not d.get("chicago_rules", True):
-        return float((d.get("impact_fees") or {}).get("per_unit", 0)) * units
+        return region_impact_fees(d.get("impact_fees") or {}, units, unit_sqft)
     o = d["open_space_impact_fee"]
     size = (
         "<800"
