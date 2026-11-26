@@ -205,10 +205,15 @@ percentile $128 to $200), so the national figure holds there. The feasibility-st
 
 ### Not built yet
 
-Steps the city files describe that the engine does not compute: Tampa ADU eligible areas (map layer), Orlando
-duplex-lot, multiplex and townhome steps, Jacksonville cottages, Miami cottage housing, Houston's Chapter 42
-lot steps, Austin's small-lot rule. Each city's `notes.md` lists what could not be confirmed against the
-official code text. Flood, historic and other overlay layers load with `python -m jobs.load_region_overlays` (all layers, or
+Steps with an `engine_path` become zoning paths: Orlando duplex lots, multiplexes and townhomes, Jacksonville
+townhomes, Houston reduced lot size and multi-unit residential, and Austin's two and three units (HOME). Tampa's ADU
+step reads the city's ADU eligible area layer. Steps still recorded as data only (checked 2026-11-26): Jacksonville
+cottages and multifamily minimums, Miami cottage housing, Austin small lots, site area by unit type and mixed-use
+combining, and Houston's lots under 1,400 sq ft, narrow lots, courtyard-style development and building lines.
+Jacksonville cottages, Miami cottage housing and Austin small lots put the same number of homes on separate lots,
+so the unit count does not change. Houston's courtyard-style development and shared-driveway lots under 1,400 sq ft
+could fit more houses on a large site than the reduced-lot-size path; that site plan is not modeled. Each city's `notes.md` lists what could not be confirmed against
+the official code text. Flood, historic and other overlay layers load with `python -m jobs.load_region_overlays` (all layers, or
 `--kind flood`), clipped to the region's parcel extent. `python -m jobs.build_region` then lists each lot's overlays
 in `parcel_site.overlays`, and the engine turns flood zones, floodways, historic districts, conservation overlays,
 special minimum lot size or building line, deed restrictions and driveway-restricted streets into flags. The scorer
