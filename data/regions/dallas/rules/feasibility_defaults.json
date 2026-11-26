@@ -36,5 +36,47 @@
     },
     "range_widened_by": 0.1,
     "basis": "appraisal district values"
+  },
+  "rents": {
+    "new_construction_factor": 1.248,
+    "factor_range": [
+      1.006,
+      1.665
+    ],
+    "range_basis": "10th-90th percentile over 30 tracts of ACS 2020-2024 rent of units built 2020 or later over all rented units",
+    "evidence": "python -m jobs.check_rents_acs: ACS 2020-2024 B25111 (median gross rent of units built 2020 or later) over B25064 (all rented units), median over 30 tracts with lots in Dallas. Units built 2010-2019: 1.043 over 128 tracts.",
+    "caveat": "Census rents include long-tenure leases and utilities; no public rent rolls outside Chicago. Replace with a rent source when one is available.",
+    "verified_on": "2026-11-26"
+  },
+  "hold": {
+    "property_tax": {
+      "effective_tax_rate_default": 0.02227,
+      "tax_year": 2026,
+      "basis": "$2.22676 per $100 of appraised value",
+      "rate_note": "Dallas County 2026 rates inside Dallas ISD: Dallas County 0.22465, Dallas College 0.106575, Parkland Hospital 0.212, City of Dallas 0.6978, Dallas ISD 0.985735.",
+      "source_url": "https://www.dallascounty.org/departments/tax/tax-rates.php",
+      "verified_on": "2026-11-26",
+      "caveat": "Non-homestead rate for an in-city lot; special districts some lots pay are not included."
+    }
+  },
+  "impact_fees": {
+    "basis": "Dallas charges no water, wastewater or roadway impact fees. The park land dedication fee in lieu is the per-unit development fee.",
+    "components": [
+      {
+        "name": "Dallas park land dedication fee in lieu",
+        "single_family": 1165,
+        "multifamily": 917,
+        "note": "2018 rates (Ordinance 30934): $762 land + $403 development per single-family or duplex unit; $917 per multifamily unit with 2 or more bedrooms ($457 for 1 bedroom). Council amended the fee on 2025-11-12 (Ordinance 33280); staff proposed $1,308 per house. The adopted amounts were not found in an official text, so the 2018 rates stay until confirmed.",
+        "source_url": "https://citysecretary2.dallascityhall.com/pdf/CC2025/111225AN.pdf",
+        "verified_on": "2026-11-26"
+      },
+      {
+        "name": "Dallas water and wastewater impact fee",
+        "all_units": 0,
+        "note": "None: 'The City of Dallas does not charge utility impact fees as other Cities do' (city fee study, 2023-12-04). Meter and lateral inspection fees ($465.50, rising to $656 under the FY2026-27 fee ordinance) are permit fees.",
+        "source_url": "https://dallascityhall.com/departments/sustainabledevelopment/DCH%20documents/presentations/2023/12.04.2023_Eco_DSD_Fee_Study.pdf",
+        "verified_on": "2026-11-26"
+      }
+    ]
   }
 }

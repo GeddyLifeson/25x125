@@ -36,5 +36,63 @@
     },
     "range_widened_by": 0.1,
     "basis": "appraisal district values"
+  },
+  "rents": {
+    "new_construction_factor": 1.07,
+    "factor_range": [
+      0.927,
+      1.578
+    ],
+    "range_basis": "10th-90th percentile over 56 tracts of ACS 2020-2024 rent of units built 2020 or later over all rented units",
+    "evidence": "python -m jobs.check_rents_acs: ACS 2020-2024 B25111 (median gross rent of units built 2020 or later) over B25064 (all rented units), median over 56 tracts with lots in Austin. Units built 2010-2019: 1.018 over 172 tracts.",
+    "caveat": "Census rents include long-tenure leases and utilities; no public rent rolls outside Chicago. Replace with a rent source when one is available.",
+    "verified_on": "2026-11-26"
+  },
+  "hold": {
+    "property_tax": {
+      "effective_tax_rate_default": 0.02121,
+      "tax_year": 2026,
+      "basis": "$2.121064 per $100 of appraised value",
+      "rate_note": "Travis County 2026 adopted rates inside Austin ISD: Travis County 0.38621, Central Health 0.132863, Austin Community College 0.103643, Austin ISD 0.9184, City of Austin 0.579948.",
+      "source_url": "https://www.traviscountytx.gov/tax-rates",
+      "verified_on": "2026-11-26",
+      "caveat": "Non-homestead rate for an in-city lot; special districts some lots pay are not included."
+    }
+  },
+  "impact_fees": {
+    "basis": "Austin Water capital recovery fees for a new 5/8 inch meter on a lot platted on or after October 1, 2023. The street impact fee and parkland fee are not included: see each note.",
+    "components": [
+      {
+        "name": "Austin Water capital recovery fee (water)",
+        "all_units": 4800,
+        "note": "$4,800 per service unit; a 5/8 inch meter is 1 service unit, a 3/4 inch meter 1.5. Lots on plats recorded before October 1, 2023 pay less ($4,700 for 2018-2023 plats; $500 to $2,500 for plats before 2014, by zone). Apartments are charged by the building's meter size, so per-unit cost is lower.",
+        "source_url": "https://www.austintexas.gov/sites/default/files/files/Water/Taps/Impact-Fee-Schedule-FY2026-Updated.pdf",
+        "effective": "FY2026",
+        "verified_on": "2026-11-26"
+      },
+      {
+        "name": "Austin Water capital recovery fee (wastewater)",
+        "all_units": 2900,
+        "note": "$2,900 per service unit, counted as for water ($2,500 for 2018-2023 plats).",
+        "source_url": "https://www.austintexas.gov/sites/default/files/files/Water/Taps/Impact-Fee-Schedule-FY2026-Updated.pdf",
+        "effective": "FY2026",
+        "verified_on": "2026-11-26"
+      },
+      {
+        "name": "Austin street impact fee",
+        "all_units": 0,
+        "note": "Not charged here: redevelopment of a previously developed lot pays only when it adds 10 or more PM peak-hour trips (about 12 houses or 18 low-rise apartments). A never-developed lot pays $850 per vehicle-mile: $2,439.50 a house inside the loop (SH 71 / US 183 / Loop 360), $3,621 outside; $1,377 / $2,048.50 per townhouse, duplex to 4-plex unit or ADU (Ordinance 20201210-061).",
+        "source_url": "https://www.austintexas.gov/edims/document.cfm?id=352887",
+        "effective": "2022-06-21",
+        "verified_on": "2026-11-26"
+      },
+      {
+        "name": "Austin parkland dedication fee in lieu",
+        "all_units": 0,
+        "note": "Not included: applies to subdivisions and site plans, not a building permit on an existing lot. Fee per unit when it applies: single family $7,647.86 (under 6 units an acre), $6,009.04 (6-12), $4,643.35 (over 12); multifamily $4,802.79 urban, $2,493.20 downtown, $2,613.66 suburban.",
+        "source_url": "https://www.austintexas.gov/parks/programs/parkland-dedication",
+        "verified_on": "2026-11-26"
+      }
+    ]
   }
 }

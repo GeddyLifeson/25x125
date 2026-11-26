@@ -36,5 +36,50 @@
     },
     "range_widened_by": 0.1,
     "basis": "appraisal district values"
+  },
+  "rents": {
+    "new_construction_factor": 1.033,
+    "factor_range": [
+      0.888,
+      1.541
+    ],
+    "range_basis": "10th-90th percentile over 33 tracts of ACS 2020-2024 rent of units built 2020 or later over all rented units",
+    "evidence": "python -m jobs.check_rents_acs: ACS 2020-2024 B25111 (median gross rent of units built 2020 or later) over B25064 (all rented units), median over 33 tracts with lots in San Antonio. Units built 2010-2019: 1.04 over 152 tracts.",
+    "caveat": "Census rents include long-tenure leases and utilities; no public rent rolls outside Chicago. Replace with a rent source when one is available.",
+    "verified_on": "2026-11-26"
+  },
+  "hold": {
+    "property_tax": {
+      "effective_tax_rate_default": 0.0233,
+      "tax_year": 2026,
+      "basis": "$2.329964 per $100 of appraised value",
+      "rate_note": "Bexar County 2026 official rates with Northside ISD: Bexar County 0.285963, road and flood 0.014036, hospital district 0.276235, Alamo Colleges 0.16665, San Antonio River Authority 0.0193, City of San Antonio 0.56288, Northside ISD 1.0049. Inside San Antonio ISD (urban core) the total is 2.480264.",
+      "source_url": "https://www.bexar.org/4299/2026-Official-Tax-Rates-Exemptions",
+      "verified_on": "2026-11-26",
+      "caveat": "Non-homestead rate for an in-city lot; special districts some lots pay are not included."
+    }
+  },
+  "impact_fees": {
+    "basis": "SAWS water and sewer impact fees for plats recorded on or after July 1, 2024, middle elevation zone and middle collection area. San Antonio has no roadway or school impact fee.",
+    "components": [
+      {
+        "name": "SAWS water impact fee",
+        "single_family": 5704,
+        "multifamily": 2852,
+        "note": "One 5/8 inch meter (1 EDU): $5,470 low, $5,704 middle, $5,987 high elevation. Apartments, duplexes, townhomes and condominiums on a master meter pay 1/2 EDU per unit; units with their own meters pay a full EDU.",
+        "source_url": "https://apps.saws.org/Business_Center/Developer/ImpactFees/docs/ImpactFeesMeterSizeChart_202407.pdf",
+        "effective": "2024-07-01",
+        "verified_on": "2026-11-26"
+      },
+      {
+        "name": "SAWS sewer impact fee",
+        "single_family": 3897,
+        "multifamily": 1948.5,
+        "note": "1 EDU: $1,873 (Lower Medina) to $5,541 (Upper Collection); $3,897 in the middle collection area. Master-metered units pay 1/2 EDU.",
+        "source_url": "https://apps.saws.org/Business_Center/Developer/ImpactFees/docs/ImpactFeesMeterSizeChart_202407.pdf",
+        "effective": "2024-07-01",
+        "verified_on": "2026-11-26"
+      }
+    ]
   }
 }

@@ -36,5 +36,50 @@
     },
     "range_widened_by": 0.1,
     "basis": "appraisal district values"
+  },
+  "impact_fees": {
+    "basis": "City of Houston water and wastewater impact fees (Chapter 47). Houston has no school, road or park impact fee on a single house. Drainage impact fee ($25.56 per drainage service unit, based on impervious area) is not included.",
+    "components": [
+      {
+        "name": "City of Houston wastewater impact fee",
+        "all_units": 1830.24,
+        "note": "Per service unit (250 gallons a day). A house or townhouse up to 3,000 sq ft is 1.0 service unit, plus 0.0002 per sq ft above 3,000; an apartment with a washer and dryer is 0.4762 and a condominium 0.4762 (city form UA-0005, revised 2019-08-26). Each unit is counted as 1.0 here, which fits houses and townhouses and overstates apartments. Homes sold under the city's low and medium cost housing cap can be exempt.",
+        "source_url": "https://www.houstonpermittingcenter.org/news-events/notice-impact-fees-increase-july-1-2026",
+        "effective": "2026-07-01",
+        "verified_on": "2026-11-26",
+        "service_units_source": "https://www.houstonpermittingcenter.org/media/2326/download?inline"
+      },
+      {
+        "name": "City of Houston water impact fee",
+        "all_units": 2553.11,
+        "note": "Per service unit (250 gallons a day). A house or townhouse up to 3,000 sq ft is 1.0 service unit, plus 0.0002 per sq ft above 3,000; an apartment with a washer and dryer is 0.4762 and a condominium 0.4762 (city form UA-0005, revised 2019-08-26). Each unit is counted as 1.0 here, which fits houses and townhouses and overstates apartments. Homes sold under the city's low and medium cost housing cap can be exempt.",
+        "source_url": "https://www.houstonpermittingcenter.org/news-events/notice-impact-fees-increase-july-1-2026",
+        "effective": "2026-07-01",
+        "verified_on": "2026-11-26",
+        "service_units_source": "https://www.houstonpermittingcenter.org/media/2326/download?inline"
+      }
+    ]
+  },
+  "rents": {
+    "new_construction_factor": 1.083,
+    "factor_range": [
+      0.891,
+      1.529
+    ],
+    "range_basis": "10th-90th percentile over 73 tracts of ACS 2020-2024 rent of units built 2020 or later over all rented units",
+    "evidence": "python -m jobs.check_rents_acs: ACS 2020-2024 B25111 (median gross rent of units built 2020 or later) over B25064 (all rented units), median over 73 tracts with lots in Houston. Units built 2010-2019: 1.016 over 368 tracts.",
+    "caveat": "Census rents include long-tenure leases and utilities; no public rent rolls outside Chicago. Replace with a rent source when one is available.",
+    "verified_on": "2026-11-26"
+  },
+  "hold": {
+    "property_tax": {
+      "effective_tax_rate_default": 0.02136,
+      "tax_year": 2026,
+      "basis": "$2.136359 per $100 of appraised value",
+      "rate_note": "Harris County 2026 adopted rates inside Houston ISD: Harris County 0.4175, Department of Education 0.004797, Flood Control 0.05266, Harris Health 0.19528, Port of Houston 0.00603, Houston City College 0.098802, Houston ISD 0.8421, City of Houston 0.51919. MUDs and TIRZ not included.",
+      "source_url": "https://www.hctax.net/Property/JurisdictionTaxRates",
+      "verified_on": "2026-11-26",
+      "caveat": "Non-homestead rate for an in-city lot; special districts some lots pay are not included."
+    }
   }
 }

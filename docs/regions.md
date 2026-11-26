@@ -122,6 +122,14 @@ score. `jobs.check_region --write` fits the region's own size elasticity and 80%
 appraiser's land value against vacant-lot sales, and draws a 35-sale test set into
 `data/regions/<id>/reference/test_parcels.csv`. Chicago's fitted range is never borrowed.
 
+Rents (added 2026-11-26): `jobs.nightly` gives every lot its 2020 census tract from the Census Bureau's
+cartographic tract file (`jobs/load_tracts.py`; the whole state loads, since city lots spill past the loaded
+counties) and loads ACS rents for the region's state and ZIP areas (`jobs/load_rents.py`). Run
+`python -m jobs.check_rents_acs --write` once to set the region's new-building rent factor: the median, over tracts
+with lots, of the ACS rent of units built 2020 or later (2010-2019 where fewer than 30 tracts report them) over
+all rented units. Property tax (`hold.property_tax`) and impact fees (`impact_fees.components`) are entered by hand
+in the region's `feasibility_defaults.json`, each with its source.
+
 ### Parcel loaders
 
 | `parcel_loader` | Covers | Source |

@@ -46,5 +46,27 @@
     "rule": "where no vacant-lot sales are nearby, land = the appraiser's land value / this ratio",
     "source": "python -m jobs.check_region",
     "verified_on": "2026-11-17"
+  },
+  "rents": {
+    "new_construction_factor": 1.056,
+    "factor_range": [
+      0.905,
+      1.459
+    ],
+    "range_basis": "10th-90th percentile over 53 tracts of ACS 2020-2024 rent of units built 2010-2019 over all rented units",
+    "evidence": "python -m jobs.check_rents_acs: ACS 2020-2024 B25111 (median gross rent of units built 2010-2019) over B25064 (all rented units), median over 53 tracts with lots in Jacksonville. Units built 2020 or later: 1.082 over 16 tracts.",
+    "caveat": "Census rents include long-tenure leases and utilities; no public rent rolls outside Chicago. Replace with a rent source when one is available.",
+    "verified_on": "2026-11-26"
+  },
+  "hold": {
+    "property_tax": {
+      "effective_tax_rate_default": 0.01508,
+      "tax_year": 2025,
+      "basis": "17.7412 mills on taxable value x 0.85 (Florida just value is set near 85% of sale price after the 15% cost-of-sale deduction, s. 193.011(8))",
+      "rate_note": "Duval County 2025 final millage, Urban Services District 1: schools 6.3430, consolidated city-county 11.1919, St. Johns River WMD 0.1793, Florida Inland Navigation District 0.0270. City rate unchanged for 2026.",
+      "source_url": "https://www.jacksonville.gov/getContentAsset/3902f16d-941a-46e3-848f-c50b1fa4c0e1/135b97c9-84fa-4e82-b956-0fbccec4aa1f/2025-FINAL_MILLAGE_CHART.pdf?language=en",
+      "verified_on": "2026-11-26",
+      "caveat": "Non-homestead rate for an in-city lot; special districts some lots pay are not included."
+    }
   }
 }

@@ -51,5 +51,27 @@
     "rule": "where no vacant-lot sales are nearby, land = the appraiser's land value / this ratio",
     "source": "python -m jobs.check_region",
     "verified_on": "2026-11-19"
+  },
+  "rents": {
+    "new_construction_factor": 1.245,
+    "factor_range": [
+      0.891,
+      1.812
+    ],
+    "range_basis": "10th-90th percentile over 38 tracts of ACS 2020-2024 rent of units built 2020 or later over all rented units",
+    "evidence": "python -m jobs.check_rents_acs: ACS 2020-2024 B25111 (median gross rent of units built 2020 or later) over B25064 (all rented units), median over 38 tracts with lots in Miami. Units built 2010-2019: 1.067 over 145 tracts.",
+    "caveat": "Census rents include long-tenure leases and utilities; no public rent rolls outside Chicago. Replace with a rent source when one is available.",
+    "verified_on": "2026-11-26"
+  },
+  "hold": {
+    "property_tax": {
+      "effective_tax_rate_default": 0.01696,
+      "tax_year": 2026,
+      "basis": "19.9544 mills on taxable value x 0.85 (Florida just value is set near 85% of sale price after the 15% cost-of-sale deduction, s. 193.011(8))",
+      "rate_note": "Miami-Dade 2026 adopted millage, City of Miami (code 0100): city 7.3616, schools 6.6230, county 4.9677, library 0.2812, Children's Trust 0.4638, South Florida WMD and Everglades 0.2301, FIND 0.0270. Downtown Development Authority area adds 0.3800.",
+      "source_url": "https://www.miamidadepa.gov/resources-pa/library/reports/millage/2026-adopted-millage-chart.pdf",
+      "verified_on": "2026-11-26",
+      "caveat": "Non-homestead rate for an in-city lot; special districts some lots pay are not included."
+    }
   }
 }

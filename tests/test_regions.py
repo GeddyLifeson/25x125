@@ -406,7 +406,9 @@ def test_san_antonio_adu_only_under_five_units(in_region):
         res = zoning.evaluate(zoning.Site(pin="1", zone_class=zone, lot_sqft=lot, frontage_ft=width), rules)
         return {p.id: p.units for p in res.paths}
 
-    assert paths("RM-4", 4000, 40) == {"by_right": 4, "adu": 5, "rezoning": 1}
+    # No MF target beats 4 units on 4,000 sq ft (MF-33 gives 3), so no rezoning path; 7,749 sq ft picks MF-33.
+    assert paths("RM-4", 4000, 40) == {"by_right": 4, "adu": 5}
+    assert paths("RM-4", 7749, 60)["rezoning"] == 5
     assert "adu" not in paths("MF-33", 10000, 70)  # 7 units by right
     assert paths("MF-18", 5000, 50)["adu"] == 3
 
@@ -446,3 +448,34 @@ def test_corner_lot_frontage_by_address():
     assert not fronts_other_street("6935 AVE O", ["AVENUE O"])
     assert not fronts_other_street("0", ["X ST"])  # no usable address: keep the flag
     assert not fronts_other_street("1 A ST", ["", "B ST"])  # an unnamed segment nearby: keep the flag
+
+
+def test_orlando_and_houston_impact_fees_load(in_region):
+    from core import region
+    from engine.feasibility import region_impact_fees
+
+    in_region("orlando")
+    f = region.rules_json("feasibility_defaults.json")["impact_fees"]
+    # 1,800 sq ft house: transportation 5,645 + parks 2,225 + sewer 2,537.50 + school 8,829
+    assert region_impact_fees(f, 1, 1800) == round(5645 + 2225 + 2537.5 + 8829)
+    assert region_impact_fees(f, 3, 1200) == round(3883 + 825 + 1928.5 + 6751) * 3
+    in_region("houston")
+    f = region.rules_json("feasibility_defaults.json")["impact_fees"]
+    assert region_impact_fees(f, 2, 1800) == round(1830.24 + 2553.11) * 2
+
+
+def test_region_rents_and_property_tax_load(in_region):
+    from core import region
+
+    for rid in ("tampa", "orlando", "jacksonville", "miami", "houston", "dallas", "austin", "san_antonio",
+                "atlanta"):  # fmt: skip
+        in_region(rid)
+        d = region.rules_json("feasibility_defaults.json")
+        assert 0.9 < d["rents"]["new_construction_factor"] < 1.4, rid
+        lo, hi = d["rents"]["factor_range"]
+        assert lo < d["rents"]["new_construction_factor"] < hi, rid
+        assert "range_basis" in d["rents"], rid
+        t = d["hold"]["property_tax"]
+        assert 0.012 < t["effective_tax_rate_default"] < 0.025 and t["source_url"].startswith("https://"), rid
+    in_region("chicago")
+    assert "range_basis" not in region.rules_json("feasibility_defaults.json")["rents"]

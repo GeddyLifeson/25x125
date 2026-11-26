@@ -35,5 +35,27 @@
       "median_abs_error": 0.4269,
       "within_15pct": 0.182
     }
+  },
+  "rents": {
+    "new_construction_factor": 1.031,
+    "factor_range": [
+      0.857,
+      1.282
+    ],
+    "range_basis": "10th-90th percentile over 84 tracts of ACS 2020-2024 rent of units built 2010-2019 over all rented units",
+    "evidence": "python -m jobs.check_rents_acs: ACS 2020-2024 B25111 (median gross rent of units built 2010-2019) over B25064 (all rented units), median over 84 tracts with lots in Atlanta. Units built 2020 or later: 1.051 over 20 tracts.",
+    "caveat": "Census rents include long-tenure leases and utilities; no public rent rolls outside Chicago. Replace with a rent source when one is available.",
+    "verified_on": "2026-11-26"
+  },
+  "hold": {
+    "property_tax": {
+      "effective_tax_rate_default": 0.01636,
+      "tax_year": 2025,
+      "basis": "40.909 mills on taxable value x 0.40 (Georgia assesses 40% of fair market value)",
+      "rate_note": "Fulton County 2025 millage inside the City of Atlanta: city with Atlanta Public Schools 31.870, Fulton County 9.039. Georgia taxes 40% of fair market value. DeKalb part of the city differs. 2026 city and school rates not yet found.",
+      "source_url": "https://www.fultoncountytaxes.org/media/Millage_Rates_Through_2025.pdf",
+      "verified_on": "2026-11-26",
+      "caveat": "Non-homestead rate for an in-city lot; special districts some lots pay are not included."
+    }
   }
 }
