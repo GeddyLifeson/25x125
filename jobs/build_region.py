@@ -139,6 +139,15 @@ from (select pin, min(e->>'name') as name from parcel_site, jsonb_array_elements
 where ps.pin = x.pin and ps.transit_served is null
 """
 
+# Opportunity Zone (2018 designations, 2010 tract lines): the engine's incentive reads
+# parcel_site.opportunity_zone_2018, as in Chicago. The overlay name is the 2010 tract number.
+OPPORTUNITY_ZONE = """
+update parcel_site ps set opportunity_zone_2018 = x.name
+from (select pin, min(e->>'name') as name from parcel_site, jsonb_array_elements(overlays) e
+      where e->>'kind' = 'opportunity_zone_2018' group by pin) x
+where ps.pin = x.pin
+"""
+
 
 # A street-line overlay (Houston's driveway-restricted streets) stays on a lot unless the lot's address is on a
 # different street from every restricted street within `frontage_reach_m` of its outline (a corner lot that
@@ -246,7 +255,10 @@ def run(url: str | None = None) -> dict:
                 transit[layer["kind"]] = conn.execute(
                     TRANSIT, {"kind": layer["kind"], "label": layer["transit_served"]}
                 ).rowcount
+        conn.execute("update parcel_site set opportunity_zone_2018 = null")
+        n_oz = conn.execute(OPPORTUNITY_ZONE).rowcount
         out = {"lots": conn.execute("select count(*) from lot_use").fetchone()[0]}
+        out["lots in an Opportunity Zone"] = n_oz
         for k, n in transit.items():
             out[f"lots transit-served ({k})"] = n
         for k, n in dropped.items():

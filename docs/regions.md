@@ -199,6 +199,9 @@ percentile $128 to $200), so the national figure holds there. The feasibility-st
   `drop_if_open_frontage` (Houston driveway streets), `radius_ft` (a point layer loads as circles of that radius:
   Atlanta MARTA stations at 2,640 ft) and `transit_served` (a label; lots inside the layer become transit-served,
   and a region parking step with `transit_no_parking` then needs no car parking).
+- Opportunity Zones: every region loads kind `opportunity_zone_2018` from HUD's copy of the 2018 Treasury list
+  (2010 tract lines, filtered to the state). `build_region` copies the tract number to
+  `parcel_site.opportunity_zone_2018`, which the incentive reads, as in Chicago.
 
 ### Not built yet
 

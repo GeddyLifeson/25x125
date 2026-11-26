@@ -585,3 +585,20 @@ def test_region_incentives_and_questions_leave_out_illinois_programs(in_region):
     in_region("chicago")
     assert "materials_from_ez_supplier" in {q["id"] for q in load_questions()}
     assert region.is_chicago()
+
+
+def test_every_new_region_loads_its_states_opportunity_zones():
+    import json
+    from pathlib import Path
+
+    from jobs.build_region import OPPORTUNITY_ZONE
+
+    regions = [p for p in Path("data/regions").glob("*/region.json") if p.parent.name != "chicago"]
+    assert len(regions) == 9
+    for p in regions:
+        d = json.loads(p.read_text())
+        oz = [x for x in d["overlay_layers"] if x["kind"] == "opportunity_zone_2018"]
+        assert len(oz) == 1, p
+        assert oz[0]["url"].endswith("/Opportunity_Zones/FeatureServer/13") and oz[0]["name_field"] == "GEOID10"
+        assert oz[0]["where"] == f"STATE = '{d['counties'][0]['fips'][:2]}'"
+    assert "set opportunity_zone_2018" in OPPORTUNITY_ZONE and "'opportunity_zone_2018'" in OPPORTUNITY_ZONE
