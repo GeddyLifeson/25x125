@@ -138,8 +138,11 @@
     {
       "kind": "transit",
       "url": "https://gis.atlantaga.gov/dpcd/rest/services/OpenDataService1/MapServer/28",
-      "name_field": "",
-      "note": "MARTA rail stations; listed in the service, fields not tested. Lots within 2,640 ft of a high-capacity transit stop need no parking (Sec. 16-28.014(14))."
+      "name_field": "STATION",
+      "note": "MARTA rail stations (38 points, fields STATION, STN_CODE; checked 2026-11-26). Each loads as a 2,640 ft circle: lots within 2,640 ft of a high-capacity transit stop need no parking (Sec. 16-28.014(14)). Straight-line distance, not walking distance.",
+      "radius_ft": 2640,
+      "clip": false,
+      "transit_served": "within 2,640 ft of MARTA rail station"
     }
   ],
   "permit_source": {

@@ -132,6 +132,14 @@ from (
 """
 
 
+TRANSIT = """
+update parcel_site ps set transit_served = %(label)s || ' (' || x.name || ')'
+from (select pin, min(e->>'name') as name from parcel_site, jsonb_array_elements(overlays) e
+      where e->>'kind' = %(kind)s group by pin) x
+where ps.pin = x.pin and ps.transit_served is null
+"""
+
+
 # A street-line overlay (Houston's driveway-restricted streets) stays on a lot unless the lot's address is on a
 # different street from every restricted street within `frontage_reach_m` of its outline (a corner lot that
 # fronts an open street). Lots with no usable address, or near a restricted segment with no name, keep it.
@@ -230,7 +238,17 @@ def run(url: str | None = None) -> dict:
                 pins = [pin for pin, address, names in rows if fronts_other_street(address, names)]
                 conn.execute(DROP_OVERLAY, {"kind": layer["kind"], "pins": pins})
                 dropped[layer["kind"]] = len(pins)
+        # Layers that make a lot transit-served (Atlanta MARTA stations, 2,640 ft): the parking rule reads it.
+        conn.execute("update parcel_site set transit_served = null")
+        transit = {}
+        for layer in r.get("overlay_layers") or []:
+            if layer.get("transit_served") and not layer.get("skip"):
+                transit[layer["kind"]] = conn.execute(
+                    TRANSIT, {"kind": layer["kind"], "label": layer["transit_served"]}
+                ).rowcount
         out = {"lots": conn.execute("select count(*) from lot_use").fetchone()[0]}
+        for k, n in transit.items():
+            out[f"lots transit-served ({k})"] = n
         for k, n in dropped.items():
             out[f"{k} dropped (open frontage elsewhere)"] = n
         out["lots with overlays"] = conn.execute(

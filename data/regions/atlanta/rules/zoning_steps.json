@@ -68,7 +68,8 @@
           "max_spaces_one_bedroom": 1.25,
           "max_spaces_two_plus_bedroom": 2.0,
           "stops_layer": "https://gis.atlantaga.gov/dpcd/rest/services/OpenDataService1/MapServer/28"
-        }
+        },
+        "transit_no_parking": "no car parking required within 2,640 ft of a high-capacity transit stop (Sec. 16-28.014(14)); not in the Buckhead Parking Overlay, SPI districts, or historic and landmark districts with parking maximums"
       },
       "section": "Sec. 16-03.010 to 16-05A.010 (2 per dwelling); 16-06.010(1), 16-06A.010(1), 16-06B.010(1); 16-07.010(1)-(2); 16-08.010(4) and Table I; 16-09 (sector 2 of Table I); 16-35.021(5); 16-34.021; 16-28.014 (pre-1965 buildings; (14) high capacity transit)",
       "source_url": "https://www.zoneomics.com/code/atlanta-GA/chapter_14",

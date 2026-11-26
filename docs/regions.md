@@ -194,6 +194,12 @@ percentile $128 to $200), so the national figure holds there. The feasibility-st
 - Where no vacant-lot sales are nearby, land is the appraiser's land value for the parcel divided by the
   measured ratio of appraiser land value to sale price (Tampa: 0.55 on 426 vacant-lot sales).
 
+- Overlay layer keys (region.json `overlay_layers`): `kind`, `url`, `name_field` (one field or a list joined),
+  `where`, `key`, `page_size`, `clip` (false to load the whole layer), `skip` with `why_skip`,
+  `drop_if_open_frontage` (Houston driveway streets), `radius_ft` (a point layer loads as circles of that radius:
+  Atlanta MARTA stations at 2,640 ft) and `transit_served` (a label; lots inside the layer become transit-served,
+  and a region parking step with `transit_no_parking` then needs no car parking).
+
 ### Not built yet
 
 Steps the city files describe that the engine does not compute: Tampa ADU eligible areas (map layer), Orlando

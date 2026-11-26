@@ -7,6 +7,7 @@ parcel_site.overlays, and the engine turns the ones that limit building into fla
 """
 
 import json
+import math
 
 from core import region
 from core.arcgis import ArcGIS, ArcGISError
@@ -15,6 +16,7 @@ from core.sources import finish_pull, start_pull
 from jobs.common import text, upsert
 
 POINT_HALF_DEG = 0.00003  # about 3 m each side of the point
+FT_PER_DEG_LAT = 364_000  # about 111 km
 COLUMNS = ["kind", "source_id", "name", "rating", "attrs", "the_geom", "source_pull_id"]
 LINE_BUFFER_M = 15  # street lines: reaches the front of the lots on both sides of a 50 to 60 ft right of way
 _G = "st_setsrid(st_geomfromgeojson(the_geom), 4326)"
@@ -24,13 +26,28 @@ GEOM = {
 }
 
 
+def circle(x: float, y: float, radius_ft: float, sides: int = 48) -> dict:
+    """A GeoJSON polygon approximating a circle of `radius_ft` around lon/lat (x, y)."""
+    dy = radius_ft / FT_PER_DEG_LAT
+    dx = dy / math.cos(math.radians(y))
+    ring = [[x + dx * math.cos(2 * math.pi * i / sides), y + dy * math.sin(2 * math.pi * i / sides)]
+            for i in range(sides)]  # fmt: skip
+    return {"type": "Polygon", "coordinates": [[*ring, ring[0]]]}
+
+
 def to_rows(page: list[dict], layer: dict, key: str, prefix: str, pull_id: int):
     field = layer.get("name_field")
     for f in page:
         props = f.get("properties") or {}
         g = f.get("geometry")
         attrs = {"layer": layer["url"]}
-        if g and g.get("type") == "Point":
+        if g and g.get("type") == "Point" and layer.get("radius_ft"):
+            # A stop with a reach (Atlanta: no parking within 2,640 ft of a MARTA rail station): a circle of that
+            # radius, matched to the lots whose point it contains, like any polygon.
+            x, y = g["coordinates"][:2]
+            g = circle(x, y, layer["radius_ft"])
+            attrs["radius_ft"] = layer["radius_ft"]
+        elif g and g.get("type") == "Point":
             # Point layers (Austin's 689 city landmarks): store a 6 m square; build_region matches it to the lot
             # whose outline it touches.
             x, y = g["coordinates"][:2]

@@ -549,3 +549,27 @@ def test_footprints_give_floor_area_and_year_per_parcel():
     assert out["14 0001"] == {"sqft": 2800.0, "year": 2024, "units": 1}
     assert "14 0002" not in out
     assert out["14 0003"]["year"] is None
+
+
+def test_transit_stop_circle_and_no_parking(in_region):
+    import math
+
+    from engine import zoning
+    from engine.rules import Rules
+    from jobs.load_region_overlays import FT_PER_DEG_LAT, circle
+
+    g = circle(-84.39, 33.75, 2640)
+    ring = g["coordinates"][0]
+    assert ring[0] == ring[-1] and len(ring) == 49
+    north = max(y for _, y in ring) - 33.75
+    assert math.isclose(north * FT_PER_DEG_LAT, 2640, rel_tol=0.01)
+
+    in_region("atlanta")
+    rules = Rules.from_files()
+    far = zoning.evaluate(zoning.Site(pin="1", zone_class="R-4", lot_sqft=9000, frontage_ft=60), rules)
+    near = zoning.evaluate(
+        zoning.Site(pin="1", zone_class="R-4", lot_sqft=9000, frontage_ft=60,
+                    transit_served="within 2,640 ft of MARTA rail station (West End)"),
+        rules,
+    )  # fmt: skip
+    assert far.paths[0].parking_spaces == 1 and near.paths[0].parking_spaces == 0

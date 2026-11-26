@@ -110,6 +110,8 @@ def _parking(rules: Rules, district: str, units: int, site: "Site") -> tuple[int
                 ),
             )
         return 0, bikes, f"transit-served ({site.transit_served}): no car parking required"
+    if site.transit_served and p.get("transit_no_parking"):
+        return 0, 0, f"{site.transit_served}: {p['transit_no_parking']}"
     note = f"{per_unit:g} space(s) per unit" + (
         " outside transit-served areas" if "bike_spaces_per_unit" in p else ""
     )
