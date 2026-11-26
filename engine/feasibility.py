@@ -116,11 +116,12 @@ def incentives(d: dict, x: Inputs, c: Cost, exit_: str, hold_value: float | None
                     "basis": basis, "kind": kind, "note": note})  # fmt: skip
 
     local = d.get("chicago_rules", True)
-    ez_value = c.hard * 0.40 * 0.1025
-    ez_ok = local and x.in_enterprise_zone and x.answers.get("materials_from_ez_supplier", True)
-    add("ez", "Enterprise Zone materials sales tax exemption", ez_ok, ez_value,
-        "10.25% sales tax on about 40% of hard cost (materials)", "cash",
-        "confirm residential eligibility; buy through an Enterprise Zone certificate")  # fmt: skip
+    if local:  # Illinois Enterprise Zone: not shown in other states
+        ez_value = c.hard * 0.40 * 0.1025
+        ez_ok = x.in_enterprise_zone and x.answers.get("materials_from_ez_supplier", True)
+        add("ez", "Enterprise Zone materials sales tax exemption", ez_ok, ez_value,
+            "10.25% sales tax on about 40% of hard cost (materials)", "cash",
+            "confirm residential eligibility; buy through an Enterprise Zone certificate")  # fmt: skip
     if exit_ == "sell":
         add("bonus", "Bonus depreciation (tax deferred)", False, 0, "Applies only if you hold", "deferral")
         add(
@@ -180,8 +181,8 @@ def scenario(
     # Enterprise Zone savings come off hard cost before financing (decision 39) when on.
     c0 = _cost(d, x, gross, fee, 0.0)
     inc0 = incentives(d, x, c0, exit_, None)
-    ez = next(i for i in inc0 if i["id"] == "ez")
-    savings = ez["value"] if ez["on"] else 0.0
+    ez = next((i for i in inc0 if i["id"] == "ez"), None)  # Chicago only
+    savings = ez["value"] if ez and ez["on"] else 0.0
     c = _cost(d, x, gross, fee, savings)
 
     out = {"name": name, "approval": approval, "units": x.units, "exit": exit_, "gross_sqft": round(gross),

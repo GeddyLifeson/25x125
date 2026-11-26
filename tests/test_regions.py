@@ -573,3 +573,15 @@ def test_transit_stop_circle_and_no_parking(in_region):
         rules,
     )  # fmt: skip
     assert far.paths[0].parking_spaces == 1 and near.paths[0].parking_spaces == 0
+
+
+def test_region_incentives_and_questions_leave_out_illinois_programs(in_region):
+    from core import region
+    from engine.feasibility import Inputs, scenario  # noqa: F401
+    from engine.parcel_feasibility import load_questions
+
+    in_region("tampa")
+    assert {q["id"] for q in load_questions()} == {"has_capital_gains", "hold_years"}
+    in_region("chicago")
+    assert "materials_from_ez_supplier" in {q["id"] for q in load_questions()}
+    assert region.is_chicago()
