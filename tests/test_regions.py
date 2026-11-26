@@ -495,3 +495,57 @@ def test_atlanta_miami_jacksonville_impact_fees_load(in_region):
     in_region("jacksonville")
     f = region.rules_json("feasibility_defaults.json")["impact_fees"]
     assert region_impact_fees(f, 1, 1800) == 2321
+
+
+def test_footprints_give_floor_area_and_year_per_parcel():
+    from jobs.load_footprints import per_parcel
+
+    f = {
+        "pin": "ParcelID",
+        "area": "AreaSqFt",
+        "stories": "Stories",
+        "year": "YearBuilt",
+        "units": "LiveUnits",
+    }
+    feats = [
+        {
+            "properties": {
+                "ParcelID": "14 0001",
+                "AreaSqFt": 1200,
+                "Stories": 2,
+                "YearBuilt": "2024",
+                "LiveUnits": 1,
+            }
+        },
+        {
+            "properties": {
+                "ParcelID": "14 0001",
+                "AreaSqFt": 400,
+                "Stories": None,
+                "YearBuilt": "1990",
+                "LiveUnits": 0,
+            }
+        },
+        {
+            "properties": {
+                "ParcelID": "14 0002",
+                "AreaSqFt": 0,
+                "Stories": 1,
+                "YearBuilt": "2020",
+                "LiveUnits": 1,
+            }
+        },
+        {
+            "properties": {
+                "ParcelID": "14 0003",
+                "AreaSqFt": 900,
+                "Stories": 1,
+                "YearBuilt": " ",
+                "LiveUnits": 2,
+            }
+        },
+    ]
+    out = per_parcel(feats, f)
+    assert out["14 0001"] == {"sqft": 2800.0, "year": 2024, "units": 1}
+    assert "14 0002" not in out
+    assert out["14 0003"]["year"] is None

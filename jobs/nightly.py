@@ -57,6 +57,7 @@ def region_steps(skip_yearly: bool) -> list[tuple[str, Callable]]:
         load_arcgis_parcels,
         load_dcad,
         load_fl_dor,
+        load_footprints,
         load_permits_year_built,
         load_region_overlays,
         load_tcad,
@@ -85,7 +86,12 @@ def region_steps(skip_yearly: bool) -> list[tuple[str, Callable]]:
         if r.get("permits_year_built")
         else []
     )
-    return ([] if skip_yearly else yearly + permits) + [
+    footprints = (
+        [("floor area and year built from building footprints", lambda: load_footprints.run())]
+        if r.get("footprints")
+        else []
+    )
+    return ([] if skip_yearly else yearly + permits + footprints) + [
         ("zoning", lambda: load_zoning_layer.run()),
         ("cost escalation", lambda: load_cost_escalation.run()),
         ("rules", lambda: seed_rules.run()),

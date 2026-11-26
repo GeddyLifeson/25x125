@@ -234,7 +234,7 @@
   "comps": {
     "built_since": 2019,
     "price_floor_per_unit": 100000,
-    "source": "Fulton County appraised market value (City of Atlanta tax parcel layer, TOT_APPR) of 1-6 unit buildings on lots with a finished new-building permit, 2019 on (City of Atlanta permit export); no floor area, so no size adjustment"
+    "source": "Fulton County appraised market value (City of Atlanta tax parcel layer, TOT_APPR) of 1-6 unit buildings built 2019 or later; year built from finished new-building permits (City of Atlanta export) and Fulton County building footprints; floor area = footprint area x stories (Fulton County footprints, includes garages and porches)"
   },
   "permits_year_built": {
     "url": "https://www.arcgis.com/sharing/rest/content/items/655f985f43cc40b4bf2ab7bc73d2169b/data",
@@ -261,5 +261,18 @@
     "tested_on": "2026-11-19",
     "note": "The city's live layer (Building_Permit_latest, 36,115 permits from late 2022 on) has the same fields and can extend this past 2024.",
     "why_types": "Multi Family New covers apartment and condo buildings; every condo unit parcel under one would take the building's year and pull high-rise unit values into a pool of houses (tested 2026-11-19: 44% median error with both types)."
+  },
+  "footprints": {
+    "url": "https://services1.arcgis.com/AQDHTHDrZzfsFsB5/arcgis/rest/services/Structure_Footprints/FeatureServer/0",
+    "where": "FeatType = 'Residential'",
+    "fields": {
+      "pin": "ParcelID",
+      "area": "AreaSqFt",
+      "stories": "Stories",
+      "year": "YearBuilt",
+      "units": "LiveUnits"
+    },
+    "covers": "Fulton County only (386,176 footprints on 2026-11-26); the DeKalb part of Atlanta has no floor area yet",
+    "tested_on": "2026-11-26"
   }
 }
