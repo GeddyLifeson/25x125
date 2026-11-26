@@ -39,7 +39,19 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T;
 }
 
-export const cleanPin = (pin: string) => pin.replace(/\D/g, "");
+// A parcel ID as the engine stores it, ready for a URL path. Cook County PINs are often typed with dashes, which
+// are dropped. Parcel IDs in other regions keep their letters and spaces (Tampa "18302042J000237000050A",
+// Jacksonville "0014420001R", Atlanta "17 023000030813"); none of them contain dashes.
+export const pinId = (pin: string) => {
+  let p = pin;
+  try {
+    p = decodeURIComponent(pin); // a route param can arrive still encoded ("14%20005400030532")
+  } catch {
+    // not encoded
+  }
+  return p.replace(/-/g, "").trim();
+};
+export const cleanPin = (pin: string) => encodeURIComponent(pinId(pin));
 
 export function searchParcels(q: string): Promise<SearchHit[]> {
   return call<SearchHit[]>(`/search?q=${encodeURIComponent(q)}&limit=25`);

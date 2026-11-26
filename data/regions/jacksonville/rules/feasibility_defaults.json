@@ -70,13 +70,13 @@
     }
   },
   "impact_fees": {
-    "basis": "City of Jacksonville mobility fee only. Duval County has no school impact fee and the city has no park, fire or police impact fee. JEA water and sewer capacity charges are not included.",
+    "basis": "Estimate: the mobility fee ($2,300 a house, $1,100 an apartment) is the middle of published ranges; the city has not confirmed it. City of Jacksonville mobility fee only. Duval County has no school impact fee and the city has no park, fire or police impact fee. JEA water and sewer capacity charges are not included.",
     "components": [
       {
         "name": "Jacksonville mobility fee",
         "single_family": 2300,
         "multifamily": 1100,
-        "note": "NOT CONFIRMED BY THE CITY. The fee is cost per vehicle-mile x average trip length for the development area x daily trips x an internal factor (Code sec. 655.503); the city's rate tables are in its calculator and its 2025 handbook, which is sent only by email (CMMSO@coj.net). Middle of the ranges compiled by impactfees.org (single family about $900 to $3,700, up to $4,080 rural; multifamily about $450 to $1,800). Replace with the city's figure for the lot's mobility zone.",
+        "note": "NOT CONFIRMED BY THE CITY. The fee is cost per vehicle-mile x average trip length for the development area x daily trips x an internal factor (Code sec. 655.503); the city's rate tables are in its calculator and its 2025 handbook, which is sent only by email (CMMSO@coj.net). Middle of the ranges compiled by impactfees.org (single family about $900 to $3,700, up to $4,080 rural; multifamily about $450 to $1,800). Replace with the city's figure for the lot's mobility zone. Request draft: docs/launch/jacksonville-mobility-fee-request.md.",
         "source_url": "https://jaxepics.coj.net/MobilityFeeCalculator",
         "source_url_amounts": "https://impactfees.org/florida-impact-fees/duval-county/jacksonville",
         "verified_on": "2026-11-26"

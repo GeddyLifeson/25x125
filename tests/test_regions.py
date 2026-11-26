@@ -495,6 +495,7 @@ def test_atlanta_miami_jacksonville_impact_fees_load(in_region):
     in_region("jacksonville")
     f = region.rules_json("feasibility_defaults.json")["impact_fees"]
     assert region_impact_fees(f, 1, 1800) == 2321
+    assert f["basis"].startswith("Estimate:")  # the mobility fee is not confirmed by the city
 
 
 def test_footprints_give_floor_area_and_year_per_parcel():

@@ -577,7 +577,8 @@ export function FeasibilityScreen(props: Props) {
               <span className="mono">{usd(sel.incentive_total)}</span>
             </div>
             <p className="small muted" style={{ marginTop: 8 }}>
-              Cash items (Enterprise Zone) are already a cost line above. Tax and deferral items are shown apart from profit.
+              {sel.incentives.some((i) => i.id === "ez") ? "Cash items (Enterprise Zone) are already a cost line above. " : ""}
+              Tax and deferral items are shown apart from profit.
             </p>
           </section>
 

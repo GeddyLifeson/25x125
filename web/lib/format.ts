@@ -40,6 +40,7 @@ export function sqft(n: number | null | undefined): string {
 
 /** 16012160310000 -> 16-01-216-031-0000 */
 export function formatPin(pin: string): string {
+  if (!/^[\d-]+$/.test(pin)) return pin; // other regions' parcel IDs print as stored
   const d = pin.replace(/\D/g, "");
   if (d.length === 14) return `${d.slice(0, 2)}-${d.slice(2, 4)}-${d.slice(4, 7)}-${d.slice(7, 10)}-${d.slice(10)}`;
   if (d.length === 10) return `${d.slice(0, 2)}-${d.slice(2, 4)}-${d.slice(4, 7)}-${d.slice(7, 10)}`;
