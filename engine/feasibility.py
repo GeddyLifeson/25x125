@@ -71,15 +71,18 @@ def _band(table: list, sqft: float) -> float:
 
 def region_impact_fees(f: dict, units: int, unit_sqft: float) -> float:
     """Impact fees outside Chicago. `components` lists each fee (city transportation, county school, ...):
-    `single_family` (1 unit) and `multifamily` (2+ units) are a flat fee per unit or a living-area band table,
-    and `all_units` applies to both. Without components, a flat `per_unit`."""
+    `single_family` (1 unit) and `multifamily` (2+ units) are a flat fee per unit, a living-area band table or
+    {per_unit, per_sqft}, and `all_units` applies to both. Without components, a flat `per_unit`."""
     comps = f.get("components")
     if not comps:
         return float(f.get("per_unit", 0)) * units
     total = 0.0
     for c in comps:
         v = c.get("all_units", c.get("single_family" if units == 1 else "multifamily", 0))
-        total += _band(v, unit_sqft) if isinstance(v, list) else float(v or 0)
+        if isinstance(v, dict):  # {"per_unit": 612, "per_sqft": 0.918} (Miami-Dade school fee)
+            total += float(v.get("per_unit", 0)) + float(v.get("per_sqft", 0)) * unit_sqft
+        else:
+            total += _band(v, unit_sqft) if isinstance(v, list) else float(v or 0)
     return round(total) * units
 
 

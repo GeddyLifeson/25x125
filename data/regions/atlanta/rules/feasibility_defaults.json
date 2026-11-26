@@ -57,5 +57,96 @@
       "verified_on": "2026-11-26",
       "caveat": "Non-homestead rate for an in-city lot; special districts some lots pay are not included."
     }
+  },
+  "impact_fees": {
+    "basis": "City of Atlanta development impact fees at full rate (phase 3, from September 1, 2023): transportation, parks, fire and police. Duplexes to fourplexes pay multifamily rates. Water and sewer charges are not included.",
+    "components": [
+      {
+        "name": "Atlanta transportation impact fee",
+        "single_family": [
+          [
+            1500,
+            2940
+          ],
+          [
+            2500,
+            3128
+          ],
+          [
+            null,
+            3316
+          ]
+        ],
+        "multifamily": 1752,
+        "note": "Single family by gross floor area: under 1,500 sq ft, 1,500 to 2,499, 2,500 or more. Multifamily low-rise (1-2 stories); mid-rise $1,376. Half off within 1,000 walking feet of a MARTA station when parking stays at or below the minimum.",
+        "source_url": "https://atlantaga.gov/home/showpublisheddocument/52308/637655658776717262",
+        "ordinance": "21-O-0096, Code sec. 19-1007",
+        "effective": "2023-09-01",
+        "verified_on": "2026-11-26"
+      },
+      {
+        "name": "Atlanta parks impact fee",
+        "single_family": [
+          [
+            1500,
+            1129
+          ],
+          [
+            2500,
+            1217
+          ],
+          [
+            null,
+            1349
+          ]
+        ],
+        "multifamily": 826,
+        "source_url": "https://atlantaga.gov/home/showpublisheddocument/52308/637655658776717262",
+        "effective": "2023-09-01",
+        "verified_on": "2026-11-26"
+      },
+      {
+        "name": "Atlanta fire impact fee",
+        "single_family": [
+          [
+            1500,
+            260
+          ],
+          [
+            2500,
+            281
+          ],
+          [
+            null,
+            311
+          ]
+        ],
+        "multifamily": 191,
+        "source_url": "https://atlantaga.gov/home/showpublisheddocument/52308/637655658776717262",
+        "effective": "2023-09-01",
+        "verified_on": "2026-11-26"
+      },
+      {
+        "name": "Atlanta police impact fee",
+        "single_family": [
+          [
+            1500,
+            262
+          ],
+          [
+            2500,
+            282
+          ],
+          [
+            null,
+            313
+          ]
+        ],
+        "multifamily": 192,
+        "source_url": "https://atlantaga.gov/home/showpublisheddocument/52308/637655658776717262",
+        "effective": "2023-09-01",
+        "verified_on": "2026-11-26"
+      }
+    ]
   }
 }

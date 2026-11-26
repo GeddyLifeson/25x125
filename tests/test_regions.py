@@ -479,3 +479,19 @@ def test_region_rents_and_property_tax_load(in_region):
         assert 0.012 < t["effective_tax_rate_default"] < 0.025 and t["source_url"].startswith("https://"), rid
     in_region("chicago")
     assert "range_basis" not in region.rules_json("feasibility_defaults.json")["rents"]
+
+
+def test_atlanta_miami_jacksonville_impact_fees_load(in_region):
+    from core import region
+    from engine.feasibility import region_impact_fees
+
+    in_region("atlanta")
+    f = region.rules_json("feasibility_defaults.json")["impact_fees"]
+    assert region_impact_fees(f, 1, 2000) == 4908  # 1,500-2,499 sq ft at full rate
+    assert region_impact_fees(f, 4, 1100) == 2961 * 4
+    in_region("miami")
+    f = region.rules_json("feasibility_defaults.json")["impact_fees"]
+    assert region_impact_fees(f, 1, 2000) == round(9643 + 612 + 0.918 * 2000 + 8342)
+    in_region("jacksonville")
+    f = region.rules_json("feasibility_defaults.json")["impact_fees"]
+    assert region_impact_fees(f, 1, 1800) == 2321
