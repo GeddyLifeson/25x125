@@ -599,6 +599,8 @@ def test_every_new_region_loads_its_states_opportunity_zones():
         d = json.loads(p.read_text())
         oz = [x for x in d["overlay_layers"] if x["kind"] == "opportunity_zone_2018"]
         assert len(oz) == 1, p
-        assert oz[0]["url"].endswith("/Opportunity_Zones/FeatureServer/13") and oz[0]["name_field"] == "GEOID10"
+        assert (
+            oz[0]["url"].endswith("/Opportunity_Zones/FeatureServer/13") and oz[0]["name_field"] == "GEOID10"
+        )
         assert oz[0]["where"] == f"STATE = '{d['counties'][0]['fips'][:2]}'"
     assert "set opportunity_zone_2018" in OPPORTUNITY_ZONE and "'opportunity_zone_2018'" in OPPORTUNITY_ZONE
