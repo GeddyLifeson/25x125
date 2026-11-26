@@ -280,8 +280,12 @@ def test_city_step_paths_houston(in_region):
         site = zoning.Site(pin="1", zone_class="FULL", lot_sqft=lot, frontage_ft=width)
         return {p.id: p.units for p in zoning._step_paths(site, rules, d, lot)}
 
-    assert paths(5000, 50) == {"units_by_right": 2, "reduced_lot_size": 3, "multi_unit_residential": 4}
+    assert paths(5000, 50) == {
+        "units_by_right": 2, "reduced_lot_size": 3, "multi_unit_residential": 4, "lots_under_1400": 4,
+    }  # fmt: skip
     assert paths(7000, 40)["units_by_right"] == 4 and "multi_unit_residential" not in paths(7000, 40)
+    assert "lots_under_1400" not in paths(7000, 40)  # a shared driveway is assumed to need a 50 ft site
+    assert paths(10000, 60)["lots_under_1400"] == 8 and paths(10000, 60)["reduced_lot_size"] == 6
     assert paths(3000) == {}
 
 
@@ -605,3 +609,34 @@ def test_every_new_region_loads_its_states_opportunity_zones():
         )
         assert oz[0]["where"] == f"STATE = '{d['counties'][0]['fips'][:2]}'"
     assert "set opportunity_zone_2018" in OPPORTUNITY_ZONE and "'opportunity_zone_2018'" in OPPORTUNITY_ZONE
+
+
+def test_city_step_paths_become_scenarios(in_region):
+    from engine import zoning
+    from engine.feasibility import scenarios_for
+    from engine.parcel_feasibility import _label, load_patterns
+    from engine.rules import Rules
+
+    in_region("houston")
+    rules = Rules.from_files()
+    z = zoning.evaluate(zoning.Site(pin="1", zone_class="FULL", lot_sqft=10000, frontage_ft=70), rules)
+    picks = scenarios_for(z, load_patterns())
+    ids = [p["path"].id for p in picks]
+    assert ids[0] == "by_right" and len(picks) == 3
+    assert ids[1] == "lots_under_1400" and picks[1]["units"] == 6  # 8 allowed; version 1 prices up to 6
+    assert _label(picks[1], picks[1]["path"]) == "6 units (Small lots on a shared driveway, 35 per acre)"
+
+
+def test_step_paths_with_no_more_units_than_by_right_are_not_scenarios(in_region):
+    from engine import zoning
+    from engine.feasibility import scenarios_for
+    from engine.parcel_feasibility import load_patterns
+    from engine.rules import Rules
+
+    in_region("orlando")
+    rules = Rules.from_files()
+    z = zoning.evaluate(zoning.Site(pin="1", zone_class="R-3B", lot_sqft=6482, frontage_ft=55), rules)
+    by = {p.id: p.units for p in z.paths}
+    assert by["by_right"] == 3 and by["duplex_lot"] == 2
+    ids = [p["path"].id for p in scenarios_for(z, load_patterns())]
+    assert "duplex_lot" not in ids and "multiplex" not in ids and ids[0] == "by_right"

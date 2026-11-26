@@ -254,6 +254,8 @@ def _step_paths(site: Site, rules: Rules, d: District, lot: float) -> list[Path]
         if n < ep.get("min_units", 1):
             continue
         notes = [step.get("rule", "")[:300]] if step.get("rule") else []
+        if ep.get("assumption"):
+            notes.append(f"Assumption: {ep['assumption']}")
         p = _path(rules, site, d, sid, ep.get("name", sid.replace("_", " ").capitalize()),
                   step.get("approval") or ep.get("approval", "none (permit only)"), n, notes=notes)  # fmt: skip
         if step.get("section"):

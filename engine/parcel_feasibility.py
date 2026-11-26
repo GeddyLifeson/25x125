@@ -345,5 +345,5 @@ def _label(pick: dict, path) -> str:
     what = names.get(pick["pattern"], "1 unit" if pick["units"] == 1 else f"{pick['units']} units")
     how = {"by_right": "by right", "rs3_two_flat": "RS-3 block-face rule", "admin_adjustment": "10% adjustment",
            "adu": "with ADU", "rezoning": f"rezone to {path.district}",
-           "state_override": "under state law"}.get(path.id, path.id)  # fmt: skip
+           "state_override": "under state law"}.get(path.id, f"({path.name})")  # fmt: skip
     return f"{what} {how}"

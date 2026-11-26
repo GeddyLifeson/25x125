@@ -65,7 +65,17 @@
           "City of Houston (no zoning)"
         ],
         "min_average_lot_sqft": 1400,
-        "lot_counted_at_most_sqft": 3500
+        "lot_counted_at_most_sqft": 3500,
+        "engine_path": {
+          "units": "density",
+          "lot_area_per_unit_sqft": 1245,
+          "min_units": 3,
+          "min_lot_sqft": 3735,
+          "min_lot_width_ft": 50,
+          "name": "Small lots on a shared driveway, 35 per acre",
+          "approval": "subdivision plat (replat)",
+          "assumption": "35 units per gross acre (1,245 sq ft per lot) needs every lot to take vehicle access from the rear or side by an alley, flag staff, shared driveway or easement (see the reduced lot size step); a 50 ft wide site is assumed to be the narrowest that fits a shared driveway beside the lots. Not checked against a site plan."
+        }
       },
       "section": "Sec. 42-181(c)",
       "source_url": "https://www.houstontx.gov/planning/Commissions/docs_pdfs/Livable%20Places_Chapter%2042%20amend.%20Ord.%202023-801_Approved.pdf"

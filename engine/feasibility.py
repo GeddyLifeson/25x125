@@ -468,6 +468,12 @@ def scenarios_for(zoning: Result, patterns: list[dict]) -> list[dict]:
         return max(ok, key=lambda pt: (pt["units"], pt["gross_sqft"])) if ok else None
 
     order = ["by_right", "rs3_two_flat", "admin_adjustment", "adu", "state_override", "rezoning"]
+    # City step paths (Orlando duplex lots and multiplexes, Houston small lots and multi-unit residential, Austin
+    # HOME units) come after the by-right path, most units first, when they allow more units than by right.
+    # Chicago has none.
+    base = by_id["by_right"].units if "by_right" in by_id else 0
+    steps = sorted((p for p in zoning.paths if p.id not in order and p.units > base), key=lambda p: -p.units)
+    order = order[:3] + [p.id for p in steps] + order[3:]
     min_units = 2 if region.is_chicago() else int(region.current().get("min_units", 1))
     for pid in order:
         if pid not in by_id or len(picks) >= 3:
