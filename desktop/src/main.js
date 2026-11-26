@@ -137,6 +137,11 @@ function regionId() {
   return /^[a-z_]+$/.test(r) ? r : "chicago";
 }
 
+function regionName() {
+  const r = regionList().find((x) => x.id === regionId());
+  return r ? r.name : regionId();
+}
+
 function regionDb() {
   return regionId() === "chicago" ? "x25x125" : `x25_${regionId()}`;
 }
@@ -152,8 +157,8 @@ function baseEnv() {
     PYTHONUNBUFFERED: "1",
     PYTHONDONTWRITEBYTECODE: "1",
     PYTHONPATH: R.app,
-    // One install serves one region (docs/regions.md). Set "region" in config.json, e.g. "tampa";
-    // each region keeps its own database, so switching back keeps the Chicago data.
+    // One install serves one region at a time (docs/regions.md), picked in the Region menu ("region" in
+    // config.json); each region keeps its own database, so switching back keeps the earlier region's data.
     REGION: regionId(),
     DATABASE_URL: `postgresql://postgres:${config.pgPassword}@127.0.0.1:${ports.pg}/${regionDb()}`,
     ENGINE_SHARED_SECRET: config.secret,
@@ -400,10 +405,79 @@ async function startWeb() {
 
 // ---------- data loads ----------
 
+// Each region has its own database, so each keeps its own load dates (config.regionData[<id>]). Dates saved by
+// versions before 0.1.6 sit at the top of config.json and belong to the region that was set then.
+function regionState() {
+  config.regionData = config.regionData || {};
+  const id = regionId();
+  if (!config.regionData[id]) {
+    const legacy = config.lastFullAt || config.lastUpdateAt;
+    const owner = String(config.legacyRegion || config.region || "chicago").toLowerCase();
+    config.regionData[id] =
+      legacy && owner === id
+        ? { lastUpdateAt: config.lastUpdateAt, lastFullAt: config.lastFullAt, lastResult: config.lastResult }
+        : {};
+  }
+  return config.regionData[id];
+}
+
 function dataState() {
-  const last = config.lastUpdateAt ? new Date(config.lastUpdateAt) : null;
-  const lastFull = config.lastFullAt ? new Date(config.lastFullAt) : null;
+  const st = regionState();
+  const last = st.lastUpdateAt ? new Date(st.lastUpdateAt) : null;
+  const lastFull = st.lastFullAt ? new Date(st.lastFullAt) : null;
   return { last, lastFull };
+}
+
+// Regions the program can serve: data/regions/<id>/region.json in the bundled app folder.
+function regionList() {
+  const dir = path.join(R.app, "data", "regions");
+  const out = [];
+  try {
+    for (const id of fs.readdirSync(dir)) {
+      const file = path.join(dir, id, "region.json");
+      if (id.startsWith("_") || !fs.existsSync(file)) continue;
+      try {
+        const r = JSON.parse(fs.readFileSync(file, "utf8"));
+        out.push({ id, name: r.name || id, state: r.state || "" });
+      } catch {
+        out.push({ id, name: id, state: "" });
+      }
+    }
+  } catch {
+    // no regions folder: Chicago only
+  }
+  if (!out.some((r) => r.id === "chicago")) out.push({ id: "chicago", name: "Chicago", state: "IL" });
+  const order = (r) => (r.id === "chicago" ? "0" : `1${r.state}${r.name}`);
+  return out.sort((a, b) => order(a).localeCompare(order(b)));
+}
+
+function switchRegion(r) {
+  if (r.id === regionId()) return;
+  if (job) {
+    dialog.showMessageBoxSync({ type: "info", message: "A data load is running. Stop it or let it finish, then switch." });
+    return;
+  }
+  const loaded = config.regionData && config.regionData[r.id] && config.regionData[r.id].lastFullAt;
+  const pick = dialog.showMessageBoxSync({
+    type: "question",
+    buttons: ["Switch and restart", "Cancel"],
+    defaultId: 0,
+    cancelId: 1,
+    message: `Switch 25x125 to ${r.name}?`,
+    detail:
+      (loaded
+        ? `${r.name}'s data was loaded before and is kept.`
+        : `${r.name} has no data on this computer yet. The first load starts after the restart and takes 1 to 2 hours.`) +
+      ` The current region's data stays on this computer, so switching back is quick.`,
+  });
+  if (pick !== 0) return;
+  regionState(); // keep the current region's dates before the switch
+  if (!config.legacyRegion) config.legacyRegion = regionId();
+  config.region = r.id;
+  saveConfig();
+  log(`Switching region to ${r.name}; restarting.`);
+  app.relaunch();
+  shutdown(0);
 }
 
 function startJob(kind, reason) {
@@ -427,9 +501,10 @@ function startJob(kind, reason) {
   updateMenu();
   run("data-load", R.python, args, { cwd: R.app, echo: true, track: (c) => (job.child = c) }).then((code) => {
     const mins = Math.round((Date.now() - started.getTime()) / 60000);
-    config.lastUpdateAt = started.toISOString();
-    if (kind === "full") config.lastFullAt = started.toISOString();
-    config.lastResult = { kind, code, finished: new Date().toISOString(), minutes: mins };
+    const st = regionState();
+    st.lastUpdateAt = started.toISOString();
+    if (kind === "full") st.lastFullAt = started.toISOString();
+    st.lastResult = { kind, code, finished: new Date().toISOString(), minutes: mins };
     saveConfig();
     clearInterval(job.timer);
     job = null;
@@ -565,6 +640,16 @@ function updateMenu() {
       ],
     },
     {
+      label: "Region",
+      submenu: regionList().map((r) => ({
+        label: r.state ? `${r.name}, ${r.state}` : r.name,
+        type: "radio",
+        checked: r.id === regionId(),
+        enabled: !running,
+        click: () => switchRegion(r),
+      })),
+    },
+    {
       label: "Help",
       submenu: [
         { label: "Install and use instructions", click: () => shell.openExternal("https://github.com/GeddyLifeson/25x125/blob/main/desktop/README.md") },
@@ -587,7 +672,7 @@ ipcMain.handle("status:init", () => ({
   ready: appReady,
   lines: statusLines,
   dataDir: userData,
-  ...(config ? { lastUpdateAt: config.lastUpdateAt, lastFullAt: config.lastFullAt, lastResult: config.lastResult } : {}),
+  ...(config ? { ...regionState(), region: regionName() } : {}),
   running: job ? job.kind : null,
 }));
 ipcMain.handle("status:open-app", (e) => {
@@ -694,7 +779,7 @@ async function start() {
   ports.web = await freePort(config.webPort || 54326);
   config.webPort = ports.web;
   saveConfig();
-  log(`25x125 desktop ${app.getVersion()} starting. Data folder: ${userData}`);
+  log(`25x125 desktop ${app.getVersion()} starting. Region: ${regionName()}. Data folder: ${userData}`);
 
   if (!SELF_TEST) {
     updateMenu();

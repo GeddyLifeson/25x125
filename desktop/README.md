@@ -41,6 +41,7 @@ On the first start the program creates its database and starts copying the publi
 - Everything from the web version works: address search, the parcel page, feasibility with every input editable, deals and the outreach log, saved searches, saved edits, the PDF one-pager and every CSV export. There is no sign-in and no Pro check: you are the owner, on Pro, with nothing to pay.
 - Downloads (CSV, PDF) ask where to save the file.
 - Links to sources and to city pages open in your normal browser.
+- **Region menu.** Chicago is the default. Pick Tampa, Orlando, Jacksonville, Miami, Houston, Dallas, Austin, San Antonio or Atlanta to switch; the program asks, then restarts. Each region keeps its own database and load dates, so switching back is quick. A region's first load takes 1 to 2 hours.
 
 ## Use it from anywhere (internet link)
 
