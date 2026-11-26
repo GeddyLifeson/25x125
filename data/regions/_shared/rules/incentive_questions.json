@@ -1,0 +1,24 @@
+{
+  "source": "Federal programs only: the Illinois, Cook County and Chicago questions (Enterprise Zone, Class 7, TIF, Missing Middle) do not apply outside Chicago. Copied from data/rules/incentive_questions.json.",
+  "as_of": "2026-11-26",
+  "questions": [
+    {
+      "id": "has_capital_gains",
+      "text": "Do you have capital gains you could invest in this project?",
+      "affects": [
+        "Opportunity Zone gain exclusion"
+      ],
+      "if_no": "off"
+    },
+    {
+      "id": "hold_years",
+      "text": "How long do you plan to own the building after it is finished?",
+      "type": "number",
+      "affects": [
+        "Opportunity Zone gain exclusion",
+        "Bonus depreciation (cost segregation)"
+      ],
+      "rule": "OZ exclusion needs 10 or more years; bonus depreciation applies to hold scenarios"
+    }
+  ]
+}

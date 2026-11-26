@@ -252,11 +252,11 @@ def feasibility(
             "source": "Cook County Assessor sales of older 2-6 unit buildings, converted with a fitted curve (docs/research/older-sale-fallback-2026-11-01.md); FHFA metro index"
                       if est.ring == 5 else "Cook County Assessor sales of buildings built 2014 or later; FHFA metro index"}  # fmt: skip
         if sc["sale_source"] and "source" in sc["sale_source"] and not region.is_chicago():
-            r = region.current()
-            sc["sale_source"]["source"] = (r.get("comps") or {}).get(
-                "source", r["name"]
+            reg = region.current()  # not `r`: that is the rent shown below
+            sc["sale_source"]["source"] = (reg.get("comps") or {}).get(
+                "source", reg["name"]
             ) + "; FHFA metro index"
-            sc["sale_source"]["basis"] = r.get("price_basis", "recorded sales")
+            sc["sale_source"]["basis"] = reg.get("price_basis", "recorded sales")
         sc["rent_source"] = r
         out["scenarios"].append(sc)
     hold = conn.execute("select environmental_hold from parcel_site where pin = %s", (site.pin,)).fetchone()
@@ -345,5 +345,5 @@ def _label(pick: dict, path) -> str:
     what = names.get(pick["pattern"], "1 unit" if pick["units"] == 1 else f"{pick['units']} units")
     how = {"by_right": "by right", "rs3_two_flat": "RS-3 block-face rule", "admin_adjustment": "10% adjustment",
            "adu": "with ADU", "rezoning": f"rezone to {path.district}",
-           "state_override": "under state law"}.get(path.id, path.id)  # fmt: skip
+           "state_override": "under state law"}.get(path.id, f"({path.name})")  # fmt: skip
     return f"{what} {how}"

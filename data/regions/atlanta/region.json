@@ -138,8 +138,19 @@
     {
       "kind": "transit",
       "url": "https://gis.atlantaga.gov/dpcd/rest/services/OpenDataService1/MapServer/28",
-      "name_field": "",
-      "note": "MARTA rail stations; listed in the service, fields not tested. Lots within 2,640 ft of a high-capacity transit stop need no parking (Sec. 16-28.014(14))."
+      "name_field": "STATION",
+      "note": "MARTA rail stations (38 points, fields STATION, STN_CODE; checked 2026-11-26). Each loads as a 2,640 ft circle: lots within 2,640 ft of a high-capacity transit stop need no parking (Sec. 16-28.014(14)). Straight-line distance, not walking distance.",
+      "radius_ft": 2640,
+      "clip": false,
+      "transit_served": "within 2,640 ft of MARTA rail station"
+    },
+    {
+      "kind": "opportunity_zone_2018",
+      "url": "https://services.arcgis.com/VTyQ9soqVukalItT/arcgis/rest/services/Opportunity_Zones/FeatureServer/13",
+      "name_field": "GEOID10",
+      "note": "Qualified Opportunity Zones designated in 2018 (8,765 census tracts on 2010 tract lines), from the U.S. Department of Housing and Urban Development's copy of the Treasury (CDFI Fund) list. A lot is in a zone when its point is inside a designated 2010 tract. Designations run through 2028. build_region copies the tract number to parcel_site.opportunity_zone_2018. Verified 2026-11-26.",
+      "source_page": "https://home.treasury.gov/policy-issues/tax-policy/data-transparency/qualified-opportunity-zones",
+      "where": "STATE = '13'"
     }
   ],
   "permit_source": {
@@ -234,7 +245,7 @@
   "comps": {
     "built_since": 2019,
     "price_floor_per_unit": 100000,
-    "source": "Fulton County appraised market value (City of Atlanta tax parcel layer, TOT_APPR) of 1-6 unit buildings on lots with a finished new-building permit, 2019 on (City of Atlanta permit export); no floor area, so no size adjustment"
+    "source": "Fulton County appraised market value (City of Atlanta tax parcel layer, TOT_APPR) of 1-6 unit buildings built 2019 or later; year built from finished new-building permits (City of Atlanta export) and Fulton County building footprints; floor area = footprint area x stories (Fulton County footprints, includes garages and porches)"
   },
   "permits_year_built": {
     "url": "https://www.arcgis.com/sharing/rest/content/items/655f985f43cc40b4bf2ab7bc73d2169b/data",
@@ -261,5 +272,18 @@
     "tested_on": "2026-11-19",
     "note": "The city's live layer (Building_Permit_latest, 36,115 permits from late 2022 on) has the same fields and can extend this past 2024.",
     "why_types": "Multi Family New covers apartment and condo buildings; every condo unit parcel under one would take the building's year and pull high-rise unit values into a pool of houses (tested 2026-11-19: 44% median error with both types)."
+  },
+  "footprints": {
+    "url": "https://services1.arcgis.com/AQDHTHDrZzfsFsB5/arcgis/rest/services/Structure_Footprints/FeatureServer/0",
+    "where": "FeatType = 'Residential'",
+    "fields": {
+      "pin": "ParcelID",
+      "area": "AreaSqFt",
+      "stories": "Stories",
+      "year": "YearBuilt",
+      "units": "LiveUnits"
+    },
+    "covers": "Fulton County only (386,176 footprints on 2026-11-26); the DeKalb part of Atlanta has no floor area yet",
+    "tested_on": "2026-11-26"
   }
 }

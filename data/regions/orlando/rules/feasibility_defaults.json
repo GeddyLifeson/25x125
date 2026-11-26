@@ -44,5 +44,129 @@
     "rule": "where no vacant-lot sales are nearby, land = the appraiser's land value / this ratio",
     "source": "python -m jobs.check_region",
     "verified_on": "2026-11-17"
+  },
+  "impact_fees": {
+    "basis": "City of Orlando transportation, parks and sewer benefit fees plus the Orange County school impact fee. No fire or police impact fees inside city limits (paid from property taxes). Water and electric connections (OUC) are not included.",
+    "components": [
+      {
+        "name": "City of Orlando transportation impact fee",
+        "single_family": [
+          [
+            1201,
+            3898
+          ],
+          [
+            2001,
+            5645
+          ],
+          [
+            3501,
+            7069
+          ],
+          [
+            null,
+            7397
+          ]
+        ],
+        "multifamily": 3883,
+        "note": "Single family by living area: 1,200 sq ft or less, 1,201 to 2,000, 2,001 to 3,500, over 3,500. Multifamily in 1 to 3 floor buildings; 4+ floors $2,562; townhomes $5,333. Downtown (Area 1A) can be lower. Single-family tiers from the city's ADU impact fee sheet; multifamily rate from the city's rate summary as compiled January 2024 (single-family tiers match the city's current sheet).",
+        "source_url": "https://www.orlando.gov/files/sharedassets/public/v/1/departments/edv/city-planning/impact-fees-for-accessory-dwelling-units.pdf",
+        "source_url_multifamily": "https://www.etminc.com/wp-content/uploads/2024/01/Orlando_Impact-Fees_1.2024.pdf",
+        "verified_on": "2026-11-26"
+      },
+      {
+        "name": "City of Orlando parks impact fee",
+        "single_family": [
+          [
+            1201,
+            1633
+          ],
+          [
+            2001,
+            2225
+          ],
+          [
+            2500,
+            2665
+          ],
+          [
+            3000,
+            2980
+          ],
+          [
+            3500,
+            3267
+          ],
+          [
+            null,
+            3649
+          ]
+        ],
+        "multifamily": 825,
+        "note": "Single-family tiers from the city's current ADU impact fee sheet. The multifamily rate ($825 a unit) is the 2017 rate; the city's current multifamily rate was not found in a public document, so it may be low.",
+        "source_url": "https://www.orlando.gov/files/sharedassets/public/v/1/departments/edv/city-planning/impact-fees-for-accessory-dwelling-units.pdf",
+        "verified_on": "2026-11-26"
+      },
+      {
+        "name": "City of Orlando sewer benefit (impact) fee",
+        "single_family": 2537.5,
+        "multifamily": 1928.5,
+        "note": "City sewer areas. Southeast areas served by Orange County Utilities are charged the county's capital charge instead.",
+        "source_url": "https://www.orlando.gov/files/sharedassets/public/v/1/departments/edv/city-planning/impact-fees-for-accessory-dwelling-units.pdf",
+        "verified_on": "2026-11-26"
+      },
+      {
+        "name": "Orange County school impact fee (countywide)",
+        "single_family": [
+          [
+            2000,
+            8829
+          ],
+          [
+            2500,
+            9513
+          ],
+          [
+            3000,
+            11402
+          ],
+          [
+            4000,
+            12015
+          ],
+          [
+            null,
+            9584
+          ]
+        ],
+        "multifamily": 6751,
+        "note": "Single family by heated living area. Multifamily non high-rise $6,751; townhouse $8,805; high-rise (over 7 stories) $307. Rates effective October 1, 2022, unchanged in the May 1, 2026 brochure.",
+        "source_url": "https://ocfl.net/Portals/0/Library/Permitting-Licensing/docs/Impact%20Fee%20Brochure.pdf",
+        "effective": "2022-10-01",
+        "verified_on": "2026-11-26"
+      }
+    ]
+  },
+  "rents": {
+    "new_construction_factor": 1.063,
+    "factor_range": [
+      0.93,
+      1.394
+    ],
+    "range_basis": "10th-90th percentile over 41 tracts of ACS 2020-2024 rent of units built 2010-2019 over all rented units",
+    "evidence": "python -m jobs.check_rents_acs: ACS 2020-2024 B25111 (median gross rent of units built 2010-2019) over B25064 (all rented units), median over 41 tracts with lots in Orlando. Units built 2020 or later: 1.169 over 16 tracts.",
+    "caveat": "Census rents include long-tenure leases and utilities; no public rent rolls outside Chicago. Replace with a rent source when one is available.",
+    "verified_on": "2026-11-26"
+  },
+  "hold": {
+    "property_tax": {
+      "effective_tax_rate_default": 0.01537,
+      "tax_year": 2025,
+      "basis": "18.0878 mills on taxable value x 0.85 (Florida just value is set near 85% of sale price after the 15% cost-of-sale deduction, s. 193.011(8))",
+      "rate_note": "Orange County 2025 final millage inside the City of Orlando (sum of lines): county 4.4347, schools 6.4490, library 0.3748, St. Johns River WMD 0.1793, City of Orlando 6.6500. County fire and sheriff levies do not apply in the city. Downtown (DTI, +1 mill) and Lake Nona (South Florida WMD) differ. 2026 county and school rates not yet found; city 2026 is 6.65.",
+      "source_url": "https://floridarevenue.com/property/dataportal/Documents/PTO%20Data%20Portal/TACD%20History/2025%20Taxing%20Authority%20Code%20Descriptions/2025%20Orange%20TACD.pdf",
+      "verified_on": "2026-11-26",
+      "caveat": "Non-homestead rate for an in-city lot; special districts some lots pay are not included."
+    }
   }
 }

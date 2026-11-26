@@ -46,5 +46,48 @@
     "rule": "where no vacant-lot sales are nearby, land = the appraiser's land value / this ratio",
     "source": "python -m jobs.check_region",
     "verified_on": "2026-11-17"
+  },
+  "rents": {
+    "new_construction_factor": 1.056,
+    "factor_range": [
+      0.905,
+      1.459
+    ],
+    "range_basis": "10th-90th percentile over 53 tracts of ACS 2020-2024 rent of units built 2010-2019 over all rented units",
+    "evidence": "python -m jobs.check_rents_acs: ACS 2020-2024 B25111 (median gross rent of units built 2010-2019) over B25064 (all rented units), median over 53 tracts with lots in Jacksonville. Units built 2020 or later: 1.082 over 16 tracts.",
+    "caveat": "Census rents include long-tenure leases and utilities; no public rent rolls outside Chicago. Replace with a rent source when one is available.",
+    "verified_on": "2026-11-26"
+  },
+  "hold": {
+    "property_tax": {
+      "effective_tax_rate_default": 0.01508,
+      "tax_year": 2025,
+      "basis": "17.7412 mills on taxable value x 0.85 (Florida just value is set near 85% of sale price after the 15% cost-of-sale deduction, s. 193.011(8))",
+      "rate_note": "Duval County 2025 final millage, Urban Services District 1: schools 6.3430, consolidated city-county 11.1919, St. Johns River WMD 0.1793, Florida Inland Navigation District 0.0270. City rate unchanged for 2026.",
+      "source_url": "https://www.jacksonville.gov/getContentAsset/3902f16d-941a-46e3-848f-c50b1fa4c0e1/135b97c9-84fa-4e82-b956-0fbccec4aa1f/2025-FINAL_MILLAGE_CHART.pdf?language=en",
+      "verified_on": "2026-11-26",
+      "caveat": "Non-homestead rate for an in-city lot; special districts some lots pay are not included."
+    }
+  },
+  "impact_fees": {
+    "basis": "Estimate: the mobility fee ($2,300 a house, $1,100 an apartment) is the middle of published ranges; the city has not confirmed it. City of Jacksonville mobility fee only. Duval County has no school impact fee and the city has no park, fire or police impact fee. JEA water and sewer capacity charges are not included.",
+    "components": [
+      {
+        "name": "Jacksonville mobility fee",
+        "single_family": 2300,
+        "multifamily": 1100,
+        "note": "NOT CONFIRMED BY THE CITY. The fee is cost per vehicle-mile x average trip length for the development area x daily trips x an internal factor (Code sec. 655.503); the city's rate tables are in its calculator and its 2025 handbook, which is sent only by email (CMMSO@coj.net). Middle of the ranges compiled by impactfees.org (single family about $900 to $3,700, up to $4,080 rural; multifamily about $450 to $1,800). Replace with the city's figure for the lot's mobility zone. Request draft: docs/launch/jacksonville-mobility-fee-request.md.",
+        "source_url": "https://jaxepics.coj.net/MobilityFeeCalculator",
+        "source_url_amounts": "https://impactfees.org/florida-impact-fees/duval-county/jacksonville",
+        "verified_on": "2026-11-26"
+      },
+      {
+        "name": "Jacksonville concurrency reservation (residential)",
+        "all_units": 21,
+        "note": "$21 per dwelling (of which $4 is for school concurrency), Code sec. 655.116.",
+        "source_url": "https://www.jacksonville.gov/departments/finance/city-fees",
+        "verified_on": "2026-11-26"
+      }
+    ]
   }
 }

@@ -12,6 +12,7 @@ dependencies = [
   "openpyxl>=3.1",
   "pypdf>=5",
   "pmtiles>=3.4",
+  "pyshp>=2.3",
 ]
 
 [project.optional-dependencies]

@@ -2,12 +2,15 @@
 
 rent = ACS 5-year median gross rent for the bedroom count (tract, else ZIP area, else the tract's overall
 median) x rent growth since the ACS midpoint (Zillow ZORI by ZIP, used only as a ratio and never shown;
-the Chicago ZIP median growth when the ZIP has no series) x the new-construction factor.
-The factor and its 80% range come from jobs/check_rents.py (data/rules/feasibility_defaults.json rents).
+the city's median ZIP growth when the ZIP has no series) x the new-construction factor.
+The factor and its 80% range come from jobs/check_rents.py in Chicago and jobs/check_rents_acs.py elsewhere
+(feasibility_defaults.json rents).
 """
 
 import statistics as st
 from datetime import date
+
+from core import region
 
 ACS_VINTAGE = "2020-2024"
 ACS_MID = date(2022, 7, 1)
@@ -25,11 +28,14 @@ def growth(conn, zip_code: str | None, start: date, end: date) -> float:
     a, b = _zori(conn, zip_code, start), _zori(conn, zip_code, end)
     if a and b:
         return b / a
+    # No series for the ZIP: the median growth of the city's ZIPs (Chicago 606xx; elsewhere the ZIPs of the
+    # region's lots).
+    city = "zip like '606%%'" if region.is_chicago() else "zip in (select distinct zip from parcel)"
     rows = conn.execute(
-        """select z1.zori, z2.zori from
-             (select distinct on (zip) zip, zori from zori_growth where zip like '606%%' and month <= %s
+        f"""select z1.zori, z2.zori from
+             (select distinct on (zip) zip, zori from zori_growth where {city} and month <= %s
               order by zip, month desc) z1
-           join (select distinct on (zip) zip, zori from zori_growth where zip like '606%%' and month <= %s
+           join (select distinct on (zip) zip, zori from zori_growth where {city} and month <= %s
                  order by zip, month desc) z2 using (zip)""",
         (start, end),
     ).fetchall()
@@ -76,5 +82,8 @@ def rent(
         "acs_source": where,
         "growth_since_acs": round(g, 3),
         "factor": r["new_construction_factor"],
-        "range": "80% range from the Assessor's 2024 income worksheets for buildings built 2014 or later",
+        "range": r.get(
+            "range_basis",
+            "80% range from the Assessor's 2024 income worksheets for buildings built 2014 or later",
+        ),
     }

@@ -2,7 +2,7 @@
 
 Install: download `25x125-Setup-<version>.exe` below and double-click it. If Windows says "Windows protected your PC", click **More info**, then **Run anyway** (the program isn't code-signed). The first start loads the public data, which takes 1 to 2 hours and about 3 GB; keep the program open until the status window says it finished.
 
-New in 0.1.5: lots in the next county tax sale are flagged on the parcel page, the list and the map; the parcel page adds nearby rezoning applications, the city's sale listing and the Assessor's value; new Help, Data sources and Community areas pages; Next.js security update. New in 0.1.4: while shared, the PC stays awake and 25x125 starts with Windows. New in 0.1.3: share the program at a fixed internet link with a password, free through Tailscale Funnel (README, "Use it from anywhere").
+New in 0.1.6: a Region menu switches the program between Chicago and the nine new cities (Tampa, Orlando, Jacksonville, Miami, Houston, Dallas, Austin, San Antonio, Atlanta); each keeps its own data, and a region's first load takes 1 to 2 hours. New in 0.1.5: lots in the next county tax sale are flagged on the parcel page, the list and the map; the parcel page adds nearby rezoning applications, the city's sale listing and the Assessor's value; new Help, Data sources and Community areas pages; Next.js security update. New in 0.1.4: while shared, the PC stays awake and 25x125 starts with Windows. New in 0.1.3: share the program at a fixed internet link with a password, free through Tailscale Funnel (README, "Use it from anywhere").
 
 Full instructions: https://github.com/GeddyLifeson/25x125/blob/main/desktop/README.md
 

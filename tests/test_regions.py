@@ -280,8 +280,12 @@ def test_city_step_paths_houston(in_region):
         site = zoning.Site(pin="1", zone_class="FULL", lot_sqft=lot, frontage_ft=width)
         return {p.id: p.units for p in zoning._step_paths(site, rules, d, lot)}
 
-    assert paths(5000, 50) == {"units_by_right": 2, "reduced_lot_size": 3, "multi_unit_residential": 4}
+    assert paths(5000, 50) == {
+        "units_by_right": 2, "reduced_lot_size": 3, "multi_unit_residential": 4, "lots_under_1400": 4,
+    }  # fmt: skip
     assert paths(7000, 40)["units_by_right"] == 4 and "multi_unit_residential" not in paths(7000, 40)
+    assert "lots_under_1400" not in paths(7000, 40)  # a shared driveway is assumed to need a 50 ft site
+    assert paths(10000, 60)["lots_under_1400"] == 8 and paths(10000, 60)["reduced_lot_size"] == 6
     assert paths(3000) == {}
 
 
@@ -406,7 +410,9 @@ def test_san_antonio_adu_only_under_five_units(in_region):
         res = zoning.evaluate(zoning.Site(pin="1", zone_class=zone, lot_sqft=lot, frontage_ft=width), rules)
         return {p.id: p.units for p in res.paths}
 
-    assert paths("RM-4", 4000, 40) == {"by_right": 4, "adu": 5, "rezoning": 1}
+    # No MF target beats 4 units on 4,000 sq ft (MF-33 gives 3), so no rezoning path; 7,749 sq ft picks MF-33.
+    assert paths("RM-4", 4000, 40) == {"by_right": 4, "adu": 5}
+    assert paths("RM-4", 7749, 60)["rezoning"] == 5
     assert "adu" not in paths("MF-33", 10000, 70)  # 7 units by right
     assert paths("MF-18", 5000, 50)["adu"] == 3
 
@@ -446,3 +452,191 @@ def test_corner_lot_frontage_by_address():
     assert not fronts_other_street("6935 AVE O", ["AVENUE O"])
     assert not fronts_other_street("0", ["X ST"])  # no usable address: keep the flag
     assert not fronts_other_street("1 A ST", ["", "B ST"])  # an unnamed segment nearby: keep the flag
+
+
+def test_orlando_and_houston_impact_fees_load(in_region):
+    from core import region
+    from engine.feasibility import region_impact_fees
+
+    in_region("orlando")
+    f = region.rules_json("feasibility_defaults.json")["impact_fees"]
+    # 1,800 sq ft house: transportation 5,645 + parks 2,225 + sewer 2,537.50 + school 8,829
+    assert region_impact_fees(f, 1, 1800) == round(5645 + 2225 + 2537.5 + 8829)
+    assert region_impact_fees(f, 3, 1200) == round(3883 + 825 + 1928.5 + 6751) * 3
+    in_region("houston")
+    f = region.rules_json("feasibility_defaults.json")["impact_fees"]
+    assert region_impact_fees(f, 2, 1800) == round(1830.24 + 2553.11) * 2
+
+
+def test_region_rents_and_property_tax_load(in_region):
+    from core import region
+
+    for rid in ("tampa", "orlando", "jacksonville", "miami", "houston", "dallas", "austin", "san_antonio",
+                "atlanta"):  # fmt: skip
+        in_region(rid)
+        d = region.rules_json("feasibility_defaults.json")
+        assert 0.9 < d["rents"]["new_construction_factor"] < 1.4, rid
+        lo, hi = d["rents"]["factor_range"]
+        assert lo < d["rents"]["new_construction_factor"] < hi, rid
+        assert "range_basis" in d["rents"], rid
+        t = d["hold"]["property_tax"]
+        assert 0.012 < t["effective_tax_rate_default"] < 0.025 and t["source_url"].startswith("https://"), rid
+    in_region("chicago")
+    assert "range_basis" not in region.rules_json("feasibility_defaults.json")["rents"]
+
+
+def test_atlanta_miami_jacksonville_impact_fees_load(in_region):
+    from core import region
+    from engine.feasibility import region_impact_fees
+
+    in_region("atlanta")
+    f = region.rules_json("feasibility_defaults.json")["impact_fees"]
+    assert region_impact_fees(f, 1, 2000) == 4908  # 1,500-2,499 sq ft at full rate
+    assert region_impact_fees(f, 4, 1100) == 2961 * 4
+    in_region("miami")
+    f = region.rules_json("feasibility_defaults.json")["impact_fees"]
+    assert region_impact_fees(f, 1, 2000) == round(9643 + 612 + 0.918 * 2000 + 8342)
+    in_region("jacksonville")
+    f = region.rules_json("feasibility_defaults.json")["impact_fees"]
+    assert region_impact_fees(f, 1, 1800) == 2321
+    assert f["basis"].startswith("Estimate:")  # the mobility fee is not confirmed by the city
+
+
+def test_footprints_give_floor_area_and_year_per_parcel():
+    from jobs.load_footprints import per_parcel
+
+    f = {
+        "pin": "ParcelID",
+        "area": "AreaSqFt",
+        "stories": "Stories",
+        "year": "YearBuilt",
+        "units": "LiveUnits",
+    }
+    feats = [
+        {
+            "properties": {
+                "ParcelID": "14 0001",
+                "AreaSqFt": 1200,
+                "Stories": 2,
+                "YearBuilt": "2024",
+                "LiveUnits": 1,
+            }
+        },
+        {
+            "properties": {
+                "ParcelID": "14 0001",
+                "AreaSqFt": 400,
+                "Stories": None,
+                "YearBuilt": "1990",
+                "LiveUnits": 0,
+            }
+        },
+        {
+            "properties": {
+                "ParcelID": "14 0002",
+                "AreaSqFt": 0,
+                "Stories": 1,
+                "YearBuilt": "2020",
+                "LiveUnits": 1,
+            }
+        },
+        {
+            "properties": {
+                "ParcelID": "14 0003",
+                "AreaSqFt": 900,
+                "Stories": 1,
+                "YearBuilt": " ",
+                "LiveUnits": 2,
+            }
+        },
+    ]
+    out = per_parcel(feats, f)
+    assert out["14 0001"] == {"sqft": 2800.0, "year": 2024, "units": 1}
+    assert "14 0002" not in out
+    assert out["14 0003"]["year"] is None
+
+
+def test_transit_stop_circle_and_no_parking(in_region):
+    import math
+
+    from engine import zoning
+    from engine.rules import Rules
+    from jobs.load_region_overlays import FT_PER_DEG_LAT, circle
+
+    g = circle(-84.39, 33.75, 2640)
+    ring = g["coordinates"][0]
+    assert ring[0] == ring[-1] and len(ring) == 49
+    north = max(y for _, y in ring) - 33.75
+    assert math.isclose(north * FT_PER_DEG_LAT, 2640, rel_tol=0.01)
+
+    in_region("atlanta")
+    rules = Rules.from_files()
+    far = zoning.evaluate(zoning.Site(pin="1", zone_class="R-4", lot_sqft=9000, frontage_ft=60), rules)
+    near = zoning.evaluate(
+        zoning.Site(pin="1", zone_class="R-4", lot_sqft=9000, frontage_ft=60,
+                    transit_served="within 2,640 ft of MARTA rail station (West End)"),
+        rules,
+    )  # fmt: skip
+    assert far.paths[0].parking_spaces == 1 and near.paths[0].parking_spaces == 0
+
+
+def test_region_incentives_and_questions_leave_out_illinois_programs(in_region):
+    from core import region
+    from engine.feasibility import Inputs, scenario  # noqa: F401
+    from engine.parcel_feasibility import load_questions
+
+    in_region("tampa")
+    assert {q["id"] for q in load_questions()} == {"has_capital_gains", "hold_years"}
+    in_region("chicago")
+    assert "materials_from_ez_supplier" in {q["id"] for q in load_questions()}
+    assert region.is_chicago()
+
+
+def test_every_new_region_loads_its_states_opportunity_zones():
+    import json
+    from pathlib import Path
+
+    from jobs.build_region import OPPORTUNITY_ZONE
+
+    regions = [p for p in Path("data/regions").glob("*/region.json") if p.parent.name != "chicago"]
+    assert len(regions) == 9
+    for p in regions:
+        d = json.loads(p.read_text())
+        oz = [x for x in d["overlay_layers"] if x["kind"] == "opportunity_zone_2018"]
+        assert len(oz) == 1, p
+        assert (
+            oz[0]["url"].endswith("/Opportunity_Zones/FeatureServer/13") and oz[0]["name_field"] == "GEOID10"
+        )
+        assert oz[0]["where"] == f"STATE = '{d['counties'][0]['fips'][:2]}'"
+    assert "set opportunity_zone_2018" in OPPORTUNITY_ZONE and "'opportunity_zone_2018'" in OPPORTUNITY_ZONE
+
+
+def test_city_step_paths_become_scenarios(in_region):
+    from engine import zoning
+    from engine.feasibility import scenarios_for
+    from engine.parcel_feasibility import _label, load_patterns
+    from engine.rules import Rules
+
+    in_region("houston")
+    rules = Rules.from_files()
+    z = zoning.evaluate(zoning.Site(pin="1", zone_class="FULL", lot_sqft=10000, frontage_ft=70), rules)
+    picks = scenarios_for(z, load_patterns())
+    ids = [p["path"].id for p in picks]
+    assert ids[0] == "by_right" and len(picks) == 3
+    assert ids[1] == "lots_under_1400" and picks[1]["units"] == 6  # 8 allowed; version 1 prices up to 6
+    assert _label(picks[1], picks[1]["path"]) == "6 units (Small lots on a shared driveway, 35 per acre)"
+
+
+def test_step_paths_with_no_more_units_than_by_right_are_not_scenarios(in_region):
+    from engine import zoning
+    from engine.feasibility import scenarios_for
+    from engine.parcel_feasibility import load_patterns
+    from engine.rules import Rules
+
+    in_region("orlando")
+    rules = Rules.from_files()
+    z = zoning.evaluate(zoning.Site(pin="1", zone_class="R-3B", lot_sqft=6482, frontage_ft=55), rules)
+    by = {p.id: p.units for p in z.paths}
+    assert by["by_right"] == 3 and by["duplex_lot"] == 2
+    ids = [p["path"].id for p in scenarios_for(z, load_patterns())]
+    assert "duplex_lot" not in ids and "multiplex" not in ids and ids[0] == "by_right"

@@ -1,27 +1,27 @@
 {
   "source": "python -m jobs.check_region: 10th and 90th percentile leave-one-out errors, actual / estimate - 1",
-  "verified_on": "2026-11-19",
-  "fit_on": "800 of 2189 comps",
+  "verified_on": "2026-11-26",
+  "fit_on": "800 of 6639 comps",
   "rings": "0: 0.75 mi same size group, 1: 1.5 mi same group, 2: 1.5 mi any, 3: 3 mi any, 4: citywide",
   "band": {
     "0|building": [
-      -0.737,
-      1.482,
-      767
+      -0.563,
+      0.618,
+      790
     ],
     "0|any": [
-      -0.737,
-      1.482,
-      767
+      -0.563,
+      0.618,
+      790
     ],
     "any|building": [
-      -0.731,
-      1.381,
+      -0.563,
+      0.622,
       800
     ],
     "any|any": [
-      -0.731,
-      1.381,
+      -0.563,
+      0.622,
       800
     ]
   }

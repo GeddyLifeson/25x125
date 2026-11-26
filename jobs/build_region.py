@@ -132,6 +132,23 @@ from (
 """
 
 
+TRANSIT = """
+update parcel_site ps set transit_served = %(label)s || ' (' || x.name || ')'
+from (select pin, min(e->>'name') as name from parcel_site, jsonb_array_elements(overlays) e
+      where e->>'kind' = %(kind)s group by pin) x
+where ps.pin = x.pin and ps.transit_served is null
+"""
+
+# Opportunity Zone (2018 designations, 2010 tract lines): the engine's incentive reads
+# parcel_site.opportunity_zone_2018, as in Chicago. The overlay name is the 2010 tract number.
+OPPORTUNITY_ZONE = """
+update parcel_site ps set opportunity_zone_2018 = x.name
+from (select pin, min(e->>'name') as name from parcel_site, jsonb_array_elements(overlays) e
+      where e->>'kind' = 'opportunity_zone_2018' group by pin) x
+where ps.pin = x.pin
+"""
+
+
 # A street-line overlay (Houston's driveway-restricted streets) stays on a lot unless the lot's address is on a
 # different street from every restricted street within `frontage_reach_m` of its outline (a corner lot that
 # fronts an open street). Lots with no usable address, or near a restricted segment with no name, keep it.
@@ -230,7 +247,20 @@ def run(url: str | None = None) -> dict:
                 pins = [pin for pin, address, names in rows if fronts_other_street(address, names)]
                 conn.execute(DROP_OVERLAY, {"kind": layer["kind"], "pins": pins})
                 dropped[layer["kind"]] = len(pins)
+        # Layers that make a lot transit-served (Atlanta MARTA stations, 2,640 ft): the parking rule reads it.
+        conn.execute("update parcel_site set transit_served = null")
+        transit = {}
+        for layer in r.get("overlay_layers") or []:
+            if layer.get("transit_served") and not layer.get("skip"):
+                transit[layer["kind"]] = conn.execute(
+                    TRANSIT, {"kind": layer["kind"], "label": layer["transit_served"]}
+                ).rowcount
+        conn.execute("update parcel_site set opportunity_zone_2018 = null")
+        n_oz = conn.execute(OPPORTUNITY_ZONE).rowcount
         out = {"lots": conn.execute("select count(*) from lot_use").fetchone()[0]}
+        out["lots in an Opportunity Zone"] = n_oz
+        for k, n in transit.items():
+            out[f"lots transit-served ({k})"] = n
         for k, n in dropped.items():
             out[f"{k} dropped (open frontage elsewhere)"] = n
         out["lots with overlays"] = conn.execute(

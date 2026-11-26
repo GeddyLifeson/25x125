@@ -104,5 +104,27 @@
         "verified_on": "2026-11-22"
       }
     ]
+  },
+  "rents": {
+    "new_construction_factor": 1.056,
+    "factor_range": [
+      0.946,
+      1.32
+    ],
+    "range_basis": "10th-90th percentile over 48 tracts of ACS 2020-2024 rent of units built 2010-2019 over all rented units",
+    "evidence": "python -m jobs.check_rents_acs: ACS 2020-2024 B25111 (median gross rent of units built 2010-2019) over B25064 (all rented units), median over 48 tracts with lots in Tampa. Units built 2020 or later: 1.124 over 12 tracts.",
+    "caveat": "Census rents include long-tenure leases and utilities; no public rent rolls outside Chicago. Replace with a rent source when one is available.",
+    "verified_on": "2026-11-26"
+  },
+  "hold": {
+    "property_tax": {
+      "effective_tax_rate_default": 0.01678,
+      "tax_year": 2026,
+      "basis": "19.7353 mills on taxable value x 0.85 (Florida just value is set near 85% of sale price after the 15% cost-of-sale deduction, s. 193.011(8))",
+      "rate_note": "Hillsborough County 2026 final millage inside the City of Tampa: county 5.3608, environmental lands 0.0604, library 0.5583, schools 6.3340, port 0.0722, HART transit 0.5000, Children's Board 0.4589, SWFWMD 0.1831, City of Tampa 6.2076.",
+      "source_url": "https://www.hcpafl.org/Portals/HCPAFL/pdfs/2026FinalMillage.pdf",
+      "verified_on": "2026-11-26",
+      "caveat": "Non-homestead rate for an in-city lot; special districts some lots pay are not included."
+    }
   }
 }

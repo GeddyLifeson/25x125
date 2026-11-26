@@ -12,6 +12,7 @@ window.x25.init().then((s) => {
   s.lines.forEach(add);
   logEl.scrollTop = logEl.scrollHeight;
   document.getElementById("facts").textContent =
+    (s.region ? `Region: ${s.region}. ` : "") +
     `Last data update: ${when(s.lastUpdateAt)}. Last full load: ${when(s.lastFullAt)}. ` +
     (s.running ? `Running now: ${s.running === "full" ? "full load" : "update"}. ` : "") +
     `Data folder: ${s.dataDir}`;

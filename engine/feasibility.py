@@ -71,15 +71,18 @@ def _band(table: list, sqft: float) -> float:
 
 def region_impact_fees(f: dict, units: int, unit_sqft: float) -> float:
     """Impact fees outside Chicago. `components` lists each fee (city transportation, county school, ...):
-    `single_family` (1 unit) and `multifamily` (2+ units) are a flat fee per unit or a living-area band table,
-    and `all_units` applies to both. Without components, a flat `per_unit`."""
+    `single_family` (1 unit) and `multifamily` (2+ units) are a flat fee per unit, a living-area band table or
+    {per_unit, per_sqft}, and `all_units` applies to both. Without components, a flat `per_unit`."""
     comps = f.get("components")
     if not comps:
         return float(f.get("per_unit", 0)) * units
     total = 0.0
     for c in comps:
         v = c.get("all_units", c.get("single_family" if units == 1 else "multifamily", 0))
-        total += _band(v, unit_sqft) if isinstance(v, list) else float(v or 0)
+        if isinstance(v, dict):  # {"per_unit": 612, "per_sqft": 0.918} (Miami-Dade school fee)
+            total += float(v.get("per_unit", 0)) + float(v.get("per_sqft", 0)) * unit_sqft
+        else:
+            total += _band(v, unit_sqft) if isinstance(v, list) else float(v or 0)
     return round(total) * units
 
 
@@ -113,11 +116,12 @@ def incentives(d: dict, x: Inputs, c: Cost, exit_: str, hold_value: float | None
                     "basis": basis, "kind": kind, "note": note})  # fmt: skip
 
     local = d.get("chicago_rules", True)
-    ez_value = c.hard * 0.40 * 0.1025
-    ez_ok = local and x.in_enterprise_zone and x.answers.get("materials_from_ez_supplier", True)
-    add("ez", "Enterprise Zone materials sales tax exemption", ez_ok, ez_value,
-        "10.25% sales tax on about 40% of hard cost (materials)", "cash",
-        "confirm residential eligibility; buy through an Enterprise Zone certificate")  # fmt: skip
+    if local:  # Illinois Enterprise Zone: not shown in other states
+        ez_value = c.hard * 0.40 * 0.1025
+        ez_ok = x.in_enterprise_zone and x.answers.get("materials_from_ez_supplier", True)
+        add("ez", "Enterprise Zone materials sales tax exemption", ez_ok, ez_value,
+            "10.25% sales tax on about 40% of hard cost (materials)", "cash",
+            "confirm residential eligibility; buy through an Enterprise Zone certificate")  # fmt: skip
     if exit_ == "sell":
         add("bonus", "Bonus depreciation (tax deferred)", False, 0, "Applies only if you hold", "deferral")
         add(
@@ -177,8 +181,8 @@ def scenario(
     # Enterprise Zone savings come off hard cost before financing (decision 39) when on.
     c0 = _cost(d, x, gross, fee, 0.0)
     inc0 = incentives(d, x, c0, exit_, None)
-    ez = next(i for i in inc0 if i["id"] == "ez")
-    savings = ez["value"] if ez["on"] else 0.0
+    ez = next((i for i in inc0 if i["id"] == "ez"), None)  # Chicago only
+    savings = ez["value"] if ez and ez["on"] else 0.0
     c = _cost(d, x, gross, fee, savings)
 
     out = {"name": name, "approval": approval, "units": x.units, "exit": exit_, "gross_sqft": round(gross),
@@ -464,6 +468,12 @@ def scenarios_for(zoning: Result, patterns: list[dict]) -> list[dict]:
         return max(ok, key=lambda pt: (pt["units"], pt["gross_sqft"])) if ok else None
 
     order = ["by_right", "rs3_two_flat", "admin_adjustment", "adu", "state_override", "rezoning"]
+    # City step paths (Orlando duplex lots and multiplexes, Houston small lots and multi-unit residential, Austin
+    # HOME units) come after the by-right path, most units first, when they allow more units than by right.
+    # Chicago has none.
+    base = by_id["by_right"].units if "by_right" in by_id else 0
+    steps = sorted((p for p in zoning.paths if p.id not in order and p.units > base), key=lambda p: -p.units)
+    order = order[:3] + [p.id for p in steps] + order[3:]
     min_units = 2 if region.is_chicago() else int(region.current().get("min_units", 1))
     for pid in order:
         if pid not in by_id or len(picks) >= 3:

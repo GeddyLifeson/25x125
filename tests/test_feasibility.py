@@ -61,6 +61,13 @@ def test_incentives_sell_vs_hold_and_toggles():
         ]
     }
     assert sell["oz"]["value"] == 0 and sell["bonus"]["value"] == 0 and sell["ez"]["on"]
+    outside = {
+        i["id"]
+        for i in scenario({**D, "chicago_rules": False}, three_flat(in_enterprise_zone=True), "sell")[
+            "incentives"
+        ]
+    }
+    assert "ez" not in outside and "class_7" not in outside  # Illinois programs only in Chicago
     hold = {i["id"]: i for i in scenario(D, three_flat(in_opportunity_zone=True), "hold")["incentives"]}
     assert hold["bonus"]["kind"] == "deferral" and hold["bonus"]["value"] > 0
     off = {i["id"]: i for i in scenario(D, three_flat(in_opportunity_zone=True, answers={"has_capital_gains": False}),

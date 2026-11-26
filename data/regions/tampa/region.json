@@ -69,6 +69,14 @@
       "url": "https://maps.hillsboroughcounty.org/arcgis/rest/services/FEMA_DFIRM/DSD_Flood_Hazard_Layers2022/FeatureServer/7",
       "name_field": "FLD_ZONE",
       "note": "Hillsborough County copy of the FEMA flood hazard zones effective 2022 (detailed). SFHA_TF marks the special flood hazard area."
+    },
+    {
+      "kind": "opportunity_zone_2018",
+      "url": "https://services.arcgis.com/VTyQ9soqVukalItT/arcgis/rest/services/Opportunity_Zones/FeatureServer/13",
+      "name_field": "GEOID10",
+      "note": "Qualified Opportunity Zones designated in 2018 (8,765 census tracts on 2010 tract lines), from the U.S. Department of Housing and Urban Development's copy of the Treasury (CDFI Fund) list. A lot is in a zone when its point is inside a designated 2010 tract. Designations run through 2028. build_region copies the tract number to parcel_site.opportunity_zone_2018. Verified 2026-11-26.",
+      "source_page": "https://home.treasury.gov/policy-issues/tax-policy/data-transparency/qualified-opportunity-zones",
+      "where": "STATE = '12'"
     }
   ],
   "permit_source": {

@@ -305,6 +305,8 @@ export type Scenario = {
 
 export type Feasibility = {
   pin: string;
+  // The incentive questions for this region (outside Chicago: federal programs only).
+  questions?: { id: string; text: string; type?: string; affects: string[]; if_no?: string; rule?: string }[];
   address_area: string | null;
   zone_class: string;
   lot_sqft: number | null;

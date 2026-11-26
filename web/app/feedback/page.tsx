@@ -1,4 +1,4 @@
-import { getParcel, settle } from "../../lib/engine";
+import { getParcel, pinId, settle } from "../../lib/engine";
 import { snapshotFromParams } from "../../lib/feedback";
 import { formatPin, titleCase } from "../../lib/format";
 import { getSession } from "../../lib/session";
@@ -13,7 +13,7 @@ const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
 
 export default async function FeedbackPage({ searchParams }: Props) {
   const sp = await searchParams;
-  const pinRaw = (one(sp.pin) ?? "").replace(/\D/g, "");
+  const pinRaw = pinId(one(sp.pin) ?? "");
   const pin = pinRaw.length === 10 || pinRaw.length === 14 ? pinRaw : null;
   const sc = one(sp.scenario)?.toUpperCase();
   const scenario = sc === "A" || sc === "B" || sc === "C" ? sc : null;

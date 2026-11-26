@@ -110,6 +110,8 @@ def _parking(rules: Rules, district: str, units: int, site: "Site") -> tuple[int
                 ),
             )
         return 0, bikes, f"transit-served ({site.transit_served}): no car parking required"
+    if site.transit_served and p.get("transit_no_parking"):
+        return 0, 0, f"{site.transit_served}: {p['transit_no_parking']}"
     note = f"{per_unit:g} space(s) per unit" + (
         " outside transit-served areas" if "bike_spaces_per_unit" in p else ""
     )
@@ -252,6 +254,8 @@ def _step_paths(site: Site, rules: Rules, d: District, lot: float) -> list[Path]
         if n < ep.get("min_units", 1):
             continue
         notes = [step.get("rule", "")[:300]] if step.get("rule") else []
+        if ep.get("assumption"):
+            notes.append(f"Assumption: {ep['assumption']}")
         p = _path(rules, site, d, sid, ep.get("name", sid.replace("_", " ").capitalize()),
                   step.get("approval") or ep.get("approval", "none (permit only)"), n, notes=notes)  # fmt: skip
         if step.get("section"):
@@ -402,12 +406,25 @@ def evaluate(site: Site, rules: Rules, rezoning_target: str | None = None) -> Re
     # 6. Rezoning.
     rz = rules.steps.get("rezoning") or {"targets": {}}
     targets = [t for t in rz["targets"].get(d.name, []) if t in rules.districts]
-    target = rezoning_target if rezoning_target in targets else (targets[0] if targets else None)
+
+    def target_units(name: str) -> int:
+        t = rules.districts[name]
+        n = _cap(t, _district_units(lot, t, rules))
+        return min(n, 1) if t.min_lot_area_sqft and lot < t.min_lot_area_sqft else n
+
+    by_right = next((p.units for p in res.paths if p.id == "by_right"), 0)
+    if rezoning_target in targets:
+        target = rezoning_target
+    else:
+        # The first listed target that adds units on this lot (San Antonio RM-4 at 7,749 sq ft: MF-18 gives 3,
+        # fewer than the 4 by right, so MF-33 is shown). If none adds units, the first target that keeps them
+        # (it may still add floor area); a rezoning that loses units is not shown.
+        target = next((t for t in targets if target_units(t) > by_right), None) or next(
+            (t for t in targets if target_units(t) >= by_right), None
+        )
     if target:
         t = rules.districts[target]
-        t_units = _cap(t, _district_units(lot, t, rules))
-        if t.min_lot_area_sqft and lot < t.min_lot_area_sqft:
-            t_units = min(t_units, 1)
+        t_units = target_units(target)
         fam = family(site.zone_class or "")
         label = f"{fam}{target[3:]}" if fam and target.startswith("B/C") else target
         p = _path(rules, site, t, "rezoning", f"Rezone to {label}", rz.get("approval", "rezoning"), t_units,

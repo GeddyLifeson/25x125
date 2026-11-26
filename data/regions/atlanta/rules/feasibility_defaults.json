@@ -3,37 +3,156 @@
   "sale_comps": {
     "method": {
       "size_elasticity": {
-        "building": 0.0,
+        "building": 0.5,
         "condo": 0.5
       }
     }
   },
   "calibration": {
     "region": "atlanta",
-    "computed_on": "2026-11-19",
-    "comps": 2189,
+    "computed_on": "2026-11-26",
+    "comps": 6639,
     "sales_from": "2025-01-01",
     "sales_to": "2025-01-01",
-    "size_elasticity": 0.0,
+    "size_elasticity": 0.5,
     "leave_one_out": {
       "n": 800,
-      "median_abs_error": 0.4269,
-      "within_15pct": 0.182
+      "median_abs_error": 0.15,
+      "within_15pct": 0.5
     },
     "test_set": {
       "n": 35,
-      "median_abs_error": 0.3879,
-      "within_15pct": 0.171
+      "median_abs_error": 0.2183,
+      "within_15pct": 0.457
     },
-    "test_set_inside_range": 0.943,
+    "test_set_inside_range": 0.857,
     "appraiser_land": null,
-    "implied_construction_cost": null,
+    "implied_construction_cost": {
+      "sales": 4383,
+      "per_sqft_p25": 124,
+      "per_sqft_median": 175,
+      "per_sqft_p75": 258,
+      "median_house_sqft": 1620
+    },
     "range_widened_by": 0.1,
     "basis": "appraisal district values",
     "leave_one_out_in_city": {
       "n": 800,
-      "median_abs_error": 0.4269,
-      "within_15pct": 0.182
+      "median_abs_error": 0.15,
+      "within_15pct": 0.5
     }
+  },
+  "rents": {
+    "new_construction_factor": 1.031,
+    "factor_range": [
+      0.857,
+      1.282
+    ],
+    "range_basis": "10th-90th percentile over 84 tracts of ACS 2020-2024 rent of units built 2010-2019 over all rented units",
+    "evidence": "python -m jobs.check_rents_acs: ACS 2020-2024 B25111 (median gross rent of units built 2010-2019) over B25064 (all rented units), median over 84 tracts with lots in Atlanta. Units built 2020 or later: 1.051 over 20 tracts.",
+    "caveat": "Census rents include long-tenure leases and utilities; no public rent rolls outside Chicago. Replace with a rent source when one is available.",
+    "verified_on": "2026-11-26"
+  },
+  "hold": {
+    "property_tax": {
+      "effective_tax_rate_default": 0.01636,
+      "tax_year": 2025,
+      "basis": "40.909 mills on taxable value x 0.40 (Georgia assesses 40% of fair market value)",
+      "rate_note": "Fulton County 2025 millage inside the City of Atlanta: city with Atlanta Public Schools 31.870, Fulton County 9.039. Georgia taxes 40% of fair market value. DeKalb part of the city differs. 2026 city and school rates not yet found.",
+      "source_url": "https://www.fultoncountytaxes.org/media/Millage_Rates_Through_2025.pdf",
+      "verified_on": "2026-11-26",
+      "caveat": "Non-homestead rate for an in-city lot; special districts some lots pay are not included."
+    }
+  },
+  "impact_fees": {
+    "basis": "City of Atlanta development impact fees at full rate (phase 3, from September 1, 2023): transportation, parks, fire and police. Duplexes to fourplexes pay multifamily rates. Water and sewer charges are not included.",
+    "components": [
+      {
+        "name": "Atlanta transportation impact fee",
+        "single_family": [
+          [
+            1500,
+            2940
+          ],
+          [
+            2500,
+            3128
+          ],
+          [
+            null,
+            3316
+          ]
+        ],
+        "multifamily": 1752,
+        "note": "Single family by gross floor area: under 1,500 sq ft, 1,500 to 2,499, 2,500 or more. Multifamily low-rise (1-2 stories); mid-rise $1,376. Half off within 1,000 walking feet of a MARTA station when parking stays at or below the minimum.",
+        "source_url": "https://atlantaga.gov/home/showpublisheddocument/52308/637655658776717262",
+        "ordinance": "21-O-0096, Code sec. 19-1007",
+        "effective": "2023-09-01",
+        "verified_on": "2026-11-26"
+      },
+      {
+        "name": "Atlanta parks impact fee",
+        "single_family": [
+          [
+            1500,
+            1129
+          ],
+          [
+            2500,
+            1217
+          ],
+          [
+            null,
+            1349
+          ]
+        ],
+        "multifamily": 826,
+        "source_url": "https://atlantaga.gov/home/showpublisheddocument/52308/637655658776717262",
+        "effective": "2023-09-01",
+        "verified_on": "2026-11-26"
+      },
+      {
+        "name": "Atlanta fire impact fee",
+        "single_family": [
+          [
+            1500,
+            260
+          ],
+          [
+            2500,
+            281
+          ],
+          [
+            null,
+            311
+          ]
+        ],
+        "multifamily": 191,
+        "source_url": "https://atlantaga.gov/home/showpublisheddocument/52308/637655658776717262",
+        "effective": "2023-09-01",
+        "verified_on": "2026-11-26"
+      },
+      {
+        "name": "Atlanta police impact fee",
+        "single_family": [
+          [
+            1500,
+            262
+          ],
+          [
+            2500,
+            282
+          ],
+          [
+            null,
+            313
+          ]
+        ],
+        "multifamily": 192,
+        "source_url": "https://atlantaga.gov/home/showpublisheddocument/52308/637655658776717262",
+        "effective": "2023-09-01",
+        "verified_on": "2026-11-26"
+      }
+    ]
   }
 }
